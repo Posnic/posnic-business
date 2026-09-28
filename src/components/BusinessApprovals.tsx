@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text, TextInput, View, useColorScheme } from "react-native";
 import { Button, Card } from "./ui";
@@ -24,7 +25,7 @@ import { businessFetch } from "../platform/network";
 import { proofSource } from "../platform/proof";
 import { formatMoney } from "../domain/money";
 import { type RefreshBinding } from "./LiveOverview";
-import { t, type MessageKey } from "../i18n";
+import { t, getFormatLocale, type MessageKey } from "../i18n";
 
 type Props = {
   credential: Credential;
@@ -66,6 +67,7 @@ export function BusinessApprovals({
   onOpen,
   branchId,
 }: Props & { onOpen: (id: string) => void; branchId?: string }) {
+  useLocale();
   const [entries, setEntries] = useState<Decision[]>([]),
     [next, setNext] = useState<string | null>(null),
     [history, setHistory] = useState(false),
@@ -200,6 +202,7 @@ export function BusinessApprovalDetail({
   onAccessLost,
   onRefreshBinding,
 }: Props & { requestId: string }) {
+  useLocale();
   const [row, setRow] = useState<Decision | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState<MessageKey | null>(null),
@@ -413,7 +416,7 @@ export function BusinessApprovalDetail({
             </Text>
             <Text style={ink}>
               {t("decisionExpires", {
-                time: new Date(row.expiresAt).toLocaleString(),
+                time: new Date(row.expiresAt).toLocaleString(getFormatLocale()),
               })}
             </Text>
             {row.state === "approved" && !expired && (
@@ -564,7 +567,7 @@ export function BusinessApprovalDetail({
             {row.timeline.map((event, index) => (
               <Text key={index} style={ink}>
                 {t(stateKeys[event.state])} ·{" "}
-                {new Date(event.at).toLocaleString()}
+                {new Date(event.at).toLocaleString(getFormatLocale())}
               </Text>
             ))}
             {row.decision && (

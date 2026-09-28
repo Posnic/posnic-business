@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -26,6 +27,7 @@ import { businessFetch } from "../platform/network";
 import { type BusinessContext } from "../domain/contracts";
 import { t } from "../i18n";
 import { clearConfirmation } from "../services/pendingConfirmation";
+import { pinInput } from "../i18n/digits";
 
 export function AccountScreen({
   initialSession,
@@ -36,6 +38,7 @@ export function AccountScreen({
   onExit: (message?: string) => void;
   onSessionConsumed: () => void;
 }) {
+  useLocale();
   const [credential, setCredential] = useState<Credential | null>(
     initialSession
       ? {
@@ -268,9 +271,7 @@ export function AccountScreen({
             placeholder={t("sixDigitPin")}
             placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
             value={pin}
-            onChangeText={(value) =>
-              setPin(value.replace(/\D/g, "").slice(0, 6))
-            }
+            onChangeText={(value) => setPin(pinInput(value))}
             secureTextEntry
             keyboardType="number-pad"
             maxLength={6}
@@ -283,9 +284,7 @@ export function AccountScreen({
               placeholder={t("confirmPin")}
               placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
               value={confirm}
-              onChangeText={(value) =>
-                setConfirm(value.replace(/\D/g, "").slice(0, 6))
-              }
+              onChangeText={(value) => setConfirm(pinInput(value))}
               secureTextEntry
               keyboardType="number-pad"
               maxLength={6}

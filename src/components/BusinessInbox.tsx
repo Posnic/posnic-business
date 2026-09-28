@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text, View, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
@@ -25,6 +26,7 @@ export function BusinessInbox({
   onAccessLost: () => void;
   onRefreshBinding: (binding: RefreshBinding) => void;
 }) {
+  useLocale();
   const [entries, setEntries] = useState<InboxEntry[]>([]),
     [next, setNext] = useState<string | null>(null),
     [busy, setBusy] = useState(false),

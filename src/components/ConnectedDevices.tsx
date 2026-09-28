@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import { Text, View, useColorScheme } from "react-native";
 import { Button, Card } from "./ui";
@@ -9,7 +10,7 @@ import {
   type BusinessSession,
 } from "../services/sessions";
 import { businessFetch } from "../platform/network";
-import { t } from "../i18n";
+import { t, getFormatLocale } from "../i18n";
 export function ConnectedDevices({
   credential,
   onAccessLost,
@@ -21,6 +22,7 @@ export function ConnectedDevices({
   page?: boolean;
   onClose?: () => void;
 }) {
+  useLocale();
   const [open, setOpen] = useState(page),
     [rows, setRows] = useState<BusinessSession[]>([]),
     [busy, setBusy] = useState(false),
@@ -102,11 +104,15 @@ export function ConnectedDevices({
             {row.current ? " · " + t("thisDevice") : ""}
           </Text>
           <Text style={text}>
-            {t("signedInOn", { date: new Date(row.issuedAt).toLocaleString() })}
+            {t("signedInOn", {
+              date: new Date(row.issuedAt).toLocaleString(getFormatLocale()),
+            })}
           </Text>
           <Text style={text}>
             {t("sessionExpires", {
-              date: new Date(row.expiresAt).toLocaleDateString(),
+              date: new Date(row.expiresAt).toLocaleDateString(
+                getFormatLocale(),
+              ),
             })}
           </Text>
           {!row.current &&

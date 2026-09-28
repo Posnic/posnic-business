@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, {
   createContext,
   useCallback,
@@ -40,7 +41,7 @@ import { type Credential } from "../services/sessionVault";
 import { type BusinessContext } from "../domain/contracts";
 import { supportsRememberedSession } from "../platform/vault";
 import { supportsPush } from "../platform/push";
-import { t } from "../i18n";
+import { t, isRTL } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { BusinessInbox } from "./BusinessInbox";
@@ -52,6 +53,7 @@ import { ConnectedDevices } from "./ConnectedDevices";
 import { PushSettings } from "./PushSettings";
 import { type usePushSettings } from "./usePushSettings";
 import { useReducedMotion } from "./useReducedMotion";
+import { LanguageSettings } from "./LanguageSettings";
 
 type Tabs = { Today: undefined; Inbox: undefined; More: undefined };
 type Routes = {
@@ -61,6 +63,7 @@ type Routes = {
   Publisher: { branchId: string };
   Devices: undefined;
   Security: undefined;
+  Language: undefined;
   PhoneNotifications: undefined;
   Approvals: undefined;
   Approval: { requestId: string };
@@ -210,6 +213,7 @@ function MenuRow({
   );
 }
 function Scope() {
+  useLocale();
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>(),
     colors = palette(useColorScheme() === "dark");
@@ -232,6 +236,7 @@ function Scope() {
   );
 }
 function Today() {
+  useLocale();
   const model = useModel(),
     [refresh, setRefresh] = useState<RefreshBinding>(null),
     colors = palette(useColorScheme() === "dark");
@@ -271,6 +276,7 @@ function Today() {
   );
 }
 function Inbox() {
+  useLocale();
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>(),
     [refresh, setRefresh] = useState<RefreshBinding>(null);
@@ -294,6 +300,7 @@ function Inbox() {
   );
 }
 function More() {
+  useLocale();
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
   function openModule(name: "Notifications" | "Publisher") {
@@ -360,6 +367,11 @@ function More() {
           <Button label={t("lockApp")} secondary onPress={model.onAccessLost} />
         </>
       )}
+      <MenuRow
+        title={t("language")}
+        icon="language-outline"
+        onPress={() => navigation.navigate("Language")}
+      />
       <Button label={t("signOut")} secondary onPress={model.onSignOut} />
     </Page>
   );
@@ -399,6 +411,7 @@ function ApprovalPage({ route }: NativeStackScreenProps<Routes, "Approval">) {
   );
 }
 function Home() {
+  useLocale();
   const model = useModel(),
     colors = palette(useColorScheme() === "dark");
   const insets = useSafeAreaInsets();
@@ -463,6 +476,7 @@ function Branches({
   navigation,
   route,
 }: NativeStackScreenProps<Routes, "Branches">) {
+  useLocale();
   const model = useModel();
   function choose(branchId: string | null) {
     model.setBranch(branchId);
@@ -499,6 +513,7 @@ function NotificationPage({
   route,
   navigation,
 }: NativeStackScreenProps<Routes, "Notifications">) {
+  useLocale();
   const reducedMotion = useReducedMotion();
   const model = useModel(),
     [dirty, setDirty] = useState(false),
@@ -565,6 +580,7 @@ export function BusinessNavigation({
   inboxIntent: number;
   onInboxConsumed: () => void;
 }) {
+  useLocale();
   const [branch, setBranch] = useState<string | null>(null),
     [generation, setGeneration] = useState(0);
   const reducedMotion = useReducedMotion();
@@ -598,6 +614,7 @@ export function BusinessNavigation({
   return (
     <Context.Provider value={model}>
       <NavigationContainer
+        direction={isRTL() ? "rtl" : "ltr"}
         ref={navigation}
         onReady={() => {
           const pending = pendingConfirmation(credential.origin, context);
@@ -691,6 +708,13 @@ export function BusinessNavigation({
             options={{ title: t("securitySettings") }}
           >
             {() => <Page>{security}</Page>}
+          </Stack.Screen>
+          <Stack.Screen name="Language" options={{ title: t("language") }}>
+            {() => (
+              <Page>
+                <LanguageSettings page />
+              </Page>
+            )}
           </Stack.Screen>
           <Stack.Screen
             name="PhoneNotifications"

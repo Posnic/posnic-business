@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import { Text, View, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
@@ -26,6 +27,7 @@ export function ReportingDesktop({
   page?: boolean;
   onClose?: () => void;
 }) {
+  useLocale();
   const [open, setOpen] = useState(page),
     [state, setState] = useState<Publishers | null>(null),
     [selected, setSelected] = useState<string | null>(null),

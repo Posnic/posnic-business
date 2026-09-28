@@ -1,15 +1,9 @@
 import en from "./en.json";
+import fr from "./fr.json";
+import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
-export function t(
-  key: MessageKey,
-  values: Record<string, string | number> = {},
-) {
-  return en[key].replace(/\{(\w+)\}/g, (_, name: string) =>
-    String(values[name] ?? `{${name}}`),
-  );
-}
 /** Target registry, not a claim of completed Business translations. */
-export const releaseLanguages = [
+const definitions = [
   ["en", "English"],
   ["ta", "தமிழ்"],
   ["hi", "हिन्दी"],
@@ -31,6 +25,20 @@ export const releaseLanguages = [
 ].map(([code, name]) => ({
   code: code!,
   name: name!,
+  formatLocale: code === "en" ? "en-IN" : code!,
   rtl: code === "ar",
-  status: code === "en" ? "preview" : "planned",
 }));
+export const translator = createTranslator<MessageKey>(en, definitions, {
+  en,
+  fr,
+});
+export const releaseLanguages = definitions.map((language) => ({
+  ...language,
+  status: translator.available(language.code) ? "preview" : "planned",
+}));
+export const getLocale = translator.getLocale;
+export const getFormatLocale = () => translator.getLanguage().formatLocale;
+export const isRTL = () => translator.getLanguage().rtl;
+export function t(key: MessageKey, values: Interpolation = {}) {
+  return translator.translate(key, values);
+}

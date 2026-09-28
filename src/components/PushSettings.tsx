@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React from "react";
 import { Text, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
@@ -9,6 +10,7 @@ export function PushSettings({
 }: {
   state: ReturnType<typeof usePushSettings>;
 }) {
+  useLocale();
   const ink = { color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37" };
   if (!supportsPush) return null;
   return (

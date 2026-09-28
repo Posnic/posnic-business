@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import { Text, View, StyleSheet } from "react-native";
 import * as WebBrowser from "expo-web-browser";
@@ -25,6 +26,7 @@ export function AuthorizationPanel({
   initialAttempt?: AuthorizationAttempt | null;
   onAttempt?: (attempt: AuthorizationAttempt | null) => void;
 }) {
+  useLocale();
   const [attempt, setAttempt] = useState<AuthorizationAttempt | null>(
     initialAttempt,
   );

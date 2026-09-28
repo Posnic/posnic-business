@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import { Text, TextInput, View, Switch, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
@@ -10,6 +11,7 @@ import {
 import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { t } from "../i18n";
+import { normalizeDigits } from "../i18n/digits";
 
 export function NotificationSettings({
   credential,
@@ -26,6 +28,7 @@ export function NotificationSettings({
   onClose?: () => void;
   onDirtyChanged?: (dirty: boolean) => void;
 }) {
+  useLocale();
   const [open, setOpen] = useState(page),
     [value, setValue] = useState<NotificationPreference | null>(null),
     [busy, setBusy] = useState(false),
@@ -106,7 +109,7 @@ export function NotificationSettings({
       <TextInput
         accessibilityLabel={label}
         value={text}
-        onChangeText={change}
+        onChangeText={(input) => change(normalizeDigits(input))}
         editable={!busy}
         maxLength={5}
         autoCapitalize="none"

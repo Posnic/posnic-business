@@ -1,3 +1,4 @@
+import { useLocale } from "../i18n/useLocale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text, View, StyleSheet, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
@@ -14,7 +15,7 @@ import {
 } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { formatMoney } from "../domain/money";
-import { t, type MessageKey } from "../i18n";
+import { t, getFormatLocale, type MessageKey } from "../i18n";
 import {
   readOverviewSnapshot,
   snapshotScope,
@@ -36,6 +37,7 @@ export function LiveOverview({
   onAccessLost: () => void;
   onRefreshBinding: (binding: RefreshBinding) => void;
 }) {
+  useLocale();
   const [snapshot, setSnapshot] = useState<OverviewSnapshot | null>(null);
   const [, tick] = useState(0);
   const [busy, setBusy] = useState(false),
@@ -219,7 +221,7 @@ export function LiveOverview({
             <Text style={[styles.text, ink]}>
               {t("preparedSummaryTime", {
                 date: summary.businessDate,
-                time: new Intl.DateTimeFormat(undefined, {
+                time: new Intl.DateTimeFormat(getFormatLocale(), {
                   hour: "numeric",
                   minute: "2-digit",
                   timeZone: selected[0]!.timezone,
@@ -256,7 +258,9 @@ export function LiveOverview({
             <View style={styles.row}>
               <Text style={[styles.text, ink]}>{t("issuedBills")}</Text>
               <Text selectable style={[styles.label, ink]}>
-                {new Intl.NumberFormat().format(summary.completedSales)}
+                {new Intl.NumberFormat(getFormatLocale()).format(
+                  summary.completedSales,
+                )}
               </Text>
             </View>
             <Text style={[styles.text, ink]}>{t("salesDefinition")}</Text>

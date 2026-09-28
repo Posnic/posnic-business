@@ -2,7 +2,9 @@
 
 18 languages: English, Tamil, Hindi, Malayalam, Kannada, Telugu, Sinhala, Nepali, Arabic, French, Spanish, Portuguese, Indonesian, Thai, German, Swahili, Dutch and Italian.
 
-The foundation UI is English only. The registry marks the other 17 as planned; it must not imply they are already translated. This development milestone is not the initial multilingual public app release.
+The working localization branch includes complete English and French catalogs for the current screens. Other languages remain planned and cannot be selected until their packs pass exact-key and interpolation checks. These development packs still need qualified language review; this milestone is not the initial multilingual public app release.
+
+Language selection is available before sign-in, in the sample's More tab and on a dedicated Language page in the connected account. Preferences are stored separately from authentication. Changing language updates mounted screens without restarting a session or submitting a pending action. Number and date formatting follows the selected language, while currency precision and business-day timezones remain server properties. The engine isolates interpolated values for RTL and navigation/interior gestures accept the selected direction. Arabic pack and native RTL verification remain outstanding.
 
 Requirements: selection before sign-in and in More, remembered preference, bundled offline packs, Arabic RTL, plural rules, local numbers/dates and notifications in the recipient's language. Currency and business-day timezone remain shop properties. Merchant-entered names/free-text reasons are not automatically translated.
 

@@ -1,8 +1,10 @@
+import { getFormatLocale } from "../i18n";
+
 export function formatMoney(
   minor: number,
   currency: string,
   digits: number,
-  locale = "en-IN",
+  locale = getFormatLocale(),
 ) {
   if (!Number.isSafeInteger(minor))
     throw new Error("Money must be safe integer minor units");

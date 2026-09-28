@@ -1,3 +1,4 @@
+import { useLocale } from "./i18n/useLocale";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   BackHandler,
@@ -36,7 +37,9 @@ import {
   type SampleProfile,
   type SampleNetwork,
 } from "./data/sample";
-import { t, releaseLanguages } from "./i18n";
+import { t, isRTL, translator } from "./i18n";
+import { readLanguage } from "./platform/language";
+import { LanguageSettings } from "./components/LanguageSettings";
 import { Button, Card, UIContext } from "./components/ui";
 import { AuthorizationPanel } from "./components/AuthorizationPanel";
 import { AccountScreen } from "./components/AccountScreen";
@@ -46,6 +49,7 @@ import { businessFetch } from "./platform/network";
 
 type Tab = "today" | "insights" | "inbox" | "more";
 function BusinessApp() {
+  useLocale();
   const dark = useColorScheme() === "dark",
     { width } = useWindowDimensions();
   const colors = dark
@@ -72,7 +76,11 @@ function BusinessApp() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        shell: { flex: 1, backgroundColor: colors.bg },
+        shell: {
+          flex: 1,
+          backgroundColor: colors.bg,
+          direction: isRTL() ? "rtl" : "ltr",
+        },
         frame: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center" },
         body: { padding: 22, paddingBottom: 32, gap: 14 },
         brand: {
@@ -160,7 +168,7 @@ function BusinessApp() {
         divider: { height: 1, backgroundColor: colors.line },
         disabled: { opacity: 0.45 },
       }),
-    [dark],
+    [dark, isRTL()],
   );
   const [started, setStarted] = useState(false),
     [community, setCommunity] = useState(false),
@@ -351,6 +359,7 @@ function BusinessApp() {
               gestureStart.current,
               p.width,
               g.numberActiveTouches,
+              isRTL(),
             ) !== null
           );
         },
@@ -359,7 +368,14 @@ function BusinessApp() {
         },
         onPanResponderRelease: (_e, g) => {
           const p = pagingRef.current,
-            action = recordSwipe(g.dx, g.dy, gestureStart.current, p.width, 1);
+            action = recordSwipe(
+              g.dx,
+              g.dy,
+              gestureStart.current,
+              p.width,
+              1,
+              isRTL(),
+            );
           if (
             singleTouch.current &&
             p.selected &&
@@ -465,6 +481,7 @@ function BusinessApp() {
                         {t("welcome")}
                       </Text>
                       <Text style={styles.sub}>{t("welcomeDetail")}</Text>
+                      <LanguageSettings />
                       {community ? (
                         <Card>
                           <Text accessibilityRole="header" style={styles.title}>
@@ -843,14 +860,7 @@ function BusinessApp() {
                       )}
                       {tab === "more" && (
                         <>
-                          <Card>
-                            <Text style={styles.title}>{t("language")}</Text>
-                            <Text style={styles.text}>English</Text>
-                            <Text style={styles.sub}>{t("languagePlan")}</Text>
-                            <Text style={styles.sub}>
-                              {releaseLanguages.map((l) => l.name).join(" · ")}
-                            </Text>
-                          </Card>
+                          <LanguageSettings page />
                           {hasCapability(
                             context,
                             "notifications.self.manage",
@@ -936,6 +946,7 @@ function BusinessApp() {
                       key={name}
                       accessibilityRole="tab"
                       accessibilityState={{ selected: tab === name }}
+                      aria-selected={tab === name}
                       onPress={() => {
                         setMessage("");
                         if (tab === name) {
@@ -973,9 +984,50 @@ function BusinessApp() {
   );
 }
 export default function App() {
+  const locale = useLocale();
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      document.documentElement.lang = locale;
+      document.documentElement.dir = isRTL() ? "rtl" : "ltr";
+    }
+  }, [locale]);
+  const [languageReady, setLanguageReady] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    const fallback = translator.resolveLocale([
+      Intl.DateTimeFormat().resolvedOptions().locale,
+    ]);
+    const timer = setTimeout(() => {
+      if (mounted) {
+        translator.setLocale(fallback);
+        setLanguageReady(true);
+        mounted = false;
+      }
+    }, 2000);
+    void readLanguage()
+      .catch(() => null)
+      .then((saved) => {
+        if (!mounted) return;
+        translator.setLocale(
+          saved && translator.available(saved) ? saved : fallback,
+        );
+        setLanguageReady(true);
+        clearTimeout(timer);
+      });
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
+  }, []);
   return (
     <SafeAreaProvider>
-      <BusinessApp />
+      {languageReady ? (
+        <BusinessApp />
+      ) : (
+        <View>
+          <Text>Posnic Business</Text>
+        </View>
+      )}
     </SafeAreaProvider>
   );
 }
