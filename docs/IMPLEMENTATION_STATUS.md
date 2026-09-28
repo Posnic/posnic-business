@@ -16,12 +16,13 @@ Version 0.1.0 development foundation, 28 September 2026.
 - Reporting transport with POS-token format rejection, bounded response streaming and exact scope/date checks. Expo fetch is used for explicit native cookie omission and redirect rejection; native runtime qualification remains pending.
 - Live Today screen for version-2 prepared summaries: sales after returns including tax, billed sales, returns and bill count. Branch-local dates, single-branch auto-selection, pull-to-refresh, strict reconciliation and partial/delayed labels. Failed refresh clears amounts; access loss locks the account. The companion desktop/gateway pipeline has local real-database tests; production deployment is pending.
 - Centralized English copy, 18-language target registry, test/format/build scripts and CI workflow.
+- Private real-account Inbox with bounded pagination, read status, pull-to-refresh and Android Back. Daily per-branch schedules and quiet hours use branch time with revision checks. The companion server persists delivery without an open phone, requests desktop preparation in advance and checks current access before delivery and history reads. Unavailable data produces an explicit notice. Phone push is not yet implemented.
 
 ## Pending
 
-- Phase 0 completion and reconciliation with real POS report fixtures.
-- Large-history reporting performance, source-completeness checkpoints, Community publication without a gateway, native secure-storage qualification and cache revocation.
-- Actual notification schedules/delivery and remote approval request/application service.
+- Broader real-business report reconciliation and source-completeness checkpoints. Actual sale/return writers and a 100,000-sale desktop fixture have been checked locally; production and low-end hardware remain unqualified.
+- Community HTTPS deployment qualification, native secure-storage qualification and cache revocation. Local Community publication without Gateway is implemented in the companion POS draft.
+- Native push registration/delivery, session-close and stock triggers, and remote approval request/application service.
 - The 17 non-English Business translations and native-speaker sign-off. Current UI is English only.
 - Full native navigation stack, iPhone interactive Back, Android predictive-back animation, native haptics, sheet behavior and device accessibility/lifecycle checks.
 - Real-device testing, signed release builds, store publication and production deployment. Earlier authorization code compiled successfully into an Android debug APK and iOS simulator app; newer biometric changes still require native compilation and device validation.
@@ -41,3 +42,5 @@ Native build run 36376341281 produced an Android debug APK and iOS simulator app
 Prepared-report checkpoint: 31 app tests and five browser flows pass. Browser coverage includes verified live totals, explicit partial data, no branch selector for a single branch and clearing an amount after unavailable refresh. Companion local verification includes 14 POS authentication/read/preparation tests, nine gateway publication/agent integration tests and 82 sale-writer/metric tests. These do not prove deployed source completeness, native readiness or production scale.
 
 Publisher-management checkpoint: owners with branch membership can select a recently connected desktop, confirm replacement and immediately clear/reload previous totals. The server uses a generation check and durable audit journal. Local checks pass 33 app tests, five browser flows (including explicit confirmation), 16 POS integration tests and ten gateway reporting tests. Management is on the branch's Reporting desktop page, not a Features switch.
+
+Notification checkpoint: 35 app tests and five browser flows pass, including saving a schedule, reading an unavailable notice and marking it read. POS validation passes 11 Business access/reporting route tests, five real-Mongo notification tests and six scheduling/worker unit tests. Quiet hours, daylight-saving gaps/repeated hours, concurrent workers, interrupted checkpoints, ACL removal and tenant fairness are covered. The mobile preview has been visually checked at 390px. These are local checks, not native push or deployed production validation.

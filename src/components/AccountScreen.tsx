@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
+  BackHandler,
   Text,
   TextInput,
   View,
@@ -11,6 +12,8 @@ import { Button, Card } from "./ui";
 import { ConnectedDevices } from "./ConnectedDevices";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { ReportingDesktop } from "./ReportingDesktop";
+import { BusinessInbox } from "./BusinessInbox";
+import { NotificationSettings } from "./NotificationSettings";
 import { type Session, revokeSession } from "../services/authorization";
 import { createReportingClient } from "../services/businessConnection";
 import {
@@ -59,12 +62,19 @@ export function AccountScreen({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [branch, setBranch] = useState<string | null>(null);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  useEffect(() => {
+    if (!inboxOpen) return;
+    const handler = BackHandler.addEventListener("hardwareBackPress", () => {
+      setInboxOpen(false);
+      return true;
+    });
+    return () => handler.remove();
+  }, [inboxOpen]);
   const [reportGeneration, setReportGeneration] = useState(0);
   const [biometricReady, setBiometricReady] = useState(false),
     [biometricEnabled, setBiometricEnabled] = useState(false),
-    [foreground, setForeground] = useState(
-      AppState.currentState !== "background",
-    );
+    [foreground, setForeground] = useState(AppState.currentState === "active");
   const nativePrompt = useRef(false);
   const controller = useRef<AbortController | null>(null),
     generation = useRef(0);
@@ -77,6 +87,7 @@ export function AccountScreen({
   const text = [styles.text, { color: ink }],
     title = [styles.title, { color: ink }];
   function lock() {
+    setInboxOpen(false);
     generation.current++;
     controller.current?.abort();
     vault.lock();
@@ -317,6 +328,22 @@ export function AccountScreen({
         />
       </Card>
     );
+  if (inboxOpen && credential && context)
+    return (
+      <View style={{ gap: 14 }}>
+        <Button
+          label={t("backToToday")}
+          secondary
+          onPress={() => setInboxOpen(false)}
+        />
+        <BusinessInbox
+          credential={credential}
+          context={context}
+          onAccessLost={lock}
+          onRefreshBinding={onRefreshBinding}
+        />
+      </View>
+    );
   return (
     <View style={{ gap: 14 }}>
       <Text accessibilityRole="header" style={title}>
@@ -373,11 +400,29 @@ export function AccountScreen({
       {supportsRememberedSession && (
         <Button label={t("lockApp")} secondary onPress={lock} />
       )}
+      {credential && context?.capabilities.includes("overview.read") && (
+        <Button
+          label={t("inbox")}
+          secondary
+          onPress={() => setInboxOpen(true)}
+        />
+      )}
+      {credential &&
+        context?.capabilities.includes("overview.read") &&
+        context.capabilities.includes("notifications.self.manage") &&
+        (branch || context.branches.length === 1) && (
+          <NotificationSettings
+            key={"notifications:" + (branch ?? context.branches[0]!.id)}
+            credential={credential}
+            branchId={branch ?? context.branches[0]!.id}
+            onAccessLost={lock}
+          />
+        )}
       {credential &&
         context?.capabilities.includes("reporting.manage") &&
         (branch || context.branches.length === 1) && (
           <ReportingDesktop
-            key={branch ?? context.branches[0]!.id}
+            key={"publisher:" + (branch ?? context.branches[0]!.id)}
             credential={credential}
             branchId={branch ?? context.branches[0]!.id}
             onAccessLost={lock}

@@ -12,6 +12,8 @@ test("approved Business connection shows only real scope and revokes on sign-out
     removedDevice = false;
   let summaryUnavailable = false;
   let publisherChanged = false;
+  let inboxRead = false;
+  let notificationRevision = 0;
   const liveContext = {
     ...sampleContext("manager"),
     businessName: "Connected test business",
@@ -93,6 +95,42 @@ test("approved Business connection shows only real scope and revokes on sign-out
           complete: false,
         },
       };
+    } else if (url.pathname.includes("/notifications/preferences/")) {
+      if (route.request().method() === "POST") {
+        expect(route.request().postDataJSON().expectedRevision).toBe(0);
+        expect(route.request().postDataJSON().time).toBe("21:30");
+        notificationRevision++;
+      }
+      result = {
+        branchId: liveContext.branches[0]!.id,
+        timezone: "Asia/Kolkata",
+        revision: notificationRevision,
+        enabled: notificationRevision > 0,
+        time: notificationRevision ? "21:30" : "23:00",
+        quiet: { enabled: false, start: "22:00", end: "07:00" },
+        locale: "en",
+        channel: "inApp",
+        nextSendAt: null,
+      };
+    } else if (url.pathname.endsWith("/inbox")) {
+      result = {
+        entries: [
+          {
+            id: "e".repeat(24),
+            branchId: liveContext.branches[0]!.id,
+            kind: "daily_unavailable",
+            businessDate: "2026-09-28",
+            createdAt: new Date().toISOString(),
+            read: inboxRead,
+            summary: null,
+          },
+        ],
+        next: null,
+      };
+    } else if (url.pathname.endsWith("/inbox/" + "e".repeat(24) + "/read")) {
+      expect(route.request().method()).toBe("POST");
+      inboxRead = true;
+      result = { read: true };
     } else if (url.pathname.includes("/reporting/publishers/")) {
       if (route.request().method() === "POST") {
         expect(route.request().postDataJSON()).toEqual({
@@ -187,6 +225,40 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-live-today.png",
     fullPage: true,
   });
+  await page
+    .getByRole("button", { name: "Notification settings", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Summary time (24-hour HH:mm)" })
+    .fill("21:30");
+  await page
+    .getByRole("switch", { name: "Daily summary", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Save notification settings", exact: true })
+    .click();
+  await expect(
+    page.getByText("Notification settings saved.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Close notification settings", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Inbox", exact: true }).click();
+  await expect(
+    page.getByText(/A verified summary was unavailable at the scheduled time/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Mark as read", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Mark as read", exact: true }),
+  ).toHaveCount(0);
+  expect(inboxRead).toBe(true);
+  await page.screenshot({
+    path: "test-results/business-inbox.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Back to Today", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Reporting desktop", exact: true })
     .click();
