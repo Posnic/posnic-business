@@ -114,6 +114,8 @@ if (
   require("@formatjs/intl-datetimeformat/locale-data/sw.js");
   require("@formatjs/intl-datetimeformat/locale-data/nl.js");
   require("@formatjs/intl-datetimeformat/locale-data/it.js");
+  require("@formatjs/intl-datetimeformat-calendar-buddhist");
+  require("@formatjs/intl-datetimeformat-calendar-buddhist/locale-data/th.js");
   require("@formatjs/intl-datetimeformat/add-all-tz.js");
   refreshFormattingTimeZone();
 }

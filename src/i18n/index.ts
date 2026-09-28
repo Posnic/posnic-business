@@ -12,6 +12,7 @@ import it from "./it.json";
 import nl from "./nl.json";
 import sw from "./sw.json";
 import ne from "./ne.json";
+import th from "./th.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -37,7 +38,14 @@ const definitions = [
 ].map(([code, name]) => ({
   code: code!,
   name: name!,
-  formatLocale: code === "en" ? "en-IN" : code === "pt" ? "pt-PT" : code!,
+  formatLocale:
+    code === "en"
+      ? "en-IN"
+      : code === "pt"
+        ? "pt-PT"
+        : code === "th"
+          ? "th-u-ca-buddhist"
+          : code!,
   rtl: code === "ar",
 }));
 export const bundledCatalogs = {
@@ -54,6 +62,7 @@ export const bundledCatalogs = {
   nl,
   sw,
   ne,
+  th,
 };
 export const translator = createTranslator<MessageKey>(
   en,
