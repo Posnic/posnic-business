@@ -10,4 +10,10 @@ Each decision has an idempotency key and observed revision. A lost response disp
 
 Validation: strict client contract/confirmation tests, a browser flow covering fresh confirmation and a lost accepted response, and server-side Mongo integration tests for live ACL, expiry, self-approval, limits, session revocation and retries. Browser fixtures do not qualify native device behavior. Android/iOS background/browser/PIN return, accessibility and signing builds still need physical-device validation.
 
-Rollout: server decision capability is off unless `POSNIC_BUSINESS_DECISIONS=1`. Complete the authenticated cashier/controller, device transport, durable request outbox, recovery, safe notifications and deployment before enabling it. Item-level bill context, further discount/currency combinations and production audit retention remain release work. This feature is not yet enabled for live sales.
+Rollout: server decision capability is off unless `POSNIC_BUSINESS_DECISIONS=1`. Companion draft branches implement the authenticated cashier/controller, device transport, durable outbox/recovery and safe approval notifications. Operator resolution for uncertain execution, production deployment and physical-device notification evidence remain gates before enabling it. Item-level bill context, further discount/currency combinations and production audit retention remain release work. This feature is not yet enabled for live sales.
+
+## Approval alerts
+
+More → Approval alerts opens settings for the selected branch, or the branch chooser when several branches are available and none is selected. One accessible branch opens directly. Alert opt-in and quiet hours are separate from daily summaries. Unsupported servers show a clear compatibility message and receive no preference write. Concurrent changes require a refresh; the client never treats an ambiguous save as confirmed.
+
+Inbox explicitly negotiates approval entries and validates branch, capability, identifier, expiry and exact event fields. It can load older entries even when an earlier page is empty after server filtering. Expired requests disappear while Inbox is open. Review request reads the current server decision; it never approves from notification data. Leaving Inbox discards its in-memory rows.

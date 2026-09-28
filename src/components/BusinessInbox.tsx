@@ -20,17 +20,36 @@ export function BusinessInbox({
   context,
   onAccessLost,
   onRefreshBinding,
+  onOpenApproval,
 }: {
   credential: Credential;
   context: BusinessContext;
   onAccessLost: () => void;
   onRefreshBinding: (binding: RefreshBinding) => void;
+  onOpenApproval: (requestId: string) => void;
 }) {
   useLocale();
   const [entries, setEntries] = useState<InboxEntry[]>([]),
     [next, setNext] = useState<string | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
+  // A request may expire while the Inbox is open. Remove its action locally;
+  // the detail read still rechecks current status and authority on the server.
+  useEffect(() => {
+    const timer = setInterval(
+      () =>
+        setEntries((rows) => {
+          const active = rows.filter(
+            (row) =>
+              row.kind !== "approval_requested" ||
+              Date.parse(row.requestExpiresAt) > Date.now(),
+          );
+          return active.length === rows.length ? rows : active;
+        }),
+      1000,
+    );
+    return () => clearInterval(timer);
+  }, []);
   const controller = useRef<AbortController | null>(null),
     generation = useRef(0),
     running = useRef(false),
@@ -61,15 +80,20 @@ export function BusinessInbox({
           before,
         );
         if (run !== generation.current || request.signal.aborted) return;
+        const active = result.entries.filter(
+          (entry) =>
+            entry.kind !== "approval_requested" ||
+            Date.parse(entry.requestExpiresAt) > Date.now(),
+        );
         setEntries((previous) =>
           before
             ? [
                 ...previous,
-                ...result.entries.filter(
+                ...active.filter(
                   (entry) => !previous.some((old) => old.id === entry.id),
                 ),
               ]
-            : result.entries,
+            : active,
         );
         setNext(result.next);
       } catch (error) {
@@ -162,7 +186,11 @@ export function BusinessInbox({
             accessibilityRole="header"
             style={[ink, { fontSize: 19, fontWeight: "600" }]}
           >
-            {t("dailySummary")}
+            {t(
+              entry.kind === "approval_requested"
+                ? "approvalAlerts"
+                : "dailySummary",
+            )}
             {entry.read ? "" : " · " + t("unread")}
           </Text>
           <Text style={ink}>
@@ -172,7 +200,22 @@ export function BusinessInbox({
             }{" "}
             · {entry.businessDate}
           </Text>
-          {entry.summary ? (
+          {entry.kind === "approval_requested" ? (
+            <>
+              <Text style={[ink, { lineHeight: 23 }]}>
+                {t("approvalListHelp")}
+              </Text>
+              <Button
+                label={t("reviewDecision")}
+                disabled={busy}
+                onPress={() => {
+                  if (Date.parse(entry.requestExpiresAt) > Date.now())
+                    onOpenApproval(entry.requestId);
+                  else void load();
+                }}
+              />
+            </>
+          ) : entry.summary ? (
             <>
               <Text style={[ink, { fontSize: 26, fontWeight: "700" }]}>
                 {formatMoney(

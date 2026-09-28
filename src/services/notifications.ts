@@ -41,7 +41,7 @@ export const preferenceSchema = z
   })
   .strict();
 export type NotificationPreference = z.infer<typeof preferenceSchema>;
-const entrySchema = z
+const dailyEntrySchema = z
   .object({
     id,
     branchId: id,
@@ -52,6 +52,16 @@ const entrySchema = z
     summary: preparedOverviewSchema.nullable(),
   })
   .strict();
+const approvalEntrySchema = dailyEntrySchema.extend({
+  kind: z.literal("approval_requested"),
+  summary: z.null(),
+  requestId: id,
+  requestExpiresAt: z.string().datetime(),
+});
+const entrySchema = z.discriminatedUnion("kind", [
+  dailyEntrySchema,
+  approvalEntrySchema,
+]);
 export type InboxEntry = z.infer<typeof entrySchema>;
 const inboxSchema = z
   .object({ entries: z.array(entrySchema).max(50), next: id.nullable() })
@@ -70,6 +80,12 @@ export function validateInbox(value: unknown, context: BusinessContext) {
       throw new Error("Scope mismatch");
     if ((entry.kind === "daily_summary") !== (entry.summary !== null))
       throw new Error("Invalid summary state");
+    if (
+      entry.kind === "approval_requested" &&
+      (!context.capabilities.includes("approvals.read") ||
+        Date.parse(entry.requestExpiresAt) <= Date.parse(entry.createdAt))
+    )
+      throw new Error("Invalid approval scope or expiry");
     if (entry.summary)
       validatePreparedOverview(
         entry.summary,
@@ -137,9 +153,15 @@ export async function readInbox(
 ) {
   if (before && !id.safeParse(before).success)
     throw new ConnectionError("invalidResponse");
+  const query = new URLSearchParams();
+  if (before) query.set("before", before);
+  // Explicitly opt in to this event shape. Older servers ignore this query
+  // and continue to return their daily-only Inbox contract.
+  if (context.capabilities.includes("approvals.read"))
+    query.set("approvals", "1");
   const value = await readJson(
     credential.origin,
-    "/inbox" + (before ? "?before=" + before : ""),
+    "/inbox" + (query.size ? "?" + query.toString() : ""),
     options,
     credential.token,
   );

@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Hifadhi mipangilio ya arifa",
   "closeNotificationSettings": "Funga mipangilio ya arifa",
   "inboxUnavailable": "Ujumbe wako haukuweza kuthibitishwa. Kagua muunganisho wako na ujaribu tena.",
-  "inboxHistoryHelp": "Muhtasari wa siku 90 zilizopita. Kiasi kinaonyesha data iliyoandaliwa iliyopatikana wakati kila muhtasari ulipohifadhiwa.",
-  "inboxEmpty": "Bado hakuna muhtasari. Washa muhtasari wa kila siku kwenye Mipangilio ya arifa ili kuanza kuupokea hapa.",
+  "inboxHistoryHelp": "Muhtasari uliohifadhiwa na maombi ya idhini yanayotumika. Kiasi kinaonyesha data iliyopatikana wakati kila muhtasari ulihifadhiwa.",
+  "inboxEmpty": "Hakuna masasisho ya kuonyesha.",
   "unread": "Haujasomwa",
   "digestPartial": "Mauzo baada ya marejesho yanajumuisha kodi na hayajumuishi bakshishi. Muhtasari huu uliohifadhiwa unaweza kuwa haujakamilika; si hesabu ya mwisho.",
   "digestUnavailable": "Muhtasari uliothibitishwa haukupatikana wakati uliopangwa. Fungua Leo ili kukagua tena. Hakuna kiasi kilichokisiwa.",
   "markRead": "Weka alama kuwa umesomwa",
-  "loadOlder": "Pakia muhtasari wa zamani",
+  "loadOlder": "Pakia masasisho ya zamani",
   "backToToday": "Rudi kwenye Leo",
   "phoneNotifications": "Arifa za simu",
   "pushPrivacyHelp": "Arifa husema tu kuwa sasisho liko tayari. Fungua Business ili kulisoma. Takwimu za mauzo na maamuzi ya idhini hayaonyeshwi kwenye skrini iliyofungwa.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "Siku 7 zilizopita",
   "itemRankingDefinition": "Bidhaa hadi 20, zikipangwa kwa mauzo yaliyogawiwa baada ya marejesho. Punguzo na ukadiriaji wa bili hugawiwa kwa bidhaa. Hii si faida.",
   "itemHistoryIncomplete": "Historia ya bidhaa haijakamilika. Orodha ya viwango haipatikani hadi maelezo ya mauzo ya awali yathibitishwe.",
-  "itemRankingEmpty": "Hakuna mauzo au marejesho ya bidhaa yaliyorekodiwa kwa siku hii."
+  "itemRankingEmpty": "Hakuna mauzo au marejesho ya bidhaa yaliyorekodiwa kwa siku hii.",
+  "approvalAlerts": "Arifa za idhini",
+  "approvalAlertsHelp": "Pokea maombi mapya unayoweza kukagua kwenye kikasha. Washa arifa za simu ili kupata arifa kwenye kifaa hiki.",
+  "approvalAlertsQuietHelp": "Arifa za simu husubiri hadi saa za utulivu ziishe. Maombi yaliyokwisha muda hayatatumwa.",
+  "approvalAlertsUnsupported": "Seva hii bado haitumii arifa za idhini."
 }

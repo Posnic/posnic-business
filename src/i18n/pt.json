@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Guardar configurações de notificações",
   "closeNotificationSettings": "Fechar configurações de notificações",
   "inboxUnavailable": "Não foi possível verificar as suas mensagens. Verifique a ligação e tente novamente.",
-  "inboxHistoryHelp": "Resumos dos últimos 90 dias. Os valores refletem os dados preparados disponíveis quando cada resumo foi guardado.",
-  "inboxEmpty": "Ainda não há resumos. Ative os resumos diários nas configurações de notificações para os receber aqui.",
+  "inboxHistoryHelp": "Resumos guardados e pedidos de aprovação ativos. Os valores refletem os dados disponíveis quando cada resumo foi guardado.",
+  "inboxEmpty": "Sem atualizações para mostrar.",
   "unread": "Por ler",
   "digestPartial": "As vendas após devoluções incluem impostos e excluem gorjetas. Este resumo guardado pode estar incompleto; não é um fecho definitivo.",
   "digestUnavailable": "Não havia um resumo verificado à hora programada. Abra Hoje para verificar novamente. Nenhum valor foi presumido.",
   "markRead": "Marcar como lido",
-  "loadOlder": "Carregar resumos anteriores",
+  "loadOlder": "Carregar atualizações anteriores",
   "backToToday": "Voltar a Hoje",
   "phoneNotifications": "Notificações do telefone",
   "pushPrivacyHelp": "Os alertas apenas indicam que há uma novidade. Desbloqueie o Business para a ler. Os valores de vendas e as decisões de aprovação não aparecem no ecrã de bloqueio.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "Os 7 dias anteriores",
   "itemRankingDefinition": "Até 20 artigos, ordenados pelas vendas atribuídas após devoluções. Os descontos e arredondamentos da fatura são distribuídos pelos artigos. Não é lucro.",
   "itemHistoryIncomplete": "O histórico dos artigos está incompleto. A classificação fica indisponível até verificar as vendas originais.",
-  "itemRankingEmpty": "Não foram registadas vendas nem devoluções de artigos neste dia."
+  "itemRankingEmpty": "Não foram registadas vendas nem devoluções de artigos neste dia.",
+  "approvalAlerts": "Alertas de aprovação",
+  "approvalAlertsHelp": "Receba na caixa de entrada os novos pedidos que pode analisar. Ative as notificações do telefone para receber alertas neste dispositivo.",
+  "approvalAlertsQuietHelp": "Os alertas aguardam o fim do horário de silêncio. Os pedidos expirados não são enviados.",
+  "approvalAlertsUnsupported": "Este servidor ainda não suporta alertas de aprovação."
 }

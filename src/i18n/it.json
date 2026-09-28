@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Salva impostazioni notifiche",
   "closeNotificationSettings": "Chiudi impostazioni notifiche",
   "inboxUnavailable": "Impossibile verificare i tuoi messaggi. Controlla la connessione e riprova.",
-  "inboxHistoryHelp": "Riepiloghi degli ultimi 90 giorni. Gli importi riflettono i dati preparati disponibili al momento del salvataggio di ciascun riepilogo.",
-  "inboxEmpty": "Ancora nessun riepilogo. Attiva i riepiloghi giornalieri nelle impostazioni notifiche per riceverli qui.",
+  "inboxHistoryHelp": "Riepiloghi salvati e richieste di approvazione attive. Gli importi riflettono i dati disponibili al salvataggio di ogni riepilogo.",
+  "inboxEmpty": "Nessun aggiornamento da mostrare.",
   "unread": "Non letto",
   "digestPartial": "Le vendite dopo i resi includono le imposte ed escludono le mance. Questo riepilogo salvato potrebbe essere incompleto; non è una chiusura definitiva.",
   "digestUnavailable": "All’ora programmata non era disponibile un riepilogo verificato. Apri Oggi per controllare di nuovo. Nessun importo è stato presunto.",
   "markRead": "Segna come letto",
-  "loadOlder": "Carica riepiloghi precedenti",
+  "loadOlder": "Carica aggiornamenti precedenti",
   "backToToday": "Torna a Oggi",
   "phoneNotifications": "Notifiche del telefono",
   "pushPrivacyHelp": "Gli avvisi indicano solo che è disponibile una novità. Sblocca Business per leggerla. I valori delle vendite e le decisioni di approvazione non compaiono sulla schermata di blocco.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "I 7 giorni precedenti",
   "itemRankingDefinition": "Fino a 20 articoli, ordinati per vendite attribuite dopo i resi. Sconti e arrotondamenti della fattura sono ripartiti tra gli articoli. Non è il profitto.",
   "itemHistoryIncomplete": "Lo storico degli articoli è incompleto. La classifica non è disponibile finché non vengono verificate le vendite originali.",
-  "itemRankingEmpty": "Nessuna vendita o reso di articoli registrato per questo giorno."
+  "itemRankingEmpty": "Nessuna vendita o reso di articoli registrato per questo giorno.",
+  "approvalAlerts": "Avvisi di approvazione",
+  "approvalAlertsHelp": "Ricevi nella posta in arrivo le nuove richieste che puoi esaminare. Attiva le notifiche del telefono per ricevere avvisi su questo dispositivo.",
+  "approvalAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le richieste scadute non vengono inviate.",
+  "approvalAlertsUnsupported": "Questo server non supporta ancora gli avvisi di approvazione."
 }

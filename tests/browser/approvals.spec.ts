@@ -12,7 +12,12 @@ test("review confirms identity and reconciles a lost decision response without c
     accountId: "1".repeat(24),
     businessId: "2".repeat(24),
     businessName: "Approval test business",
-    capabilities: ["approvals.read", "discounts.approve"],
+    capabilities: [
+      "overview.read",
+      "approvals.read",
+      "discounts.approve",
+      "notifications.self.manage",
+    ],
     branches: [
       {
         id: "3".repeat(24),
@@ -26,6 +31,14 @@ test("review confirms identity and reconciles a lost decision response without c
   let stepUp = false,
     decisions = 0,
     proofRevoked = false;
+  let alerts = {
+    branchId: account.branches[0]!.id,
+    timezone: "Asia/Kolkata",
+    revision: 0,
+    enabled: false,
+    quiet: { enabled: false, start: "22:00", end: "07:00" },
+  };
+  let inboxPage = 0;
   let row: Decision = {
     id: "4".repeat(24),
     branchId: account.branches[0]!.id,
@@ -63,8 +76,71 @@ test("review confirms identity and reconciles a lost decision response without c
         authorization: "business-pkce-v1",
         audience: "posnic-business",
         reporting: "unavailable",
+        ...(url.searchParams.get("approvals") === "1"
+          ? { approvalAlerts: "inbox-approval-v1" }
+          : {}),
       };
-    else if (endpoint === "/requests") {
+    else if (
+      endpoint ===
+      "/notifications/approvals/" + account.branches[0]!.id
+    ) {
+      expect(route.request().headers().authorization).toBe("Bearer " + token);
+      if (route.request().method() === "POST") {
+        const input = route.request().postDataJSON();
+        expect(Object.keys(input).sort()).toEqual([
+          "enabled",
+          "expectedRevision",
+          "quiet",
+        ]);
+        expect(input.expectedRevision).toBe(alerts.revision);
+        alerts = {
+          ...alerts,
+          enabled: input.enabled,
+          quiet: input.quiet,
+          revision: alerts.revision + 1,
+        };
+      }
+      result = alerts;
+    } else if (endpoint === "/inbox") {
+      expect(url.searchParams.get("approvals")).toBe("1");
+      inboxPage++;
+      // A page whose requests were withdrawn or expired can be empty but
+      // still have a cursor. The phone must allow the user to continue.
+      result = !url.searchParams.has("before")
+        ? { entries: [], next: "6".repeat(24) }
+        : {
+            entries:
+              row.state === "pending"
+                ? [
+                    {
+                      id: "7".repeat(24),
+                      branchId: row.branchId,
+                      kind: "approval_requested",
+                      businessDate: "2026-09-29",
+                      createdAt: row.createdAt,
+                      read: false,
+                      summary: null,
+                      requestId: row.id,
+                      requestExpiresAt: row.expiresAt,
+                    },
+                    {
+                      id: "8".repeat(24),
+                      branchId: row.branchId,
+                      kind: "approval_requested",
+                      businessDate: "2026-09-29",
+                      createdAt: row.createdAt,
+                      read: false,
+                      summary: null,
+                      requestId: "9".repeat(24),
+                      requestExpiresAt: new Date(
+                        Date.now() + 60_000,
+                      ).toISOString(),
+                    },
+                  ]
+                : [],
+            next: null,
+          };
+    } else if (endpoint === "/requests") {
       stepUp = route.request().postDataJSON().stepUp === true;
       const request = (stepUp ? "s" : "r").repeat(43);
       result = {
@@ -146,7 +222,73 @@ test("review confirms identity and reconciles a lost decision response without c
     page.getByRole("heading", { name: account.businessName }),
   ).toBeVisible({ timeout: 12000 });
   await page.getByRole("tab", { name: "More", exact: true }).click();
-  await page.getByRole("button", { name: "Approvals", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Approval alerts", exact: true })
+    .click();
+  await expect(
+    page.getByRole("switch", { name: "Approval alerts", exact: true }),
+  ).not.toBeChecked();
+  await expect(
+    page.getByRole("textbox", { name: "Summary time (24-hour HH:mm)" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("switch", { name: "Approval alerts", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Close notification settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Discard changes?", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Discard changes?", exact: true }),
+  ).toBeHidden();
+  await page.getByRole("switch", { name: "Quiet hours", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Quiet hours start (HH:mm)", exact: true })
+    .fill("07:00");
+  await expect(
+    page.getByRole("button", {
+      name: "Save notification settings",
+      exact: true,
+    }),
+  ).toBeDisabled();
+  await page
+    .getByRole("textbox", { name: "Quiet hours start (HH:mm)", exact: true })
+    .fill("22:00");
+  await page
+    .getByRole("button", { name: "Save notification settings", exact: true })
+    .click();
+  await expect(
+    page.getByText("Notification settings saved.", { exact: true }),
+  ).toBeVisible();
+  expect(alerts.enabled).toBe(true);
+  expect(alerts.revision).toBe(1);
+  await page.screenshot({
+    path: "test-results/business-approval-alert-settings.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Close notification settings", exact: true })
+    .click();
+  await page.clock.install();
+  await page.getByRole("tab", { name: "Inbox", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Load older updates", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Review request", exact: true }),
+  ).toHaveCount(2);
+  await page.clock.fastForward(61_000);
+  await expect(
+    page.getByRole("button", { name: "Review request", exact: true }),
+  ).toHaveCount(1);
+  await page.screenshot({
+    path: "test-results/business-approval-inbox.png",
+    fullPage: true,
+  });
+  expect(inboxPage).toBeGreaterThanOrEqual(2);
   await expect(
     page.getByRole("button", { name: "All branches", exact: true }),
   ).toHaveCount(0);

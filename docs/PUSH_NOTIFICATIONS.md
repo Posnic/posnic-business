@@ -47,3 +47,9 @@ physical device have not been supplied in this workspace.
 References: [Expo setup](https://docs.expo.dev/push-notifications/push-notifications-setup/),
 [delivery and receipts](https://docs.expo.dev/push-notifications/sending-notifications/),
 [native notification API](https://docs.expo.dev/versions/latest/sdk/notifications/).
+
+## Approval-request delivery
+
+Approval alerts have a separate account/branch opt-in and quiet-hours preference. The server materializes only new, pending, unexpired requests the recipient can review, excluding self-requests and discounts above the current limit. It repeats authorization, preference, session and expiry checks before every send/retry. Requests that would expire during quiet hours are not sent afterward. Daily-summary failures do not block the approval stage.
+
+The phone negotiates support before reading settings. The Inbox request opts into `approval_requested` events, whose strict payload adds only `requestId` and `requestExpiresAt` to the generic entry fields. Opening Review request uses the existing live decision reader and password-confirmation flow. Provider payloads remain generic and contain no decision action. Actual APNs/FCM and physical-device validation remain pending.

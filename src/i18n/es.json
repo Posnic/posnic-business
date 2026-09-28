@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Guardar configuración de notificaciones",
   "closeNotificationSettings": "Cerrar configuración de notificaciones",
   "inboxUnavailable": "No se pudo verificar tu bandeja. Comprueba tu conexión e inténtalo de nuevo.",
-  "inboxHistoryHelp": "Resúmenes de los últimos 90 días. Los importes reflejan los datos preparados disponibles al guardar cada resumen.",
-  "inboxEmpty": "Aún no hay resúmenes. Activa los resúmenes diarios en la configuración de notificaciones para recibirlos aquí.",
+  "inboxHistoryHelp": "Resúmenes guardados y solicitudes de aprobación activas. Los importes reflejan los datos disponibles al guardar cada resumen.",
+  "inboxEmpty": "No hay actualizaciones que mostrar.",
   "unread": "Sin leer",
   "digestPartial": "Las ventas tras devoluciones incluyen impuestos y excluyen propinas. Este resumen guardado podría estar incompleto; no es un cierre definitivo.",
   "digestUnavailable": "No había un resumen verificado a la hora programada. Abre Hoy para volver a comprobarlo. No se ha supuesto ningún importe.",
   "markRead": "Marcar como leído",
-  "loadOlder": "Cargar resúmenes anteriores",
+  "loadOlder": "Cargar actualizaciones anteriores",
   "backToToday": "Volver a Hoy",
   "phoneNotifications": "Notificaciones del teléfono",
   "pushPrivacyHelp": "Las alertas solo indican que hay una novedad. Desbloquea Business para leerla. Tus cifras de ventas y decisiones de aprobación no aparecen en la pantalla de bloqueo.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "Los 7 días anteriores",
   "itemRankingDefinition": "Hasta 20 artículos, ordenados por ventas asignadas tras devoluciones. Los descuentos y redondeos de la factura se reparten entre los artículos. No son beneficios.",
   "itemHistoryIncomplete": "El historial de artículos está incompleto. La clasificación no estará disponible hasta verificar las ventas originales.",
-  "itemRankingEmpty": "No se registraron ventas ni devoluciones de artículos este día."
+  "itemRankingEmpty": "No se registraron ventas ni devoluciones de artículos este día.",
+  "approvalAlerts": "Alertas de aprobación",
+  "approvalAlertsHelp": "Recibe en la bandeja de entrada las nuevas solicitudes que puedes revisar. Activa las notificaciones del teléfono para recibir alertas en este dispositivo.",
+  "approvalAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las solicitudes vencidas no se envían.",
+  "approvalAlertsUnsupported": "Este servidor aún no admite alertas de aprobación."
 }

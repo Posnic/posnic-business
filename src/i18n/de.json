@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Mitteilungseinstellungen speichern",
   "closeNotificationSettings": "Mitteilungseinstellungen schließen",
   "inboxUnavailable": "Ihr Postfach konnte nicht verifiziert werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-  "inboxHistoryHelp": "Zusammenfassungen der letzten 90 Tage. Beträge entsprechen den vorbereiteten Daten, die beim Speichern der jeweiligen Zusammenfassung verfügbar waren.",
-  "inboxEmpty": "Noch keine Zusammenfassungen. Aktivieren Sie tägliche Zusammenfassungen in den Mitteilungseinstellungen, um sie hier zu erhalten.",
+  "inboxHistoryHelp": "Gespeicherte Zusammenfassungen und aktive Genehmigungsanfragen. Beträge entsprechen den beim Speichern verfügbaren Daten.",
+  "inboxEmpty": "Keine Aktualisierungen vorhanden.",
   "unread": "Ungelesen",
   "digestPartial": "Der Umsatz nach Retouren enthält Steuern, aber kein Trinkgeld. Diese gespeicherte Zusammenfassung kann unvollständig sein. Sie ist keine endgültige Abrechnung.",
   "digestUnavailable": "Zur geplanten Uhrzeit war keine verifizierte Zusammenfassung verfügbar. Öffnen Sie Heute, um erneut zu prüfen. Es wurde kein Betrag angenommen.",
   "markRead": "Als gelesen markieren",
-  "loadOlder": "Ältere Zusammenfassungen laden",
+  "loadOlder": "Ältere Aktualisierungen laden",
   "backToToday": "Zurück zu Heute",
   "phoneNotifications": "Telefonmitteilungen",
   "pushPrivacyHelp": "Mitteilungen zeigen nur an, dass es Neuigkeiten gibt. Entsperren Sie Business, um sie zu lesen. Umsatzzahlen und Freigabeentscheidungen erscheinen nicht auf dem Sperrbildschirm.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "Die letzten 7 Tage",
   "itemRankingDefinition": "Bis zu 20 Artikel, sortiert nach zugeordnetem Umsatz nach Retouren. Rechnungsrabatte und Rundungen werden auf die Artikel verteilt. Dies ist kein Gewinn.",
   "itemHistoryIncomplete": "Der Artikelverlauf ist unvollständig. Die Rangliste ist erst nach Prüfung der ursprünglichen Verkaufsdaten verfügbar.",
-  "itemRankingEmpty": "Für diesen Tag wurden keine Artikelverkäufe oder Retouren erfasst."
+  "itemRankingEmpty": "Für diesen Tag wurden keine Artikelverkäufe oder Retouren erfasst.",
+  "approvalAlerts": "Genehmigungsbenachrichtigungen",
+  "approvalAlertsHelp": "Erhalten Sie neue Anfragen, die Sie prüfen dürfen, im Posteingang. Aktivieren Sie Telefonbenachrichtigungen für Hinweise auf diesem Gerät.",
+  "approvalAlertsQuietHelp": "Telefonbenachrichtigungen warten bis zum Ende der Ruhezeiten. Abgelaufene Anfragen werden nicht gesendet.",
+  "approvalAlertsUnsupported": "Dieser Server unterstützt noch keine Genehmigungsbenachrichtigungen."
 }

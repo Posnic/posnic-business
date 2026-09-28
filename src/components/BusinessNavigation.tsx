@@ -66,8 +66,12 @@ type Tabs = {
 };
 type Routes = {
   Home: NavigatorScreenParams<Tabs> | undefined;
-  Branches: { destination: "scope" | "Notifications" | "Publisher" };
+  Branches: {
+    destination:
+      "scope" | "Notifications" | "ApprovalNotifications" | "Publisher";
+  };
   Notifications: { branchId: string };
+  ApprovalNotifications: { branchId: string };
   Publisher: { branchId: string };
   Devices: undefined;
   Security: undefined;
@@ -329,6 +333,7 @@ function Insights() {
 }
 function Inbox() {
   useLocale();
+  const focused = useIsFocused();
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>(),
     [refresh, setRefresh] = useState<RefreshBinding>(null);
@@ -342,12 +347,17 @@ function Inbox() {
           onPress={() => navigation.navigate("Approvals")}
         />
       )}
-      <BusinessInbox
-        credential={model.credential}
-        context={model.context}
-        onAccessLost={model.onAccessLost}
-        onRefreshBinding={setRefresh}
-      />
+      {focused && (
+        <BusinessInbox
+          credential={model.credential}
+          context={model.context}
+          onAccessLost={model.onAccessLost}
+          onRefreshBinding={setRefresh}
+          onOpenApproval={(requestId) =>
+            navigation.navigate("Approval", { requestId })
+          }
+        />
+      )}
     </Page>
   );
 }
@@ -355,7 +365,9 @@ function More() {
   useLocale();
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
-  function openModule(name: "Notifications" | "Publisher") {
+  function openModule(
+    name: "Notifications" | "ApprovalNotifications" | "Publisher",
+  ) {
     const branchId =
       model.branch ??
       (model.context.branches.length === 1
@@ -384,6 +396,15 @@ function More() {
             detail={t("notificationMenuHelp")}
             icon="notifications-outline"
             onPress={() => openModule("Notifications")}
+          />
+        )}
+      {model.context.capabilities.includes("approvals.read") &&
+        model.context.capabilities.includes("notifications.self.manage") &&
+        model.context.branches.length > 0 && (
+          <MenuRow
+            title={t("approvalAlerts")}
+            icon="notifications-outline"
+            onPress={() => openModule("ApprovalNotifications")}
           />
         )}
       {supportsPush && (
@@ -606,7 +627,7 @@ function Branches({
 function NotificationPage({
   route,
   navigation,
-}: NativeStackScreenProps<Routes, "Notifications">) {
+}: NativeStackScreenProps<Routes, "Notifications" | "ApprovalNotifications">) {
   useLocale();
   const reducedMotion = useReducedMotion();
   const model = useModel(),
@@ -617,7 +638,18 @@ function NotificationPage({
   return (
     <>
       <Page>
+        <Heading>
+          {
+            model.context.branches.find(
+              (branch) => branch.id === route.params.branchId,
+            )?.name
+          }
+        </Heading>
         <NotificationSettings
+          key={route.name + route.params.branchId}
+          approvalContext={
+            route.name === "ApprovalNotifications" ? model.context : undefined
+          }
           page
           credential={model.credential}
           branchId={route.params.branchId}
@@ -765,6 +797,14 @@ export function BusinessNavigation({
             component={NotificationPage}
             options={{ title: t("notificationSettings") }}
           />
+          {context.capabilities.includes("approvals.read") &&
+            context.capabilities.includes("notifications.self.manage") && (
+              <Stack.Screen
+                name="ApprovalNotifications"
+                component={NotificationPage}
+                options={{ title: t("approvalAlerts") }}
+              />
+            )}
           <Stack.Screen
             name="Publisher"
             options={{ title: t("reportingDesktop") }}

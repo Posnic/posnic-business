@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Meldingsinstellingen opslaan",
   "closeNotificationSettings": "Meldingsinstellingen sluiten",
   "inboxUnavailable": "Uw postvak kon niet worden geverifieerd. Controleer uw verbinding en probeer het opnieuw.",
-  "inboxHistoryHelp": "Samenvattingen van de afgelopen 90 dagen. Bedragen weerspiegelen de voorbereide gegevens die beschikbaar waren toen elke samenvatting werd opgeslagen.",
-  "inboxEmpty": "Nog geen samenvattingen. Schakel dagelijkse samenvattingen in bij Meldingsinstellingen om ze hier te ontvangen.",
+  "inboxHistoryHelp": "Opgeslagen samenvattingen en actieve goedkeuringsaanvragen. Bedragen weerspiegelen de gegevens die beschikbaar waren toen elke samenvatting werd opgeslagen.",
+  "inboxEmpty": "Geen updates om weer te geven.",
   "unread": "Ongelezen",
   "digestPartial": "Omzet na retouren is inclusief belasting en exclusief fooien. Deze opgeslagen samenvatting kan onvolledig zijn; het is geen definitieve afrekening.",
   "digestUnavailable": "Op het geplande tijdstip was geen geverifieerde samenvatting beschikbaar. Open Vandaag om opnieuw te controleren. Er is geen bedrag aangenomen.",
   "markRead": "Markeren als gelezen",
-  "loadOlder": "Oudere samenvattingen laden",
+  "loadOlder": "Oudere updates laden",
   "backToToday": "Terug naar Vandaag",
   "phoneNotifications": "Telefoonmeldingen",
   "pushPrivacyHelp": "Meldingen geven alleen aan dat er een update is. Ontgrendel Business om deze te lezen. Uw omzetcijfers en goedkeuringsbeslissingen verschijnen niet op het vergrendelscherm.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "De afgelopen 7 dagen",
   "itemRankingDefinition": "Maximaal 20 artikelen, gerangschikt op toegewezen omzet na retouren. Factuurkortingen en afrondingen worden over de artikelen verdeeld. Dit is geen winst.",
   "itemHistoryIncomplete": "De artikelhistorie is onvolledig. De ranglijst is pas beschikbaar nadat de oorspronkelijke verkoopgegevens zijn gecontroleerd.",
-  "itemRankingEmpty": "Er zijn voor deze dag geen artikelverkopen of retouren geregistreerd."
+  "itemRankingEmpty": "Er zijn voor deze dag geen artikelverkopen of retouren geregistreerd.",
+  "approvalAlerts": "Goedkeuringsmeldingen",
+  "approvalAlertsHelp": "Ontvang nieuwe aanvragen die u kunt beoordelen in uw inbox. Schakel telefoonmeldingen in voor meldingen op dit apparaat.",
+  "approvalAlertsQuietHelp": "Telefoonmeldingen wachten tot de stille uren voorbij zijn. Verlopen aanvragen worden niet verstuurd.",
+  "approvalAlertsUnsupported": "Deze server ondersteunt nog geen goedkeuringsmeldingen."
 }

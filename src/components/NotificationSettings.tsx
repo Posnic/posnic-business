@@ -12,6 +12,12 @@ import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { t } from "../i18n";
 import { normalizeDigits } from "../i18n/digits";
+import { type BusinessContext } from "../domain/contracts";
+import {
+  readApprovalPreference,
+  saveApprovalPreference,
+  type ApprovalPreference,
+} from "../services/approvalNotifications";
 
 export function NotificationSettings({
   credential,
@@ -20,6 +26,7 @@ export function NotificationSettings({
   page = false,
   onClose,
   onDirtyChanged,
+  approvalContext,
 }: {
   credential: Credential;
   branchId: string;
@@ -27,10 +34,13 @@ export function NotificationSettings({
   page?: boolean;
   onClose?: () => void;
   onDirtyChanged?: (dirty: boolean) => void;
+  approvalContext?: BusinessContext;
 }) {
   useLocale();
   const [open, setOpen] = useState(page),
-    [value, setValue] = useState<NotificationPreference | null>(null),
+    [value, setValue] = useState<
+      NotificationPreference | ApprovalPreference | null
+    >(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const controller = useRef<AbortController | null>(null),
@@ -57,8 +67,21 @@ export function NotificationSettings({
     controller.current = request;
     try {
       const options = { fetcher: businessFetch, signal: request.signal };
-      const result =
-        save && value
+      const result = approvalContext
+        ? save && value
+          ? await saveApprovalPreference(
+              credential,
+              approvalContext,
+              value,
+              options,
+            )
+          : await readApprovalPreference(
+              credential,
+              approvalContext,
+              branchId,
+              options,
+            )
+        : save && value && "time" in value
           ? await savePreference(credential, value, options)
           : await readPreference(credential, branchId, options);
       if (!request.signal.aborted) {
@@ -74,7 +97,16 @@ export function NotificationSettings({
         ["signInRequired", "accessChanged"].includes(error.problem)
       )
         onAccessLost();
-      else setMessage(t("notificationSettingsUnavailable"));
+      else
+        setMessage(
+          t(
+            approvalContext &&
+              error instanceof ConnectionError &&
+              error.problem === "unsupported"
+              ? "approvalAlertsUnsupported"
+              : "notificationSettingsUnavailable",
+          ),
+        );
     } finally {
       running.current = false;
       if (!request.signal.aborted) setBusy(false);
@@ -94,7 +126,7 @@ export function NotificationSettings({
   const validTime = (text: string) => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text);
   const valid =
     value &&
-    validTime(value.time) &&
+    (!("time" in value) || validTime(value.time)) &&
     (!value.quiet.enabled ||
       (validTime(value.quiet.start) &&
         validTime(value.quiet.end) &&
@@ -137,9 +169,11 @@ export function NotificationSettings({
         accessibilityRole="header"
         style={[ink, { fontSize: 20, fontWeight: "600" }]}
       >
-        {t("notificationSettings")}
+        {t(approvalContext ? "approvalAlerts" : "notificationSettings")}
       </Text>
-      <Text style={[ink, { lineHeight: 23 }]}>{t("inboxDeliveryHelp")}</Text>
+      <Text style={[ink, { lineHeight: 23 }]}>
+        {t(approvalContext ? "approvalAlertsHelp" : "inboxDeliveryHelp")}
+      </Text>
       {value && (
         <>
           <View
@@ -150,9 +184,13 @@ export function NotificationSettings({
               gap: 12,
             }}
           >
-            <Text style={[ink, { flex: 1 }]}>{t("dailySummary")}</Text>
+            <Text style={[ink, { flex: 1 }]}>
+              {t(approvalContext ? "approvalAlerts" : "dailySummary")}
+            </Text>
             <Switch
-              accessibilityLabel={t("dailySummary")}
+              accessibilityLabel={t(
+                approvalContext ? "approvalAlerts" : "dailySummary",
+              )}
               value={value.enabled}
               disabled={busy}
               onValueChange={(enabled) => setValue({ ...value, enabled })}
@@ -161,9 +199,10 @@ export function NotificationSettings({
           <Text style={ink}>
             {t("branchTimezone", { timezone: value.timezone })}
           </Text>
-          {timeInput(t("summaryTime"), value.time, (time) =>
-            setValue({ ...value, time }),
-          )}
+          {"time" in value &&
+            timeInput(t("summaryTime"), value.time, (time) =>
+              setValue({ ...value, time }),
+            )}
           <View
             style={{
               flexDirection: "row",
@@ -201,7 +240,9 @@ export function NotificationSettings({
               )}
             </>
           )}
-          <Text style={ink}>{t("quietHoursHelp")}</Text>
+          <Text style={ink}>
+            {t(approvalContext ? "approvalAlertsQuietHelp" : "quietHoursHelp")}
+          </Text>
           <Button
             label={t("saveNotificationSettings")}
             disabled={busy || !valid}

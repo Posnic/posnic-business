@@ -214,13 +214,13 @@
   "saveNotificationSettings": "Simpan pengaturan notifikasi",
   "closeNotificationSettings": "Tutup pengaturan notifikasi",
   "inboxUnavailable": "Kotak masuk Anda tidak dapat diverifikasi. Periksa koneksi dan coba lagi.",
-  "inboxHistoryHelp": "Ringkasan 90 hari terakhir. Jumlah mencerminkan data siap pakai yang tersedia saat setiap ringkasan disimpan.",
-  "inboxEmpty": "Belum ada ringkasan. Aktifkan ringkasan harian di Pengaturan notifikasi untuk mulai menerimanya di sini.",
+  "inboxHistoryHelp": "Ringkasan tersimpan dan permintaan persetujuan aktif. Jumlah mencerminkan data yang tersedia saat setiap ringkasan disimpan.",
+  "inboxEmpty": "Tidak ada pembaruan untuk ditampilkan.",
   "unread": "Belum dibaca",
   "digestPartial": "Penjualan setelah retur termasuk pajak dan tidak termasuk tip. Ringkasan tersimpan ini mungkin belum lengkap; ini bukan penyelesaian akhir.",
   "digestUnavailable": "Ringkasan terverifikasi tidak tersedia pada waktu yang dijadwalkan. Buka Hari ini untuk memeriksa lagi. Tidak ada jumlah yang diasumsikan.",
   "markRead": "Tandai sudah dibaca",
-  "loadOlder": "Muat ringkasan sebelumnya",
+  "loadOlder": "Muat pembaruan lama",
   "backToToday": "Kembali ke Hari ini",
   "phoneNotifications": "Notifikasi ponsel",
   "pushPrivacyHelp": "Peringatan hanya memberi tahu bahwa ada pembaruan. Buka kunci Business untuk membacanya. Angka penjualan dan keputusan persetujuan Anda tidak ditampilkan di layar kunci.",
@@ -246,5 +246,9 @@
   "previousSevenDays": "7 hari sebelumnya",
   "itemRankingDefinition": "Hingga 20 barang, diurutkan berdasarkan penjualan yang dialokasikan setelah retur. Diskon dan pembulatan tagihan dibagi antarbarang. Ini bukan laba.",
   "itemHistoryIncomplete": "Riwayat barang belum lengkap. Peringkat tidak tersedia hingga rincian penjualan asli dapat diverifikasi.",
-  "itemRankingEmpty": "Tidak ada penjualan atau retur barang yang tercatat pada hari ini."
+  "itemRankingEmpty": "Tidak ada penjualan atau retur barang yang tercatat pada hari ini.",
+  "approvalAlerts": "Peringatan persetujuan",
+  "approvalAlertsHelp": "Terima permintaan baru yang dapat Anda tinjau di Kotak Masuk. Aktifkan notifikasi ponsel untuk peringatan di perangkat ini.",
+  "approvalAlertsQuietHelp": "Peringatan ponsel menunggu hingga jam tenang berakhir. Permintaan kedaluwarsa tidak dikirim.",
+  "approvalAlertsUnsupported": "Server ini belum mendukung peringatan persetujuan."
 }
