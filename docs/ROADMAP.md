@@ -2,6 +2,15 @@
 
 The dedicated Business app is separate from Mobile POS and Captain. It reads bounded summaries and leaves long reports and heavy administration to desktop.
 
+Item-ranking reader checkpoint (29 September): the local `codex/business-item-insights`
+branch adds negotiated `bounded-items-v1` discovery and a single-branch prepared-item
+reader. Strict response validation checks scope, exact totals, bounded rows and
+units, ordering, duplicate IDs and incomplete-history states. Older servers are
+not sent item requests, and local ACL failures perform no network work. All 65
+app tests, TypeScript, targeted formatting and attribution pass. The connected
+ranking screen, translated explanations, gestures and browser/native validation
+remain pending; no ranking UI is enabled by this checkpoint.
+
 | Phase | Deliverable                                                                                            | Gate                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 0     | Reporting, sync, identity, ACL and event compatibility audit; canonical metrics and contract decisions | Reconcile actual POS fixtures; resolve source completeness, reporting credentials, scope and cost blockers before live integration |

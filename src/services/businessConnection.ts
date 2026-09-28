@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { communityOrigin } from "../domain/server";
 import { validatePreparedOverview } from "../domain/preparedOverview";
+import { validatePreparedItems } from "../domain/preparedItems";
 import {
   contextSchema,
   validateOverview,
@@ -42,6 +43,7 @@ const discoverySchema = z
       "bounded-summary-v2",
       "unavailable",
     ]),
+    itemReporting: z.literal("bounded-items-v1").optional(),
   })
   .strict();
 export type Discovery = z.infer<typeof discoverySchema>;
@@ -149,11 +151,15 @@ export async function readJson(
 
 export async function discoverBusinessServer(
   address: string,
-  options: Options = {},
+  options: Options & { items?: boolean } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
   const parsed = discoverySchema.safeParse(
-    await readJson(origin, "/discovery", options),
+    await readJson(
+      origin,
+      options.items ? "/discovery?items=1" : "/discovery",
+      options,
+    ),
   );
   if (!parsed.success || parsed.data.issuer !== origin)
     throw new ConnectionError("unsupported");
@@ -176,6 +182,31 @@ export function createReportingClient(
   if (!/^pb1_[A-Za-z0-9_-]{43}$/.test(token))
     throw new ConnectionError("signInRequired");
   return {
+    async items(
+      context: BusinessContext,
+      branchId: string,
+      businessDate: string,
+    ) {
+      if (
+        !context.capabilities.includes("overview.read") ||
+        !context.capabilities.includes("items.read") ||
+        !context.branches.some((branch) => branch.id === branchId)
+      )
+        throw new ConnectionError("accessChanged");
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(businessDate) ||
+        !Number.isFinite(Date.parse(businessDate)) ||
+        new Date(businessDate).toISOString().slice(0, 10) !== businessDate
+      )
+        throw new ConnectionError("invalidResponse");
+      const query = new URLSearchParams({ businessDate, branchId });
+      const value = await readJson(origin, `/items?${query}`, options, token);
+      try {
+        return validatePreparedItems(value, context, branchId, businessDate);
+      } catch {
+        throw new ConnectionError("invalidResponse");
+      }
+    },
     async context(): Promise<BusinessContext> {
       const parsed = contextSchema.safeParse(
         await readJson(origin, "/context", options, token),
