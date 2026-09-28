@@ -16,6 +16,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let inboxRead = false;
   let notificationRevision = 0;
   let trendMode = false;
+  let itemHistoryIncomplete = false;
   const trendDays: string[] = [];
   const liveContext = {
     ...sampleContext("manager"),
@@ -40,6 +41,9 @@ test("approved Business connection shows only real scope and revokes on sign-out
         authorization: "business-pkce-v1",
         audience: "posnic-business",
         reporting: "bounded-summary-v2",
+        ...(url.searchParams.get("items") === "1"
+          ? { itemReporting: "bounded-items-v1" }
+          : {}),
       };
     else if (url.pathname.endsWith("/requests")) {
       expect(route.request().postDataJSON().codeChallenge).toMatch(
@@ -64,7 +68,10 @@ test("approved Business connection shows only real scope and revokes on sign-out
         expiresAt: "2099-01-01T00:00:00.000Z",
         context: liveContext,
       };
-    else if (url.pathname.endsWith("/overview")) {
+    else if (
+      url.pathname.endsWith("/overview") ||
+      url.pathname.endsWith("/items")
+    ) {
       if (trendMode) {
         const day = url.searchParams.get("businessDate")!;
         trendDays.push(day);
@@ -106,6 +113,35 @@ test("approved Business connection shows only real scope and revokes on sign-out
         refundsMinor: 2500,
         salesAfterReturnsMinor: 7500,
         completedSales: 2,
+        ...(url.pathname.endsWith("/items")
+          ? {
+              itemInsights: {
+                schemaVersion: 1,
+                state: itemHistoryIncomplete ? "incomplete" : "available",
+                reason: itemHistoryIncomplete
+                  ? "original_items_unavailable"
+                  : null,
+                sourceSales: 2,
+                unavailableSales: itemHistoryIncomplete ? 1 : 0,
+                totalItems: itemHistoryIncomplete ? null : 1,
+                truncated: false,
+                items: itemHistoryIncomplete
+                  ? []
+                  : [
+                      {
+                        itemId: "b".repeat(24),
+                        name: "Verified tea",
+                        billedSalesMinor: 10000,
+                        refundsMinor: 2500,
+                        salesAfterReturnsMinor: 7500,
+                        quantities: [
+                          { unit: "cup", soldMilli: 2000, returnedMilli: 1000 },
+                        ],
+                      },
+                    ],
+              },
+            }
+          : {}),
         preparedAt: new Date().toISOString(),
         freshness: {
           state: "partial",
@@ -295,9 +331,44 @@ test("approved Business connection shows only real scope and revokes on sign-out
   await trends.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(0);
   summaryOffline = false;
+  await page
+    .getByRole("button", { name: "Best-selling items", exact: true })
+    .click();
+  const items = page.getByTestId("business-items");
+  await expect(
+    items.getByRole("heading", { name: "Verified tea" }),
+  ).toBeVisible();
+  await expect(items.getByText("₹75.00", { exact: true })).toBeVisible();
+  await expect(trends).toHaveCount(0);
+  await items.getByRole("button", { name: "Behind the total" }).click();
+  await expect(
+    items.getByText(/ranked by allocated sales after returns/),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await items.getByRole("button", { name: "Behind the total" }).click();
+  await page.screenshot({
+    path: "test-results/business-live-items.png",
+    fullPage: true,
+  });
+  itemHistoryIncomplete = true;
+  await items.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(items.getByText(/Item history is incomplete/)).toBeVisible();
+  await expect(items.getByText("Verified tea", { exact: true })).toHaveCount(0);
+  itemHistoryIncomplete = false;
+  await items.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(items.getByText("Verified tea", { exact: true })).toBeVisible();
+  summaryOffline = true;
+  await items.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(items.getByText("Verified tea", { exact: true })).toHaveCount(0);
+  summaryOffline = false;
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("tab", { name: "Today", exact: true }).click();
   await expect(trends).toHaveCount(0);
+  await expect(items).toHaveCount(0);
   for (const name of ["Today", "Insights", "Inbox", "More"]) {
     const label = page
       .getByRole("tab", { name, exact: true })

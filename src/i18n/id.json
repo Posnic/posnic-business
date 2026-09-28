@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Tidak dapat menyegarkan. Periksa koneksi dan coba lagi.",
   "summaryRefreshing": "Menyegarkan… Menampilkan ringkasan terakhir yang diterima hingga pemeriksaan selesai.",
   "summaryLastKnown": "Tidak dapat menyegarkan. Ini adalah angka terakhir yang diterima, bukan pembaruan langsung. Angka akan disembunyikan setelah 15 menit tanpa pemeriksaan yang berhasil.",
-  "previousSevenDays": "7 hari sebelumnya"
+  "previousSevenDays": "7 hari sebelumnya",
+  "itemRankingDefinition": "Hingga 20 barang, diurutkan berdasarkan penjualan yang dialokasikan setelah retur. Diskon dan pembulatan tagihan dibagi antarbarang. Ini bukan laba.",
+  "itemHistoryIncomplete": "Riwayat barang belum lengkap. Peringkat tidak tersedia hingga rincian penjualan asli dapat diverifikasi.",
+  "itemRankingEmpty": "Tidak ada penjualan atau retur barang yang tercatat pada hari ini."
 }

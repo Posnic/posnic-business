@@ -243,5 +243,8 @@
   "summaryConnectionLost": "No se pudo actualizar. Comprueba tu conexión e inténtalo de nuevo.",
   "summaryRefreshing": "Actualizando… Se muestra el último resumen recibido hasta que finalice la comprobación.",
   "summaryLastKnown": "No se pudo actualizar. Estas son las últimas cifras recibidas, no una actualización en directo. Se ocultarán tras 15 minutos sin una comprobación correcta.",
-  "previousSevenDays": "Los 7 días anteriores"
+  "previousSevenDays": "Los 7 días anteriores",
+  "itemRankingDefinition": "Hasta 20 artículos, ordenados por ventas asignadas tras devoluciones. Los descuentos y redondeos de la factura se reparten entre los artículos. No son beneficios.",
+  "itemHistoryIncomplete": "El historial de artículos está incompleto. La clasificación no estará disponible hasta verificar las ventas originales.",
+  "itemRankingEmpty": "No se registraron ventas ni devoluciones de artículos este día."
 }

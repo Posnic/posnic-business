@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Vernieuwen is niet gelukt. Controleer uw verbinding en probeer het opnieuw.",
   "summaryRefreshing": "Vernieuwen… De laatst ontvangen samenvatting blijft zichtbaar totdat de controle is voltooid.",
   "summaryLastKnown": "Vernieuwen is niet gelukt. Dit zijn de laatst ontvangen cijfers, geen live-update. Ze worden verborgen na 15 minuten zonder geslaagde controle.",
-  "previousSevenDays": "De afgelopen 7 dagen"
+  "previousSevenDays": "De afgelopen 7 dagen",
+  "itemRankingDefinition": "Maximaal 20 artikelen, gerangschikt op toegewezen omzet na retouren. Factuurkortingen en afrondingen worden over de artikelen verdeeld. Dit is geen winst.",
+  "itemHistoryIncomplete": "De artikelhistorie is onvolledig. De ranglijst is pas beschikbaar nadat de oorspronkelijke verkoopgegevens zijn gecontroleerd.",
+  "itemRankingEmpty": "Er zijn voor deze dag geen artikelverkopen of retouren geregistreerd."
 }

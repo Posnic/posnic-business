@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Não foi possível atualizar. Verifique a ligação e tente novamente.",
   "summaryRefreshing": "A atualizar… O último resumo recebido é mostrado até a verificação terminar.",
   "summaryLastKnown": "Não foi possível atualizar. Estes são os últimos valores recebidos, não uma atualização em tempo real. Ficarão ocultos após 15 minutos sem uma verificação bem-sucedida.",
-  "previousSevenDays": "Os 7 dias anteriores"
+  "previousSevenDays": "Os 7 dias anteriores",
+  "itemRankingDefinition": "Até 20 artigos, ordenados pelas vendas atribuídas após devoluções. Os descontos e arredondamentos da fatura são distribuídos pelos artigos. Não é lucro.",
+  "itemHistoryIncomplete": "O histórico dos artigos está incompleto. A classificação fica indisponível até verificar as vendas originais.",
+  "itemRankingEmpty": "Não foram registadas vendas nem devoluções de artigos neste dia."
 }

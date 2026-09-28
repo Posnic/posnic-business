@@ -2,6 +2,18 @@
 
 The dedicated Business app is separate from Mobile POS and Captain. It reads bounded summaries and leaves long reports and heavy administration to desktop.
 
+Connected item-list checkpoint (29 September): Insights now lets accounts with
+item access open today's verified ranking for one branch. Single-branch accounts
+keep the branch picker hidden; wider scope asks for a branch. The view shares
+pull-to-refresh, clears figures on failed refresh and focus loss, and hides data
+after expiry or branch midnight. Incomplete history and a valid empty day have
+different messages. Allocation/empty/incomplete wording is present in all 18
+catalogs (248 keys), still subject to qualified linguistic review. The connected
+browser flow checks real-response rendering, replacement by incomplete history,
+offline clearing, unmounting and 320px layout; the collapsed layout was visually
+inspected. Item detail quantities and next/previous swipe navigation remain to
+be implemented, followed by native validation.
+
 Item-ranking reader checkpoint (29 September): the local `codex/business-item-insights`
 branch adds negotiated `bounded-items-v1` discovery and a single-branch prepared-item
 reader. Strict response validation checks scope, exact totals, bounded rows and

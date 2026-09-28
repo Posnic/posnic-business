@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Aktualisierung nicht möglich. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
   "summaryRefreshing": "Wird aktualisiert… Bis zum Abschluss der Prüfung wird die zuletzt empfangene Zusammenfassung angezeigt.",
   "summaryLastKnown": "Aktualisierung nicht möglich. Dies sind die zuletzt empfangenen Zahlen, keine Live-Aktualisierung. Nach 15 Minuten ohne erfolgreiche Prüfung werden sie ausgeblendet.",
-  "previousSevenDays": "Die letzten 7 Tage"
+  "previousSevenDays": "Die letzten 7 Tage",
+  "itemRankingDefinition": "Bis zu 20 Artikel, sortiert nach zugeordnetem Umsatz nach Retouren. Rechnungsrabatte und Rundungen werden auf die Artikel verteilt. Dies ist kein Gewinn.",
+  "itemHistoryIncomplete": "Der Artikelverlauf ist unvollständig. Die Rangliste ist erst nach Prüfung der ursprünglichen Verkaufsdaten verfügbar.",
+  "itemRankingEmpty": "Für diesen Tag wurden keine Artikelverkäufe oder Retouren erfasst."
 }

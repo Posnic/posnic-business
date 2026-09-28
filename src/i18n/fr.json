@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Impossible d’actualiser. Vérifiez votre connexion et réessayez.",
   "summaryRefreshing": "Actualisation… Le dernier récapitulatif reçu reste affiché jusqu’à la fin de la vérification.",
   "summaryLastKnown": "Impossible d’actualiser. Ces chiffres sont les derniers reçus, pas une mise à jour en direct. Ils seront masqués après 15 minutes sans vérification réussie.",
-  "previousSevenDays": "Les 7 jours précédents"
+  "previousSevenDays": "Les 7 jours précédents",
+  "itemRankingDefinition": "Jusqu’à 20 articles, classés par ventes réparties après retours. Les remises et arrondis de facture sont répartis entre les articles. Il ne s’agit pas du bénéfice.",
+  "itemHistoryIncomplete": "L’historique des articles est incomplet. Le classement sera disponible après vérification des ventes d’origine.",
+  "itemRankingEmpty": "Aucune vente ni aucun retour d’article enregistré ce jour-là."
 }

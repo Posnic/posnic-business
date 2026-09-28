@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Haiwezi kuonyesha upya. Kagua muunganisho wako na ujaribu tena.",
   "summaryRefreshing": "Inaonyesha upya… Muhtasari wa mwisho uliopokelewa unaonyeshwa mpaka ukaguzi ukamilike.",
   "summaryLastKnown": "Haiwezi kuonyesha upya. Hizi ni takwimu za mwisho zilizopokelewa, si sasisho la moja kwa moja. Zitafichwa baada ya dakika 15 bila ukaguzi uliofanikiwa.",
-  "previousSevenDays": "Siku 7 zilizopita"
+  "previousSevenDays": "Siku 7 zilizopita",
+  "itemRankingDefinition": "Bidhaa hadi 20, zikipangwa kwa mauzo yaliyogawiwa baada ya marejesho. Punguzo na ukadiriaji wa bili hugawiwa kwa bidhaa. Hii si faida.",
+  "itemHistoryIncomplete": "Historia ya bidhaa haijakamilika. Orodha ya viwango haipatikani hadi maelezo ya mauzo ya awali yathibitishwe.",
+  "itemRankingEmpty": "Hakuna mauzo au marejesho ya bidhaa yaliyorekodiwa kwa siku hii."
 }

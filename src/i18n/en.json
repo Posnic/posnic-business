@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Could not refresh. Check your connection and try again.",
   "summaryRefreshing": "Refreshing… Showing the last received summary until the check completes.",
   "summaryLastKnown": "Could not refresh. These are the last received figures, not a live update. They will be hidden after 15 minutes without a successful check.",
-  "previousSevenDays": "Previous 7 days"
+  "previousSevenDays": "Previous 7 days",
+  "itemRankingDefinition": "Up to 20 items, ranked by allocated sales after returns. Bill discounts and rounding are shared across items. This is not profit.",
+  "itemHistoryIncomplete": "Item history is incomplete. The ranking is unavailable until original sale details can be verified.",
+  "itemRankingEmpty": "No item sales or returns were recorded for this day."
 }

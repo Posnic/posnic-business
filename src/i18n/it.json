@@ -243,5 +243,8 @@
   "summaryConnectionLost": "Impossibile aggiornare. Controlla la connessione e riprova.",
   "summaryRefreshing": "Aggiornamento… L’ultimo riepilogo ricevuto resta visibile fino al termine della verifica.",
   "summaryLastKnown": "Impossibile aggiornare. Questi sono gli ultimi valori ricevuti, non un aggiornamento in tempo reale. Verranno nascosti dopo 15 minuti senza una verifica riuscita.",
-  "previousSevenDays": "I 7 giorni precedenti"
+  "previousSevenDays": "I 7 giorni precedenti",
+  "itemRankingDefinition": "Fino a 20 articoli, ordinati per vendite attribuite dopo i resi. Sconti e arrotondamenti della fattura sono ripartiti tra gli articoli. Non è il profitto.",
+  "itemHistoryIncomplete": "Lo storico degli articoli è incompleto. La classifica non è disponibile finché non vengono verificate le vendite originali.",
+  "itemRankingEmpty": "Nessuna vendita o reso di articoli registrato per questo giorno."
 }

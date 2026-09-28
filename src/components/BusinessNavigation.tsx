@@ -46,6 +46,7 @@ import { t, isRTL } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { BusinessTrends } from "./BusinessTrends";
+import { BusinessItems } from "./BusinessItems";
 import { BusinessInbox } from "./BusinessInbox";
 import { BusinessApprovals, BusinessApprovalDetail } from "./BusinessApprovals";
 import { pendingConfirmation } from "../services/pendingConfirmation";
@@ -287,11 +288,33 @@ function Insights() {
   const focused = useIsFocused();
   const model = useModel(),
     [refresh, setRefresh] = useState<RefreshBinding>(null);
+  const [items, setItems] = useState(false);
+  const showItems = items && model.context.capabilities.includes("items.read");
   return (
     <Page top refresh={refresh}>
       <Heading>{t("insights")}</Heading>
       <Scope />
-      {focused && (
+      {model.context.capabilities.includes("items.read") && (
+        <Button
+          secondary
+          label={t(showItems ? "previousSevenDays" : "bestItems")}
+          onPress={() => {
+            setRefresh(null);
+            setItems((value) => !value);
+          }}
+        />
+      )}
+      {focused && showItems && (
+        <BusinessItems
+          key={model.generation}
+          credential={model.credential}
+          context={model.context}
+          branch={model.branch}
+          onAccessLost={model.onAccessLost}
+          onRefreshBinding={setRefresh}
+        />
+      )}
+      {focused && !showItems && (
         <BusinessTrends
           key={model.generation}
           credential={model.credential}
