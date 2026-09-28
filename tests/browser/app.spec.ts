@@ -123,7 +123,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
                   : null,
                 sourceSales: 2,
                 unavailableSales: itemHistoryIncomplete ? 1 : 0,
-                totalItems: itemHistoryIncomplete ? null : 1,
+                totalItems: itemHistoryIncomplete ? null : 2,
                 truncated: false,
                 items: itemHistoryIncomplete
                   ? []
@@ -136,6 +136,16 @@ test("approved Business connection shows only real scope and revokes on sign-out
                         salesAfterReturnsMinor: 7500,
                         quantities: [
                           { unit: "cup", soldMilli: 2000, returnedMilli: 1000 },
+                        ],
+                      },
+                      {
+                        itemId: "c".repeat(24),
+                        name: "Free bread",
+                        billedSalesMinor: 0,
+                        refundsMinor: 0,
+                        salesAfterReturnsMinor: 0,
+                        quantities: [
+                          { unit: "piece", soldMilli: 1250, returnedMilli: 0 },
                         ],
                       },
                     ],
@@ -336,7 +346,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
     .click();
   const items = page.getByTestId("business-items");
   await expect(
-    items.getByRole("heading", { name: "Verified tea" }),
+    items.getByRole("button", { name: "Verified tea" }),
   ).toBeVisible();
   await expect(items.getByText("₹75.00", { exact: true })).toBeVisible();
   await expect(trends).toHaveCount(0);
@@ -354,6 +364,53 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-live-items.png",
     fullPage: true,
   });
+  await items
+    .getByRole("button", { name: "Verified tea", exact: true })
+    .click();
+  const detail = page.getByTestId("business-item-detail");
+  await expect(
+    detail.getByRole("heading", { name: "Verified tea" }),
+  ).toBeVisible();
+  await expect(
+    detail.getByText("Quantity sold: 2 cup", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    detail.getByRole("button", { name: "Previous", exact: true }),
+  ).toBeDisabled();
+  await detail.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(
+    detail.getByRole("heading", { name: "Free bread" }),
+  ).toBeVisible();
+  await expect(
+    detail.getByText("Quantity sold: 1.25 piece", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    detail.getByRole("button", { name: "Next", exact: true }),
+  ).toBeDisabled();
+  const touch = await context.newCDPSession(page);
+  await touch.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: 80, y: 260 }],
+  });
+  for (let x = 95; x <= 245; x += 15)
+    await touch.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ x, y: 260 }],
+    });
+  await touch.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await touch.detach();
+  await expect(
+    detail.getByRole("heading", { name: "Verified tea" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/business-live-item-detail.png",
+    fullPage: true,
+  });
+  await detail.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(detail).toHaveCount(0);
   itemHistoryIncomplete = true;
   await items.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(items.getByText(/Item history is incomplete/)).toBeVisible();

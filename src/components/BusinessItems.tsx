@@ -13,6 +13,7 @@ import { t, getTextAlign, type MessageKey } from "../i18n";
 import { useLocale } from "../i18n/useLocale";
 import { Card, Button } from "./ui";
 import { type RefreshBinding } from "./LiveOverview";
+import { BusinessItemDetail } from "./BusinessItemDetail";
 
 export function BusinessItems({
   credential,
@@ -54,6 +55,7 @@ export function BusinessItems({
   const [busy, setBusy] = useState(false),
     [notice, setNotice] = useState<MessageKey | null>(null);
   const [details, setDetails] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<number | null>(null);
   const [, tick] = useState(0);
   const generation = useRef(0),
     controller = useRef<AbortController | null>(null),
@@ -69,6 +71,7 @@ export function BusinessItems({
       run = ++generation.current;
     controller.current = request;
     setData(null);
+    setSelectedItem(null);
     setNotice(null);
     if (!allowed) {
       setBusy(false);
@@ -158,6 +161,14 @@ export function BusinessItems({
       : null;
   return (
     <View testID="business-items" style={{ gap: 14 }}>
+      {visible && selectedItem !== null && (
+        <BusinessItemDetail
+          summary={visible}
+          index={selectedItem}
+          onIndex={setSelectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
       <Text
         accessibilityRole="header"
         style={[text, { fontSize: 23, fontWeight: "700" }]}
@@ -225,12 +236,11 @@ export function BusinessItems({
                     total: visible.itemInsights.items.length,
                   })}
                 </Text>
-                <Text
-                  accessibilityRole="header"
-                  style={[text, { fontSize: 19, fontWeight: "700" }]}
-                >
-                  {item.name}
-                </Text>
+                <Button
+                  secondary
+                  label={item.name}
+                  onPress={() => setSelectedItem(index)}
+                />
                 <Text style={text}>{t("salesAfterReturns")}</Text>
                 <Text
                   selectable

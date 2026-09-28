@@ -2,6 +2,19 @@
 
 The dedicated Business app is separate from Mobile POS and Captain. It reads bounded summaries and leaves long reports and heavy administration to desktop.
 
+Item-detail checkpoint (29 September): connected ranking rows open a detail
+modal with billed/returned/allocated sales and sold/returned quantities kept by
+unit. Interior touch swipes use the existing edge-safe, single-touch and RTL
+direction rules; Previous/Next buttons stay available and disable at list bounds.
+Closing restores the list, while loss of the parent snapshot removes the detail.
+Exact integer-thousandth formatting avoids quantity rounding at large values.
+All 66 app tests, TypeScript, formatting, attribution and web export pass. The
+connected browser flow verifies paging buttons, fractional quantities and an
+actual Chromium touch swipe; the 320px detail layout was visually checked.
+Android/iOS Hermes exports pass at approximately 12 MB each. These exports are
+not signed builds or physical-device qualification; native gestures, accessibility
+and the wider release gates remain open.
+
 Connected item-list checkpoint (29 September): Insights now lets accounts with
 item access open today's verified ranking for one branch. Single-branch accounts
 keep the branch picker hidden; wider scope asks for a branch. The view shares
