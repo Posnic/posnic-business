@@ -107,6 +107,11 @@ test("Nepali sample renders actual localized amounts after a reload", async ({
   await page.goto("/");
   await page.getByRole("button", { name: ne.sample, exact: true }).click();
   await expect(page.getByText(/४२,८५०\.००/)).toBeVisible();
+  await page.getByRole("tab", { name: ne.insights, exact: true }).click();
+  await page.getByRole("button", { name: "Masala dosa", exact: true }).click();
+  await expect(
+    page.getByText("३ मध्ये वस्तु १", { exact: true }),
+  ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: ne.sample, exact: true }).click();
   await expect(page.getByText(/४२,८५०\.००/)).toBeVisible();

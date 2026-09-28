@@ -76,6 +76,30 @@ export const translator = createTranslator<MessageKey>(
   en,
   definitions,
   bundledCatalogs,
+  "en",
+  Object.fromEntries(
+    Object.entries({
+      en: "{count} item on this bill",
+      fr: "Article sur cette facture : {count}",
+      es: "Artículo en esta cuenta: {count}",
+      pt: "Artigo nesta conta: {count}",
+      it: "Articolo in questo conto: {count}",
+      nl: "Artikel op deze rekening: {count}",
+    }).map(([code, one]) => [
+      code,
+      {
+        decisionItems: {
+          argument: "count",
+          forms: {
+            one,
+            other:
+              bundledCatalogs[code as keyof typeof bundledCatalogs]
+                .decisionItems,
+          },
+        },
+      },
+    ]),
+  ),
 );
 export const releaseLanguages = definitions.map((language) => ({
   ...language,

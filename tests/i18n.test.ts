@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createTranslator, validateCatalog } from "../src/i18n/translator";
-import { releaseLanguages, t, bundledCatalogs } from "../src/i18n";
+import { releaseLanguages, t, bundledCatalogs, translator } from "../src/i18n";
 import { normalizeDigits, pinInput } from "../src/i18n/digits";
 
 const messages = { amount: "Pay {value}", state: "Approved" };
@@ -35,6 +35,98 @@ const catalogs = {
   fr: { amount: "Payer {value}", state: "Approuvé" },
   ar: { amount: "ادفع {value}", state: "تمت الموافقة" },
 };
+
+test("plural selection uses raw counts, all six categories, and immutable validated forms", () => {
+  const forms = {
+    zero: "zero {count}",
+    one: "one {count}",
+    two: "two {count}",
+    few: "few {count}",
+    many: "many {count}",
+    other: "other {count}",
+  };
+  const reference = { items: "Items: {count}" };
+  const engine = createTranslator(
+    reference,
+    languages,
+    { en: reference, ar: reference },
+    "en",
+    {
+      ar: { items: { argument: "count", forms } },
+    },
+  );
+  forms.one = "changed {count}";
+  engine.setLocale("ar");
+  for (const [count, category] of [
+    [0, "zero"],
+    [1, "one"],
+    [2, "two"],
+    [3, "few"],
+    [11, "many"],
+    [100, "other"],
+  ] as const) {
+    const output = engine.translate("items", { count });
+    assert.ok(output.startsWith(`${category} \u2068`), output);
+    assert.ok(output.endsWith("\u2069"));
+  }
+  for (const count of ["1", NaN, Infinity])
+    assert.throws(
+      () => engine.translate("items", { count }),
+      /requires numeric/,
+    );
+  assert.throws(
+    () => engine.translate("items", Object.create({ count: 1 })),
+    /requires numeric/,
+  );
+  for (const forms of [
+    { one: "One {count}" },
+    { other: "Items {amount}" },
+    { other: "Items {count}", few: "" },
+    { other: "Items {count}", typo: "Items {count}" },
+  ])
+    assert.throws(
+      () =>
+        createTranslator(reference, languages, { en: reference }, "en", {
+          // Deliberately malformed external message packs must fail at initialization.
+          en: {
+            items: { argument: "count", forms: forms as { other: string } },
+          },
+        }),
+      /Invalid plural/,
+    );
+});
+
+test("approval item counts use singular wording and locale digits without altering identifiers", () => {
+  try {
+    for (const [locale, singular, plural] of [
+      ["en", "1 item on this bill", "2 items on this bill"],
+      ["fr", "Article sur cette facture : 1", "Articles sur cette facture : 2"],
+      ["es", "Artículo en esta cuenta: 1", "Artículos en esta cuenta: 2"],
+      ["pt", "Artigo nesta conta: 1", "Artigos nesta conta: 2"],
+      ["it", "Articolo in questo conto: 1", "Articoli in questo conto: 2"],
+      ["nl", "Artikel op deze rekening: 1", "Artikelen op deze rekening: 2"],
+    ]) {
+      translator.setLocale(locale!);
+      assert.equal(t("decisionItems", { count: 1 }), singular);
+      assert.equal(t("decisionItems", { count: 2 }), plural);
+    }
+    translator.setLocale("ne");
+    assert.match(t("decisionItems", { count: 12 }), /१२/);
+    assert.equal(
+      t("itemPosition", { position: 2, total: 12 }),
+      "१२ मध्ये वस्तु २",
+    );
+    assert.ok(t("decisionRequester", { name: "00123" }).includes("00123"));
+    translator.setLocale("ar");
+    assert.ok(
+      t("decisionItems", { count: 2 }).includes(
+        `\u2068${new Intl.NumberFormat("ar").format(2)}\u2069`,
+      ),
+    );
+  } finally {
+    translator.setLocale("en");
+  }
+});
 
 test("language selection uses complete packs and preserves regional preference order", () => {
   const engine = createTranslator(messages, languages, catalogs);

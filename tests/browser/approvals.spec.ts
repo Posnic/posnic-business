@@ -42,7 +42,7 @@ test("review confirms identity and reconciles a lost decision response without c
       roundingMinor: 0,
       currency: "INR",
       currencyDigits: 2,
-      itemCount: 2,
+      itemCount: 1,
       reason: "Regular customer",
     },
     canDecide: true,
@@ -155,6 +155,9 @@ test("review confirms identity and reconciles a lost decision response without c
     .click();
   await expect(
     page.getByText("Customer pays: ₹80.00", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("1 item on this bill", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Approve", exact: true }).click();
   await expect(
