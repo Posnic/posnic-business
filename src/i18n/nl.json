@@ -242,5 +242,6 @@
   "discard": "Wijzigingen verwerpen",
   "summaryConnectionLost": "Vernieuwen is niet gelukt. Controleer uw verbinding en probeer het opnieuw.",
   "summaryRefreshing": "Vernieuwen… De laatst ontvangen samenvatting blijft zichtbaar totdat de controle is voltooid.",
-  "summaryLastKnown": "Vernieuwen is niet gelukt. Dit zijn de laatst ontvangen cijfers, geen live-update. Ze worden verborgen na 15 minuten zonder geslaagde controle."
+  "summaryLastKnown": "Vernieuwen is niet gelukt. Dit zijn de laatst ontvangen cijfers, geen live-update. Ze worden verborgen na 15 minuten zonder geslaagde controle.",
+  "previousSevenDays": "De afgelopen 7 dagen"
 }

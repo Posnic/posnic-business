@@ -23,18 +23,24 @@ export function Button({
   onPress,
   secondary = false,
   disabled = false,
+  expanded,
 }: {
   label: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
+  expanded?: boolean;
 }) {
   const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
+      accessibilityState={{
+        disabled,
+        ...(expanded === undefined ? {} : { expanded }),
+      }}
+      aria-expanded={expanded}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [

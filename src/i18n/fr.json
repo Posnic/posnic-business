@@ -242,5 +242,6 @@
   "discard": "Abandonner les modifications",
   "summaryConnectionLost": "Impossible d’actualiser. Vérifiez votre connexion et réessayez.",
   "summaryRefreshing": "Actualisation… Le dernier récapitulatif reçu reste affiché jusqu’à la fin de la vérification.",
-  "summaryLastKnown": "Impossible d’actualiser. Ces chiffres sont les derniers reçus, pas une mise à jour en direct. Ils seront masqués après 15 minutes sans vérification réussie."
+  "summaryLastKnown": "Impossible d’actualiser. Ces chiffres sont les derniers reçus, pas une mise à jour en direct. Ils seront masqués après 15 minutes sans vérification réussie.",
+  "previousSevenDays": "Les 7 jours précédents"
 }

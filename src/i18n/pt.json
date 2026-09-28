@@ -242,5 +242,6 @@
   "discard": "Descartar alterações",
   "summaryConnectionLost": "Não foi possível atualizar. Verifique a ligação e tente novamente.",
   "summaryRefreshing": "A atualizar… O último resumo recebido é mostrado até a verificação terminar.",
-  "summaryLastKnown": "Não foi possível atualizar. Estes são os últimos valores recebidos, não uma atualização em tempo real. Ficarão ocultos após 15 minutos sem uma verificação bem-sucedida."
+  "summaryLastKnown": "Não foi possível atualizar. Estes são os últimos valores recebidos, não uma atualização em tempo real. Ficarão ocultos após 15 minutos sem uma verificação bem-sucedida.",
+  "previousSevenDays": "Os 7 dias anteriores"
 }

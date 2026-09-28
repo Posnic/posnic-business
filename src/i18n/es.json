@@ -242,5 +242,6 @@
   "discard": "Descartar cambios",
   "summaryConnectionLost": "No se pudo actualizar. Comprueba tu conexión e inténtalo de nuevo.",
   "summaryRefreshing": "Actualizando… Se muestra el último resumen recibido hasta que finalice la comprobación.",
-  "summaryLastKnown": "No se pudo actualizar. Estas son las últimas cifras recibidas, no una actualización en directo. Se ocultarán tras 15 minutos sin una comprobación correcta."
+  "summaryLastKnown": "No se pudo actualizar. Estas son las últimas cifras recibidas, no una actualización en directo. Se ocultarán tras 15 minutos sin una comprobación correcta.",
+  "previousSevenDays": "Los 7 días anteriores"
 }

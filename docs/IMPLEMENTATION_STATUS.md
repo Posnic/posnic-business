@@ -4,6 +4,8 @@ Version 0.1.0 development foundation, 28 September 2026.
 
 ## Present
 
+- Connected-account Insights shows the previous seven completed branch-local dates using existing version-2 desktop-prepared summaries. It preserves partial/delayed labels, missing-day gaps and negative sales after returns; it does not claim percentage growth or complete totals from incomplete sources. Reads are sequential with a 20-second overall budget, scoped to compatible branches, and cancelled when leaving the tab. Figures expire after 15 minutes or branch midnight and clear on failed refresh. The 18-language period label, expandable metric explanation, narrow-screen layout and authenticated browser flow are checked. Item ranking, stock insights and full source-completeness qualification remain open.
+
 - Public-repository source layout, Expo/React Native shell and separate Business application identity.
 - Light/dark Today, Insights, Inbox and More screens using fictional Anbu Café data.
 - Capability-based sample access, single-branch auto-selection, multiple-branch selector and explicit zero-access state.

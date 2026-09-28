@@ -23,6 +23,7 @@ import {
   DarkTheme,
   DefaultTheme,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useNavigationContainerRef,
   usePreventRemove,
@@ -44,6 +45,7 @@ import { supportsPush } from "../platform/push";
 import { t, isRTL } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
+import { BusinessTrends } from "./BusinessTrends";
 import { BusinessInbox } from "./BusinessInbox";
 import { BusinessApprovals, BusinessApprovalDetail } from "./BusinessApprovals";
 import { pendingConfirmation } from "../services/pendingConfirmation";
@@ -55,7 +57,12 @@ import { type usePushSettings } from "./usePushSettings";
 import { useReducedMotion } from "./useReducedMotion";
 import { LanguageSettings } from "./LanguageSettings";
 
-type Tabs = { Today: undefined; Inbox: undefined; More: undefined };
+type Tabs = {
+  Today: undefined;
+  Insights: undefined;
+  Inbox: undefined;
+  More: undefined;
+};
 type Routes = {
   Home: NavigatorScreenParams<Tabs> | undefined;
   Branches: { destination: "scope" | "Notifications" | "Publisher" };
@@ -275,6 +282,28 @@ function Today() {
     </Page>
   );
 }
+function Insights() {
+  useLocale();
+  const focused = useIsFocused();
+  const model = useModel(),
+    [refresh, setRefresh] = useState<RefreshBinding>(null);
+  return (
+    <Page top refresh={refresh}>
+      <Heading>{t("insights")}</Heading>
+      <Scope />
+      {focused && (
+        <BusinessTrends
+          key={model.generation}
+          credential={model.credential}
+          context={model.context}
+          branch={model.branch}
+          onAccessLost={model.onAccessLost}
+          onRefreshBinding={setRefresh}
+        />
+      )}
+    </Page>
+  );
+}
 function Inbox() {
   useLocale();
   const model = useModel(),
@@ -435,9 +464,11 @@ function Home() {
         tabBarAccessibilityLabel: t(
           route.name === "Today"
             ? "today"
-            : route.name === "Inbox"
-              ? "inbox"
-              : "more",
+            : route.name === "Insights"
+              ? "insights"
+              : route.name === "Inbox"
+                ? "inbox"
+                : "more",
         ),
         tabBarLabelPosition: "below-icon",
         tabBarLabel: ({ color }) => (
@@ -460,9 +491,11 @@ function Home() {
             {t(
               route.name === "Today"
                 ? "today"
-                : route.name === "Inbox"
-                  ? "inbox"
-                  : "more",
+                : route.name === "Insights"
+                  ? "insights"
+                  : route.name === "Inbox"
+                    ? "inbox"
+                    : "more",
             )}
           </Text>
         ),
@@ -472,9 +505,11 @@ function Home() {
             name={
               route.name === "Today"
                 ? "grid-outline"
-                : route.name === "Inbox"
-                  ? "mail-outline"
-                  : "ellipsis-horizontal-circle-outline"
+                : route.name === "Insights"
+                  ? "stats-chart-outline"
+                  : route.name === "Inbox"
+                    ? "mail-outline"
+                    : "ellipsis-horizontal-circle-outline"
             }
             color={color}
             size={size}
@@ -488,6 +523,14 @@ function Home() {
         component={Today}
         options={{ title: t("today") }}
       />
+      {model.context.capabilities.includes("overview.read") &&
+        model.context.branches.length > 0 && (
+          <Tab.Screen
+            name="Insights"
+            component={Insights}
+            options={{ title: t("insights") }}
+          />
+        )}
       {model.context.capabilities.includes("overview.read") &&
         model.context.branches.length > 0 && (
           <Tab.Screen

@@ -242,5 +242,6 @@
   "discard": "Buang perubahan",
   "summaryConnectionLost": "Tidak dapat menyegarkan. Periksa koneksi dan coba lagi.",
   "summaryRefreshing": "Menyegarkan… Menampilkan ringkasan terakhir yang diterima hingga pemeriksaan selesai.",
-  "summaryLastKnown": "Tidak dapat menyegarkan. Ini adalah angka terakhir yang diterima, bukan pembaruan langsung. Angka akan disembunyikan setelah 15 menit tanpa pemeriksaan yang berhasil."
+  "summaryLastKnown": "Tidak dapat menyegarkan. Ini adalah angka terakhir yang diterima, bukan pembaruan langsung. Angka akan disembunyikan setelah 15 menit tanpa pemeriksaan yang berhasil.",
+  "previousSevenDays": "7 hari sebelumnya"
 }

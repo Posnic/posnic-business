@@ -15,6 +15,8 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let publisherChanged = false;
   let inboxRead = false;
   let notificationRevision = 0;
+  let trendMode = false;
+  const trendDays: string[] = [];
   const liveContext = {
     ...sampleContext("manager"),
     businessName: "Connected test business",
@@ -63,6 +65,18 @@ test("approved Business connection shows only real scope and revokes on sign-out
         context: liveContext,
       };
     else if (url.pathname.endsWith("/overview")) {
+      if (trendMode) {
+        const day = url.searchParams.get("businessDate")!;
+        trendDays.push(day);
+        if (day === trendDays[0]) {
+          await route.fulfill({
+            status: 503,
+            contentType: "application/json",
+            body: JSON.stringify({ error: "summary_unavailable" }),
+          });
+          return;
+        }
+      }
       if (summaryOffline) {
         await route.abort("internetdisconnected");
         return;
@@ -241,7 +255,50 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-live-today.png",
     fullPage: true,
   });
-  for (const name of ["Today", "Inbox", "More"]) {
+  trendMode = true;
+  const trends = page.getByTestId("business-trends");
+  await page.getByRole("tab", { name: "Insights", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Previous 7 days" }),
+  ).toBeVisible();
+  await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(6);
+  expect(trendDays).toHaveLength(7);
+  expect(new Set(trendDays).size).toBe(7);
+  const explanation = trends.getByRole("button", {
+    name: "Behind the total",
+    exact: true,
+  });
+  await expect(explanation).toHaveAttribute("aria-expanded", "false");
+  await explanation.click();
+  await expect(explanation).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    trends.getByText(/This is sales, not cash collected or profit/),
+  ).toBeVisible();
+  await explanation.click();
+  await expect(
+    trends
+      .getByText(/A prepared summary is not available yet/)
+      .filter({ visible: true }),
+  ).toHaveCount(1);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: "test-results/business-live-insights.png",
+    fullPage: true,
+  });
+  trendMode = false;
+  summaryOffline = true;
+  await trends.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(0);
+  summaryOffline = false;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("tab", { name: "Today", exact: true }).click();
+  await expect(trends).toHaveCount(0);
+  for (const name of ["Today", "Insights", "Inbox", "More"]) {
     const label = page
       .getByRole("tab", { name, exact: true })
       .getByText(name, { exact: true });

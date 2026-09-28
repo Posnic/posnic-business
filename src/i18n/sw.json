@@ -242,5 +242,6 @@
   "discard": "Tupilia mbali mabadiliko",
   "summaryConnectionLost": "Haiwezi kuonyesha upya. Kagua muunganisho wako na ujaribu tena.",
   "summaryRefreshing": "Inaonyesha upya… Muhtasari wa mwisho uliopokelewa unaonyeshwa mpaka ukaguzi ukamilike.",
-  "summaryLastKnown": "Haiwezi kuonyesha upya. Hizi ni takwimu za mwisho zilizopokelewa, si sasisho la moja kwa moja. Zitafichwa baada ya dakika 15 bila ukaguzi uliofanikiwa."
+  "summaryLastKnown": "Haiwezi kuonyesha upya. Hizi ni takwimu za mwisho zilizopokelewa, si sasisho la moja kwa moja. Zitafichwa baada ya dakika 15 bila ukaguzi uliofanikiwa.",
+  "previousSevenDays": "Siku 7 zilizopita"
 }

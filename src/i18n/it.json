@@ -242,5 +242,6 @@
   "discard": "Scarta modifiche",
   "summaryConnectionLost": "Impossibile aggiornare. Controlla la connessione e riprova.",
   "summaryRefreshing": "Aggiornamento… L’ultimo riepilogo ricevuto resta visibile fino al termine della verifica.",
-  "summaryLastKnown": "Impossibile aggiornare. Questi sono gli ultimi valori ricevuti, non un aggiornamento in tempo reale. Verranno nascosti dopo 15 minuti senza una verifica riuscita."
+  "summaryLastKnown": "Impossibile aggiornare. Questi sono gli ultimi valori ricevuti, non un aggiornamento in tempo reale. Verranno nascosti dopo 15 minuti senza una verifica riuscita.",
+  "previousSevenDays": "I 7 giorni precedenti"
 }

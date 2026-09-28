@@ -242,5 +242,6 @@
   "discard": "Discard changes",
   "summaryConnectionLost": "Could not refresh. Check your connection and try again.",
   "summaryRefreshing": "Refreshing… Showing the last received summary until the check completes.",
-  "summaryLastKnown": "Could not refresh. These are the last received figures, not a live update. They will be hidden after 15 minutes without a successful check."
+  "summaryLastKnown": "Could not refresh. These are the last received figures, not a live update. They will be hidden after 15 minutes without a successful check.",
+  "previousSevenDays": "Previous 7 days"
 }
