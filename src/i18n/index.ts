@@ -4,6 +4,7 @@ import ar from "./ar.json";
 import ta from "./ta.json";
 import hi from "./hi.json";
 import es from "./es.json";
+import pt from "./pt.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -29,7 +30,7 @@ const definitions = [
 ].map(([code, name]) => ({
   code: code!,
   name: name!,
-  formatLocale: code === "en" ? "en-IN" : code!,
+  formatLocale: code === "en" ? "en-IN" : code === "pt" ? "pt-PT" : code!,
   rtl: code === "ar",
 }));
 export const bundledCatalogs = {
@@ -39,6 +40,7 @@ export const bundledCatalogs = {
   ta,
   hi,
   es,
+  pt,
 };
 export const translator = createTranslator<MessageKey>(
   en,
