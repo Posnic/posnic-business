@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "Posnic Business",
+    "slug": "posnic-business",
+    "scheme": "com.posnic.business",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.posnic.business",
+      "supportsTablet": true
+    },
+    "android": { "package": "com.posnic.business", "versionCode": 1 },
+    "web": { "bundler": "metro", "name": "Posnic Business" }
+  }
+}
