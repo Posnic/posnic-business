@@ -39,3 +39,5 @@ The simulator bundle is under `ios/build/Build/Products/Debug-iphonesimulator/`.
 - Signed Android/iOS builds, privacy disclosures, pilot reconciliation and rollback before production publication.
 
 Prior build evidence: GitHub run 36376341281 compiled the earlier authorization commit successfully for Android debug and iOS simulator. It predates subsequent Cloud/biometric work and is not final release evidence.
+
+Native navigation/privacy qualification: check app-switcher snapshots while a branch modal, schedule discard dialog, keyboard and biometric prompt are visible. iOS uses the Expo inactive-screen blur in addition to account background locking; native modal coverage must be verified on device. Android 13+ disables Recents screenshots at the Activity level while preserving ordinary user screenshots. Earlier Android versions rely on the existing privacy cover and lock and require separate snapshot testing. These protections are implemented, not device-qualified.

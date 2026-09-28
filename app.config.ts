@@ -10,12 +10,14 @@ export default {
   ...config.expo,
   android: {
     ...config.expo.android,
+    predictiveBackGestureEnabled: false,
     ...(process.env.POSNIC_BUSINESS_GOOGLE_SERVICES_FILE
       ? { googleServicesFile: process.env.POSNIC_BUSINESS_GOOGLE_SERVICES_FILE }
       : {}),
   },
   plugins: [
     ...config.expo.plugins,
+    "./plugins/withBusinessNavigation.js",
     ["expo-notifications", { defaultChannel: "business-updates" }],
   ],
   ...(projectId ? { extra: { eas: { projectId } } } : {}),

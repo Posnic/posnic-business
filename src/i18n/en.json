@@ -180,5 +180,15 @@
   "refreshPushSettings": "Refresh phone notification settings",
   "pushServerUnavailable": "Phone delivery is not configured for this app and server. Your Business Inbox is still available.",
   "pushPermissionDenied": "Notifications are disabled in your phone settings. You can enable them there, then refresh. Your Inbox remains available.",
-  "pushUnavailable": "Could not confirm phone notification settings. Check your connection and refresh before trying again."
+  "pushUnavailable": "Could not confirm phone notification settings. Check your connection and refresh before trying again.",
+  "notificationMenuHelp": "Daily summaries and quiet hours",
+  "publisherMenuHelp": "Choose the desktop that prepares branch totals",
+  "deviceMenuHelp": "Review access and remove old devices",
+  "securitySettings": "Security",
+  "securityMenuHelp": "PIN and biometric unlock",
+  "chooseBranch": "Choose a branch",
+  "discardChanges": "Discard changes?",
+  "discardChangesHelp": "Your schedule has unsaved changes. Keep editing or discard them before leaving.",
+  "keepEditing": "Keep editing",
+  "discard": "Discard changes"
 }

@@ -40,10 +40,10 @@ import { t, releaseLanguages } from "./i18n";
 import { Button, Card, UIContext } from "./components/ui";
 import { AuthorizationPanel } from "./components/AuthorizationPanel";
 import { AccountScreen } from "./components/AccountScreen";
-import { type RefreshBinding } from "./components/LiveOverview";
 import { type Session } from "./services/authorization";
 import { supportsRememberedSession, vault } from "./platform/vault";
 import { businessFetch } from "./platform/network";
+import { enableSwitcherPrivacy } from "./platform/privacy";
 
 type Tab = "today" | "insights" | "inbox" | "more";
 function BusinessApp() {
@@ -257,7 +257,6 @@ function BusinessApp() {
     [branchOpen, setBranchOpen] = useState(false),
     [itemIndex, setItemIndex] = useState<number | null>(null),
     [refreshing, setRefreshing] = useState(false);
-  const [accountRefresh, setAccountRefresh] = useState<RefreshBinding>(null);
   const context = useMemo(() => sampleContext(profile), [profile]);
   const scope = resolveBranchScope(context, branch),
     moneyAllowed = hasCapability(context, "overview.read");
@@ -289,6 +288,7 @@ function BusinessApp() {
     );
   }, [scrollKey]);
   useEffect(() => {
+    if (accountOpen) return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       if (community) {
         cancelConnection();
@@ -306,7 +306,7 @@ function BusinessApp() {
       return false;
     });
     return () => sub.remove();
-  }, [community, branchOpen, !!selectedItem]);
+  }, [accountOpen, community, branchOpen, !!selectedItem]);
   const refresh = async () => {
     if (busy.current) return;
     busy.current = true;
@@ -407,383 +407,272 @@ function BusinessApp() {
   const noScope = context.branches.length === 0;
   return (
     <UIContext.Provider value={styles}>
-      <SafeAreaView style={styles.shell}>
+      <SafeAreaView
+        edges={accountOpen ? ["left", "right"] : undefined}
+        style={styles.shell}
+      >
         <StatusBar style={dark ? "light" : "dark"} />
         <View style={styles.frame}>
-          <View style={{ flex: 1 }} {...gesture.panHandlers}>
-            <ScrollView
-              ref={scroll}
-              contentContainerStyle={styles.body}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode={
-                Platform.OS === "ios" ? "interactive" : "on-drag"
-              }
-              scrollsToTop
-              onScroll={(e) => {
-                scrollPositions.current[scrollKey] =
-                  e.nativeEvent.contentOffset.y;
+          {accountOpen && !restoringSession ? (
+            <AccountScreen
+              initialSession={connectedSession}
+              onSessionConsumed={() => setConnectedSession(null)}
+              onExit={(notice) => {
+                setAccountOpen(false);
+                setCommunity(false);
+                setStarted(false);
+                setConnectedSession(null);
+                cancelConnection();
+                if (notice) setMessage(notice);
               }}
-              scrollEventThrottle={100}
-              refreshControl={
-                <RefreshControl
-                  enabled={
-                    accountOpen
-                      ? !!accountRefresh
-                      : started && tab !== "more" && !noScope
+            />
+          ) : (
+            <>
+              <View style={{ flex: 1 }} {...gesture.panHandlers}>
+                <ScrollView
+                  ref={scroll}
+                  contentContainerStyle={styles.body}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode={
+                    Platform.OS === "ios" ? "interactive" : "on-drag"
                   }
-                  refreshing={
-                    accountOpen ? (accountRefresh?.busy ?? false) : refreshing
-                  }
-                  onRefresh={accountOpen ? accountRefresh?.run : refresh}
-                  tintColor={colors.brand}
-                />
-              }
-            >
-              <Text style={styles.brand}>{t("appName").toUpperCase()}</Text>
-              {restoringSession ? (
-                <Text style={styles.text}>{t("unlocking")}</Text>
-              ) : accountOpen ? (
-                <AccountScreen
-                  onRefreshBinding={setAccountRefresh}
-                  initialSession={connectedSession}
-                  onSessionConsumed={() => setConnectedSession(null)}
-                  onExit={(notice) => {
-                    setAccountOpen(false);
-                    setCommunity(false);
-                    setStarted(false);
-                    setConnectedSession(null);
-                    cancelConnection();
-                    if (notice) setMessage(notice);
+                  scrollsToTop
+                  onScroll={(e) => {
+                    scrollPositions.current[scrollKey] =
+                      e.nativeEvent.contentOffset.y;
                   }}
-                />
-              ) : !started ? (
-                <>
-                  <Text
-                    accessibilityRole="header"
-                    style={[styles.heading, { fontSize: 37, marginTop: 24 }]}
-                  >
-                    {t("welcome")}
-                  </Text>
-                  <Text style={styles.sub}>{t("welcomeDetail")}</Text>
-                  {community ? (
-                    <Card>
-                      <Text accessibilityRole="header" style={styles.title}>
-                        {t("community")}
+                  scrollEventThrottle={100}
+                  refreshControl={
+                    <RefreshControl
+                      enabled={started && tab !== "more" && !noScope}
+                      refreshing={refreshing}
+                      onRefresh={refresh}
+                      tintColor={colors.brand}
+                    />
+                  }
+                >
+                  <Text style={styles.brand}>{t("appName").toUpperCase()}</Text>
+                  {restoringSession ? (
+                    <Text style={styles.text}>{t("unlocking")}</Text>
+                  ) : !started ? (
+                    <>
+                      <Text
+                        accessibilityRole="header"
+                        style={[
+                          styles.heading,
+                          { fontSize: 37, marginTop: 24 },
+                        ]}
+                      >
+                        {t("welcome")}
                       </Text>
-                      <Text style={styles.sub}>{t("serverAddress")}</Text>
-                      <TextInput
-                        accessibilityLabel={t("serverAddress")}
-                        value={server}
-                        onChangeText={(value) => {
-                          cancelConnection();
-                          setServer(value);
-                        }}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        keyboardType="url"
-                        placeholder="https://shop.example.com"
-                        placeholderTextColor={colors.muted}
-                        style={styles.field}
-                      />
-                      <Button
-                        label={t(checking ? "checkingServer" : "checkServer")}
-                        disabled={checking}
-                        onPress={() => {
-                          void checkConnection(server);
-                        }}
-                      />
-                      <Button
-                        label={t("back")}
-                        secondary
-                        onPress={() => {
-                          cancelConnection();
-                          setCommunity(false);
-                          setMessage("");
-                        }}
-                      />
-                    </Card>
-                  ) : (
-                    <Card>
-                      <Button
-                        label={t("cloud")}
-                        disabled={checking}
-                        onPress={() => {
-                          void checkConnection(CLOUD_ORIGIN);
-                        }}
-                      />
-                      <Button
-                        label={t("community")}
-                        secondary
-                        onPress={() => {
-                          cancelConnection();
-                          setCommunity(true);
-                          setMessage("");
-                        }}
-                      />
-                    </Card>
-                  )}
-                  {compatibleOrigin && (
-                    <AuthorizationPanel
-                      key={compatibleOrigin}
-                      origin={compatibleOrigin}
-                      onConnected={(session) => {
-                        setConnectedSession(session);
-                        setAccountOpen(true);
-                        cancelConnection();
-                      }}
-                    />
-                  )}
-                  <Card>
-                    <Text style={styles.title}>{t("readOnly")}</Text>
-                    <Text style={styles.sub}>{t("sampleHelp")}</Text>
-                    <Button
-                      label={t("sample")}
-                      onPress={() => {
-                        cancelConnection();
-                        setStarted(true);
-                        setCommunity(false);
-                        setMessage("");
-                      }}
-                    />
-                  </Card>
-                </>
-              ) : (
-                <>
-                  <View style={styles.badge}>
-                    <Text style={styles.sub}>{t("sampleNotice")}</Text>
-                  </View>
-                  {selectedItem && (
-                    <Button
-                      label={"‹ " + t("back")}
-                      secondary
-                      onPress={() => setItemIndex(null)}
-                    />
-                  )}
-                  <Text accessibilityRole="header" style={styles.heading}>
-                    {title}
-                  </Text>
-                  <Text style={styles.sub}>{context.businessName}</Text>
-                  {(tab === "today" || tab === "insights") &&
-                    !selectedItem &&
-                    !noScope && (
-                      <>
-                        {canShowBranchSelector(context) ? (
-                          <>
-                            <Button
-                              label={
-                                branch === null
-                                  ? t("allBranches")
-                                  : context.branches.find(
-                                      (b) => b.id === branch,
-                                    )!.name
-                              }
-                              secondary
-                              onPress={() => setBranchOpen(!branchOpen)}
-                            />
-                            {branchOpen && (
-                              <Card>
-                                {[
-                                  { id: null, name: t("allBranches") },
-                                  ...context.branches,
-                                ].map((b) => (
-                                  <Button
-                                    key={b.id ?? "all"}
-                                    label={b.name}
-                                    secondary
-                                    onPress={() => {
-                                      setBranch(b.id);
-                                      setBranchOpen(false);
-                                      setItemIndex(null);
-                                    }}
-                                  />
-                                ))}
-                              </Card>
-                            )}
-                          </>
-                        ) : (
-                          <Text style={styles.sub}>
-                            {t("branchLabel", {
-                              name: context.branches[0]!.name,
-                            })}
+                      <Text style={styles.sub}>{t("welcomeDetail")}</Text>
+                      {community ? (
+                        <Card>
+                          <Text accessibilityRole="header" style={styles.title}>
+                            {t("community")}
                           </Text>
-                        )}
-                        <Text style={styles.sub}>{t("sourceDate")}</Text>
-                      </>
-                    )}
-                  {noScope && tab !== "more" ? (
-                    <Card>
-                      <Text style={styles.title}>{t("noAccess")}</Text>
-                      <Text style={styles.sub}>{t("noAccessHelp")}</Text>
-                    </Card>
+                          <Text style={styles.sub}>{t("serverAddress")}</Text>
+                          <TextInput
+                            accessibilityLabel={t("serverAddress")}
+                            value={server}
+                            onChangeText={(value) => {
+                              cancelConnection();
+                              setServer(value);
+                            }}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="url"
+                            placeholder="https://shop.example.com"
+                            placeholderTextColor={colors.muted}
+                            style={styles.field}
+                          />
+                          <Button
+                            label={t(
+                              checking ? "checkingServer" : "checkServer",
+                            )}
+                            disabled={checking}
+                            onPress={() => {
+                              void checkConnection(server);
+                            }}
+                          />
+                          <Button
+                            label={t("back")}
+                            secondary
+                            onPress={() => {
+                              cancelConnection();
+                              setCommunity(false);
+                              setMessage("");
+                            }}
+                          />
+                        </Card>
+                      ) : (
+                        <Card>
+                          <Button
+                            label={t("cloud")}
+                            disabled={checking}
+                            onPress={() => {
+                              void checkConnection(CLOUD_ORIGIN);
+                            }}
+                          />
+                          <Button
+                            label={t("community")}
+                            secondary
+                            onPress={() => {
+                              cancelConnection();
+                              setCommunity(true);
+                              setMessage("");
+                            }}
+                          />
+                        </Card>
+                      )}
+                      {compatibleOrigin && (
+                        <AuthorizationPanel
+                          key={compatibleOrigin}
+                          origin={compatibleOrigin}
+                          onConnected={(session) => {
+                            setConnectedSession(session);
+                            setAccountOpen(true);
+                            cancelConnection();
+                          }}
+                        />
+                      )}
+                      <Card>
+                        <Text style={styles.title}>{t("readOnly")}</Text>
+                        <Text style={styles.sub}>{t("sampleHelp")}</Text>
+                        <Button
+                          label={t("sample")}
+                          onPress={() => {
+                            cancelConnection();
+                            setStarted(true);
+                            setCommunity(false);
+                            setMessage("");
+                          }}
+                        />
+                      </Card>
+                    </>
                   ) : (
                     <>
-                      {tab !== "more" && (
-                        <View style={styles.row}>
-                          <Text style={[styles.sub, { flex: 1 }]}>
-                            {freshness}
-                          </Text>
-                          <Button
-                            label={t(refreshing ? "refreshing" : "refresh")}
-                            secondary
-                            disabled={refreshing}
-                            onPress={refresh}
-                          />
-                        </View>
+                      <View style={styles.badge}>
+                        <Text style={styles.sub}>{t("sampleNotice")}</Text>
+                      </View>
+                      {selectedItem && (
+                        <Button
+                          label={"‹ " + t("back")}
+                          secondary
+                          onPress={() => setItemIndex(null)}
+                        />
                       )}
-                      {tab === "today" && (
-                        <>
-                          {overview && (
-                            <Card>
-                              <Text style={styles.text}>{t("netSales")}</Text>
-                              <Text style={styles.total}>
-                                {money(overview.netSalesMinor)}
+                      <Text accessibilityRole="header" style={styles.heading}>
+                        {title}
+                      </Text>
+                      <Text style={styles.sub}>{context.businessName}</Text>
+                      {(tab === "today" || tab === "insights") &&
+                        !selectedItem &&
+                        !noScope && (
+                          <>
+                            {canShowBranchSelector(context) ? (
+                              <>
+                                <Button
+                                  label={
+                                    branch === null
+                                      ? t("allBranches")
+                                      : context.branches.find(
+                                          (b) => b.id === branch,
+                                        )!.name
+                                  }
+                                  secondary
+                                  onPress={() => setBranchOpen(!branchOpen)}
+                                />
+                                {branchOpen && (
+                                  <Card>
+                                    {[
+                                      { id: null, name: t("allBranches") },
+                                      ...context.branches,
+                                    ].map((b) => (
+                                      <Button
+                                        key={b.id ?? "all"}
+                                        label={b.name}
+                                        secondary
+                                        onPress={() => {
+                                          setBranch(b.id);
+                                          setBranchOpen(false);
+                                          setItemIndex(null);
+                                        }}
+                                      />
+                                    ))}
+                                  </Card>
+                                )}
+                              </>
+                            ) : (
+                              <Text style={styles.sub}>
+                                {t("branchLabel", {
+                                  name: context.branches[0]!.name,
+                                })}
                               </Text>
-                              <Text style={styles.sub}>{t("untaxed")}</Text>
-                              <View style={styles.divider} />
-                              <View style={styles.row}>
-                                <View style={styles.half}>
-                                  <Text style={styles.sub}>
-                                    {t("completedBills")}
-                                  </Text>
-                                  <Text style={styles.title}>
-                                    {overview.completedSales}
-                                  </Text>
-                                </View>
-                                <View style={styles.half}>
-                                  <Text style={styles.sub}>
-                                    {t("averageBill")}
-                                  </Text>
-                                  <Text style={styles.title}>
-                                    {averageBill(
-                                      overview.netSalesMinor,
-                                      overview.completedSales,
-                                    ) === null
-                                      ? "—"
-                                      : money(
-                                          averageBill(
-                                            overview.netSalesMinor,
-                                            overview.completedSales,
-                                          )!,
-                                        )}
-                                  </Text>
-                                </View>
-                              </View>
-                            </Card>
-                          )}
-                          {hasCapability(context, "stock.read") && (
-                            <Card>
-                              <Text style={styles.title}>{t("stock")}</Text>
-                              {stock.length ? (
-                                stock.map((s) => (
-                                  <View key={s.id}>
-                                    <Text style={styles.text}>
-                                      {s.name} · {s.available} {s.unit}
-                                    </Text>
-                                    <Text style={styles.sub}>
-                                      {t(
-                                        s.available === 0
-                                          ? "outOfStock"
-                                          : "lowStock",
-                                      )}{" "}
-                                      · Central
-                                    </Text>
-                                  </View>
-                                ))
-                              ) : (
-                                <Text style={styles.sub}>
-                                  {t("stockEmpty")}
-                                </Text>
-                              )}
-                            </Card>
-                          )}
-                          <Text style={styles.sub}>{t("desktop")}</Text>
-                        </>
-                      )}
-                      {tab === "insights" && (
+                            )}
+                            <Text style={styles.sub}>{t("sourceDate")}</Text>
+                          </>
+                        )}
+                      {noScope && tab !== "more" ? (
+                        <Card>
+                          <Text style={styles.title}>{t("noAccess")}</Text>
+                          <Text style={styles.sub}>{t("noAccessHelp")}</Text>
+                        </Card>
+                      ) : (
                         <>
-                          {selectedItem ? (
+                          {tab !== "more" && (
+                            <View style={styles.row}>
+                              <Text style={[styles.sub, { flex: 1 }]}>
+                                {freshness}
+                              </Text>
+                              <Button
+                                label={t(refreshing ? "refreshing" : "refresh")}
+                                secondary
+                                disabled={refreshing}
+                                onPress={refresh}
+                              />
+                            </View>
+                          )}
+                          {tab === "today" && (
                             <>
-                              <View style={styles.row}>
-                                <Button
-                                  label={t("previous")}
-                                  secondary
-                                  disabled={itemIndex === 0}
-                                  onPress={() =>
-                                    setItemIndex(
-                                      adjacentIndex(
-                                        itemIndex!,
-                                        items.length,
-                                        "previous",
-                                      ),
-                                    )
-                                  }
-                                />
-                                <Text style={styles.sub}>
-                                  {t("itemPosition", {
-                                    position: itemIndex! + 1,
-                                    total: items.length,
-                                  })}
-                                </Text>
-                                <Button
-                                  label={t("next")}
-                                  secondary
-                                  disabled={itemIndex === items.length - 1}
-                                  onPress={() =>
-                                    setItemIndex(
-                                      adjacentIndex(
-                                        itemIndex!,
-                                        items.length,
-                                        "next",
-                                      ),
-                                    )
-                                  }
-                                />
-                              </View>
-                              <Card>
-                                <Text style={styles.text}>
-                                  {t("itemSales")}
-                                </Text>
-                                <Text style={styles.total}>
-                                  {money(selectedItem.netSalesMinor)}
-                                </Text>
-                                <Text style={styles.sub}>
-                                  {t("quantity")}: {selectedItem.quantity}
-                                </Text>
-                                <Text style={styles.sub}>
-                                  {t("itemRanking")}
-                                </Text>
-                              </Card>
-                              <Text style={styles.sub}>{t("swipeHint")}</Text>
-                            </>
-                          ) : (
-                            <>
-                              {hasCapability(context, "items.read") && (
+                              {overview && (
                                 <Card>
-                                  <Text style={styles.title}>
-                                    {t("bestItems")}
+                                  <Text style={styles.text}>
+                                    {t("netSales")}
                                   </Text>
-                                  <Text style={styles.sub}>
-                                    {t("itemRanking")}
+                                  <Text style={styles.total}>
+                                    {money(overview.netSalesMinor)}
                                   </Text>
-                                  {items.map((item, i) => (
-                                    <Pressable
-                                      key={item.id}
-                                      accessibilityRole="button"
-                                      accessibilityLabel={item.name}
-                                      onPress={() => setItemIndex(i)}
-                                      style={[
-                                        styles.row,
-                                        { paddingVertical: 13, minHeight: 48 },
-                                      ]}
-                                    >
-                                      <Text style={[styles.text, { flex: 1 }]}>
-                                        {item.name}
+                                  <Text style={styles.sub}>{t("untaxed")}</Text>
+                                  <View style={styles.divider} />
+                                  <View style={styles.row}>
+                                    <View style={styles.half}>
+                                      <Text style={styles.sub}>
+                                        {t("completedBills")}
                                       </Text>
                                       <Text style={styles.title}>
-                                        {money(item.netSalesMinor)} ›
+                                        {overview.completedSales}
                                       </Text>
-                                    </Pressable>
-                                  ))}
+                                    </View>
+                                    <View style={styles.half}>
+                                      <Text style={styles.sub}>
+                                        {t("averageBill")}
+                                      </Text>
+                                      <Text style={styles.title}>
+                                        {averageBill(
+                                          overview.netSalesMinor,
+                                          overview.completedSales,
+                                        ) === null
+                                          ? "—"
+                                          : money(
+                                              averageBill(
+                                                overview.netSalesMinor,
+                                                overview.completedSales,
+                                              )!,
+                                            )}
+                                      </Text>
+                                    </View>
+                                  </View>
                                 </Card>
                               )}
                               {hasCapability(context, "stock.read") && (
@@ -791,14 +680,17 @@ function BusinessApp() {
                                   <Text style={styles.title}>{t("stock")}</Text>
                                   {stock.length ? (
                                     stock.map((s) => (
-                                      <View key={s.id} style={{ gap: 6 }}>
-                                        <Text style={styles.title}>
-                                          {s.name}
+                                      <View key={s.id}>
+                                        <Text style={styles.text}>
+                                          {s.name} · {s.available} {s.unit}
                                         </Text>
                                         <Text style={styles.sub}>
-                                          {t("available")}: {s.available}{" "}
-                                          {s.unit} · {t("threshold")}:{" "}
-                                          {s.threshold}
+                                          {t(
+                                            s.available === 0
+                                              ? "outOfStock"
+                                              : "lowStock",
+                                          )}{" "}
+                                          · Central
                                         </Text>
                                       </View>
                                     ))
@@ -809,132 +701,272 @@ function BusinessApp() {
                                   )}
                                 </Card>
                               )}
+                              <Text style={styles.sub}>{t("desktop")}</Text>
                             </>
+                          )}
+                          {tab === "insights" && (
+                            <>
+                              {selectedItem ? (
+                                <>
+                                  <View style={styles.row}>
+                                    <Button
+                                      label={t("previous")}
+                                      secondary
+                                      disabled={itemIndex === 0}
+                                      onPress={() =>
+                                        setItemIndex(
+                                          adjacentIndex(
+                                            itemIndex!,
+                                            items.length,
+                                            "previous",
+                                          ),
+                                        )
+                                      }
+                                    />
+                                    <Text style={styles.sub}>
+                                      {t("itemPosition", {
+                                        position: itemIndex! + 1,
+                                        total: items.length,
+                                      })}
+                                    </Text>
+                                    <Button
+                                      label={t("next")}
+                                      secondary
+                                      disabled={itemIndex === items.length - 1}
+                                      onPress={() =>
+                                        setItemIndex(
+                                          adjacentIndex(
+                                            itemIndex!,
+                                            items.length,
+                                            "next",
+                                          ),
+                                        )
+                                      }
+                                    />
+                                  </View>
+                                  <Card>
+                                    <Text style={styles.text}>
+                                      {t("itemSales")}
+                                    </Text>
+                                    <Text style={styles.total}>
+                                      {money(selectedItem.netSalesMinor)}
+                                    </Text>
+                                    <Text style={styles.sub}>
+                                      {t("quantity")}: {selectedItem.quantity}
+                                    </Text>
+                                    <Text style={styles.sub}>
+                                      {t("itemRanking")}
+                                    </Text>
+                                  </Card>
+                                  <Text style={styles.sub}>
+                                    {t("swipeHint")}
+                                  </Text>
+                                </>
+                              ) : (
+                                <>
+                                  {hasCapability(context, "items.read") && (
+                                    <Card>
+                                      <Text style={styles.title}>
+                                        {t("bestItems")}
+                                      </Text>
+                                      <Text style={styles.sub}>
+                                        {t("itemRanking")}
+                                      </Text>
+                                      {items.map((item, i) => (
+                                        <Pressable
+                                          key={item.id}
+                                          accessibilityRole="button"
+                                          accessibilityLabel={item.name}
+                                          onPress={() => setItemIndex(i)}
+                                          style={[
+                                            styles.row,
+                                            {
+                                              paddingVertical: 13,
+                                              minHeight: 48,
+                                            },
+                                          ]}
+                                        >
+                                          <Text
+                                            style={[styles.text, { flex: 1 }]}
+                                          >
+                                            {item.name}
+                                          </Text>
+                                          <Text style={styles.title}>
+                                            {money(item.netSalesMinor)} ›
+                                          </Text>
+                                        </Pressable>
+                                      ))}
+                                    </Card>
+                                  )}
+                                  {hasCapability(context, "stock.read") && (
+                                    <Card>
+                                      <Text style={styles.title}>
+                                        {t("stock")}
+                                      </Text>
+                                      {stock.length ? (
+                                        stock.map((s) => (
+                                          <View key={s.id} style={{ gap: 6 }}>
+                                            <Text style={styles.title}>
+                                              {s.name}
+                                            </Text>
+                                            <Text style={styles.sub}>
+                                              {t("available")}: {s.available}{" "}
+                                              {s.unit} · {t("threshold")}:{" "}
+                                              {s.threshold}
+                                            </Text>
+                                          </View>
+                                        ))
+                                      ) : (
+                                        <Text style={styles.sub}>
+                                          {t("stockEmpty")}
+                                        </Text>
+                                      )}
+                                    </Card>
+                                  )}
+                                </>
+                              )}
+                            </>
+                          )}
+                          {tab === "inbox" && (
+                            <Card>
+                              <Text style={styles.title}>{t("noUpdates")}</Text>
+                              <Text style={styles.sub}>
+                                {t("notificationPlan")}
+                              </Text>
+                              {hasCapability(context, "approvals.read") && (
+                                <Text style={styles.sub}>
+                                  {t("approvalPlan")}
+                                </Text>
+                              )}
+                            </Card>
                           )}
                         </>
                       )}
-                      {tab === "inbox" && (
-                        <Card>
-                          <Text style={styles.title}>{t("noUpdates")}</Text>
-                          <Text style={styles.sub}>
-                            {t("notificationPlan")}
-                          </Text>
-                          {hasCapability(context, "approvals.read") && (
-                            <Text style={styles.sub}>{t("approvalPlan")}</Text>
+                      {tab === "more" && (
+                        <>
+                          <Card>
+                            <Text style={styles.title}>{t("language")}</Text>
+                            <Text style={styles.text}>English</Text>
+                            <Text style={styles.sub}>{t("languagePlan")}</Text>
+                            <Text style={styles.sub}>
+                              {releaseLanguages.map((l) => l.name).join(" · ")}
+                            </Text>
+                          </Card>
+                          {hasCapability(
+                            context,
+                            "notifications.self.manage",
+                          ) && (
+                            <Card>
+                              <Text style={styles.title}>
+                                {t("notifications")}
+                              </Text>
+                              <Text style={styles.sub}>
+                                {t("notificationPlan")}
+                              </Text>
+                            </Card>
                           )}
-                        </Card>
-                      )}
-                    </>
-                  )}
-                  {tab === "more" && (
-                    <>
-                      <Card>
-                        <Text style={styles.title}>{t("language")}</Text>
-                        <Text style={styles.text}>English</Text>
-                        <Text style={styles.sub}>{t("languagePlan")}</Text>
-                        <Text style={styles.sub}>
-                          {releaseLanguages.map((l) => l.name).join(" · ")}
-                        </Text>
-                      </Card>
-                      {hasCapability(context, "notifications.self.manage") && (
-                        <Card>
-                          <Text style={styles.title}>{t("notifications")}</Text>
-                          <Text style={styles.sub}>
-                            {t("notificationPlan")}
-                          </Text>
-                        </Card>
-                      )}
-                      <Card>
-                        <Text style={styles.title}>{t("profile")}</Text>
-                        {(
-                          ["owner", "manager", "stock", "no-access"] as const
-                        ).map((p) => (
-                          <Button
-                            key={p}
-                            label={t(
-                              p === "stock"
-                                ? "stockProfile"
-                                : p === "no-access"
-                                  ? "noAccessProfile"
-                                  : p,
+                          <Card>
+                            <Text style={styles.title}>{t("profile")}</Text>
+                            {(
+                              [
+                                "owner",
+                                "manager",
+                                "stock",
+                                "no-access",
+                              ] as const
+                            ).map((p) => (
+                              <Button
+                                key={p}
+                                label={t(
+                                  p === "stock"
+                                    ? "stockProfile"
+                                    : p === "no-access"
+                                      ? "noAccessProfile"
+                                      : p,
+                                )}
+                                secondary
+                                disabled={profile === p}
+                                onPress={() => chooseProfile(p)}
+                              />
+                            ))}
+                          </Card>
+                          <Card>
+                            <Text style={styles.title}>{t("network")}</Text>
+                            {(["current", "delayed", "offline"] as const).map(
+                              (n) => (
+                                <Button
+                                  key={n}
+                                  label={t(
+                                    n === "current"
+                                      ? "networkCurrent"
+                                      : n === "delayed"
+                                        ? "networkDelayed"
+                                        : "networkOffline",
+                                  )}
+                                  secondary
+                                  disabled={network === n}
+                                  onPress={() => setNetwork(n)}
+                                />
+                              ),
                             )}
+                          </Card>
+                          <Button
+                            label={t("leaveSample")}
                             secondary
-                            disabled={profile === p}
-                            onPress={() => chooseProfile(p)}
+                            onPress={() => {
+                              setStarted(false);
+                              setItemIndex(null);
+                              setTab("today");
+                            }}
                           />
-                        ))}
-                      </Card>
-                      <Card>
-                        <Text style={styles.title}>{t("network")}</Text>
-                        {(["current", "delayed", "offline"] as const).map(
-                          (n) => (
-                            <Button
-                              key={n}
-                              label={t(
-                                n === "current"
-                                  ? "networkCurrent"
-                                  : n === "delayed"
-                                    ? "networkDelayed"
-                                    : "networkOffline",
-                              )}
-                              secondary
-                              disabled={network === n}
-                              onPress={() => setNetwork(n)}
-                            />
-                          ),
-                        )}
-                      </Card>
-                      <Button
-                        label={t("leaveSample")}
-                        secondary
-                        onPress={() => {
-                          setStarted(false);
-                          setItemIndex(null);
-                          setTab("today");
-                        }}
-                      />
+                        </>
+                      )}
                     </>
                   )}
-                </>
+                  {!!message && (
+                    <Text accessibilityLiveRegion="polite" style={styles.sub}>
+                      {message}
+                    </Text>
+                  )}
+                </ScrollView>
+              </View>
+              {started && (
+                <View style={styles.nav}>
+                  {tabs.map((name) => (
+                    <Pressable
+                      key={name}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: tab === name }}
+                      onPress={() => {
+                        setMessage("");
+                        if (tab === name) {
+                          if (selectedItem) setItemIndex(null);
+                          else
+                            scroll.current?.scrollTo({ y: 0, animated: true });
+                        } else setTab(name);
+                        setBranchOpen(false);
+                      }}
+                      style={[
+                        styles.navButton,
+                        tab === name && styles.selected,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.navLabel,
+                          tab === name && {
+                            color: colors.brand,
+                            fontWeight: "700",
+                          },
+                        ]}
+                      >
+                        {t(name)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
               )}
-              {!!message && (
-                <Text accessibilityLiveRegion="polite" style={styles.sub}>
-                  {message}
-                </Text>
-              )}
-            </ScrollView>
-          </View>
-          {started && (
-            <View style={styles.nav}>
-              {tabs.map((name) => (
-                <Pressable
-                  key={name}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: tab === name }}
-                  onPress={() => {
-                    setMessage("");
-                    if (tab === name) {
-                      if (selectedItem) setItemIndex(null);
-                      else scroll.current?.scrollTo({ y: 0, animated: true });
-                    } else setTab(name);
-                    setBranchOpen(false);
-                  }}
-                  style={[styles.navButton, tab === name && styles.selected]}
-                >
-                  <Text
-                    style={[
-                      styles.navLabel,
-                      tab === name && {
-                        color: colors.brand,
-                        fontWeight: "700",
-                      },
-                    ]}
-                  >
-                    {t(name)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            </>
           )}
         </View>
       </SafeAreaView>
@@ -942,6 +974,11 @@ function BusinessApp() {
   );
 }
 export default function App() {
+  useEffect(() => {
+    void enableSwitcherPrivacy().catch(() => {
+      // Background locking remains active if the OS overlay is unavailable.
+    });
+  }, []);
   return (
     <SafeAreaProvider>
       <BusinessApp />

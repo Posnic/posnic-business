@@ -1,0 +1,635 @@
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+  useColorScheme,
+  useWindowDimensions,
+} from "react-native";
+import {
+  NavigationContainer,
+  DarkTheme,
+  DefaultTheme,
+  useFocusEffect,
+  useNavigation,
+  useNavigationContainerRef,
+  usePreventRemove,
+  useScrollToTop,
+  type NavigationAction,
+  type NavigatorScreenParams,
+} from "@react-navigation/native";
+import {
+  createNativeStackNavigator,
+  type NativeStackScreenProps,
+} from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { type Credential } from "../services/sessionVault";
+import { type BusinessContext } from "../domain/contracts";
+import { supportsRememberedSession } from "../platform/vault";
+import { supportsPush } from "../platform/push";
+import { t } from "../i18n";
+import { Card, Button } from "./ui";
+import { LiveOverview, type RefreshBinding } from "./LiveOverview";
+import { BusinessInbox } from "./BusinessInbox";
+import { NotificationSettings } from "./NotificationSettings";
+import { ReportingDesktop } from "./ReportingDesktop";
+import { ConnectedDevices } from "./ConnectedDevices";
+import { PushSettings } from "./PushSettings";
+import { type usePushSettings } from "./usePushSettings";
+import { useReducedMotion } from "./useReducedMotion";
+
+type Tabs = { Today: undefined; Inbox: undefined; More: undefined };
+type Routes = {
+  Home: NavigatorScreenParams<Tabs> | undefined;
+  Branches: { destination: "scope" | "Notifications" | "Publisher" };
+  Notifications: { branchId: string };
+  Publisher: { branchId: string };
+  Devices: undefined;
+  Security: undefined;
+  PhoneNotifications: undefined;
+};
+type Model = {
+  credential: Credential;
+  context: BusinessContext;
+  branch: string | null;
+  setBranch: (id: string | null) => void;
+  onAccessLost: () => void;
+  onSignOut: () => void;
+  security: React.ReactNode;
+  push: ReturnType<typeof usePushSettings>;
+  generation: number;
+  publisherChanged: () => void;
+};
+const Context = createContext<Model | null>(null);
+function useModel() {
+  const value = useContext(Context);
+  if (!value) throw new Error("Account missing");
+  return value;
+}
+const Stack = createNativeStackNavigator<Routes>(),
+  Tab = createBottomTabNavigator<Tabs>();
+function palette(dark: boolean) {
+  return {
+    ink: dark ? "#eef5fa" : "#172b37",
+    muted: dark ? "#afc1cb" : "#566a77",
+    background: dark ? "#101e26" : "#f5f7f8",
+    card: dark ? "#192d38" : "#ffffff",
+    brand: dark ? "#71d9ba" : "#146b54",
+    border: dark ? "#36505e" : "#d9e2e7",
+  };
+}
+function Page({
+  children,
+  top = false,
+  refresh,
+}: {
+  children: React.ReactNode;
+  top?: boolean;
+  refresh?: RefreshBinding;
+}) {
+  const insets = useSafeAreaInsets(),
+    colors = palette(useColorScheme() === "dark");
+  const scroll = useRef<ScrollView>(null),
+    focused = useRef(false),
+    binding = useRef(refresh);
+  binding.current = refresh;
+  useScrollToTop(scroll);
+  useFocusEffect(
+    useCallback(() => {
+      if (focused.current) binding.current?.run();
+      focused.current = true;
+    }, []),
+  );
+  return (
+    <ScrollView
+      ref={scroll}
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{
+        paddingHorizontal: 22,
+        paddingTop: 22 + (top ? insets.top : 0),
+        paddingBottom: 30,
+        gap: 16,
+      }}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+      scrollsToTop
+      refreshControl={
+        <RefreshControl
+          enabled={!!refresh}
+          refreshing={refresh?.busy ?? false}
+          onRefresh={refresh?.run}
+          tintColor={colors.brand}
+        />
+      }
+    >
+      {children}
+    </ScrollView>
+  );
+}
+function Heading({ children }: { children: React.ReactNode }) {
+  const colors = palette(useColorScheme() === "dark");
+  return (
+    <Text
+      accessibilityRole="header"
+      style={{
+        color: colors.ink,
+        fontSize: 27,
+        lineHeight: 34,
+        fontWeight: "700",
+      }}
+    >
+      {children}
+    </Text>
+  );
+}
+function MenuRow({
+  title,
+  detail,
+  icon,
+  onPress,
+}: {
+  title: string;
+  detail?: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  onPress: () => void;
+}) {
+  const colors = palette(useColorScheme() === "dark");
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        minHeight: 72,
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.card,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 14,
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <Ionicons name={icon} size={23} color={colors.brand} accessible={false} />
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={{ color: colors.ink, fontSize: 17, fontWeight: "600" }}>
+          {title}
+        </Text>
+        {detail ? (
+          <Text style={{ color: colors.muted, fontSize: 14, lineHeight: 21 }}>
+            {detail}
+          </Text>
+        ) : null}
+      </View>
+      <Ionicons
+        name="chevron-forward"
+        size={18}
+        color={colors.muted}
+        accessible={false}
+      />
+    </Pressable>
+  );
+}
+function Scope() {
+  const model = useModel(),
+    navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>(),
+    colors = palette(useColorScheme() === "dark");
+  const selected = model.context.branches.find(
+    (branch) => branch.id === model.branch,
+  );
+  if (model.context.branches.length === 1)
+    return (
+      <Text style={{ color: colors.muted, fontSize: 15 }}>
+        {t("branchLabel", { name: model.context.branches[0]!.name })}
+      </Text>
+    );
+  if (!model.context.branches.length) return null;
+  return (
+    <Button
+      secondary
+      label={selected?.name ?? t("allBranches")}
+      onPress={() => navigation.navigate("Branches", { destination: "scope" })}
+    />
+  );
+}
+function Today() {
+  const model = useModel(),
+    [refresh, setRefresh] = useState<RefreshBinding>(null),
+    colors = palette(useColorScheme() === "dark");
+  return (
+    <Page top refresh={refresh}>
+      <Text
+        style={{
+          color: colors.brand,
+          letterSpacing: 1.5,
+          fontSize: 12,
+          fontWeight: "700",
+        }}
+      >
+        {t("appName").toUpperCase()}
+      </Text>
+      <Heading>{model.context.businessName}</Heading>
+      <Scope />
+      {model.context.capabilities.includes("overview.read") &&
+      model.context.branches.length ? (
+        <LiveOverview
+          key={model.generation}
+          credential={model.credential}
+          context={model.context}
+          branch={model.branch}
+          onAccessLost={model.onAccessLost}
+          onRefreshBinding={setRefresh}
+        />
+      ) : (
+        <Card>
+          <Heading>{t("noAccess")}</Heading>
+          <Text style={{ color: colors.muted, lineHeight: 23 }}>
+            {t("noAccessHelp")}
+          </Text>
+        </Card>
+      )}
+    </Page>
+  );
+}
+function Inbox() {
+  const model = useModel(),
+    [refresh, setRefresh] = useState<RefreshBinding>(null);
+  return (
+    <Page top refresh={refresh}>
+      <BusinessInbox
+        credential={model.credential}
+        context={model.context}
+        onAccessLost={model.onAccessLost}
+        onRefreshBinding={setRefresh}
+      />
+    </Page>
+  );
+}
+function More() {
+  const model = useModel(),
+    navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
+  function openModule(name: "Notifications" | "Publisher") {
+    const branchId =
+      model.branch ??
+      (model.context.branches.length === 1
+        ? model.context.branches[0]!.id
+        : null);
+    if (branchId) navigation.navigate(name, { branchId });
+    else navigation.navigate("Branches", { destination: name });
+  }
+  return (
+    <Page top>
+      <Heading>{t("more")}</Heading>
+      <Scope />
+      {model.context.capabilities.includes("overview.read") &&
+        model.context.capabilities.includes("notifications.self.manage") &&
+        model.context.branches.length > 0 && (
+          <MenuRow
+            title={t("notificationSettings")}
+            detail={t("notificationMenuHelp")}
+            icon="notifications-outline"
+            onPress={() => openModule("Notifications")}
+          />
+        )}
+      {supportsPush && (
+        <MenuRow
+          title={t("phoneNotifications")}
+          icon="phone-portrait-outline"
+          onPress={() => navigation.navigate("PhoneNotifications")}
+        />
+      )}
+      {model.context.capabilities.includes("reporting.manage") &&
+        model.context.branches.length > 0 && (
+          <MenuRow
+            title={t("reportingDesktop")}
+            detail={t("publisherMenuHelp")}
+            icon="desktop-outline"
+            onPress={() => openModule("Publisher")}
+          />
+        )}
+      <MenuRow
+        title={t("connectedDevices")}
+        detail={t("deviceMenuHelp")}
+        icon="phone-portrait-outline"
+        onPress={() => navigation.navigate("Devices")}
+      />
+      {supportsRememberedSession && (
+        <>
+          <MenuRow
+            title={t("securitySettings")}
+            detail={t("securityMenuHelp")}
+            icon="shield-checkmark-outline"
+            onPress={() => navigation.navigate("Security")}
+          />
+          <Button label={t("lockApp")} secondary onPress={model.onAccessLost} />
+        </>
+      )}
+      <Button label={t("signOut")} secondary onPress={model.onSignOut} />
+    </Page>
+  );
+}
+function Home() {
+  const model = useModel(),
+    colors = palette(useColorScheme() === "dark");
+  const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+  return (
+    <Tab.Navigator
+      backBehavior="initialRoute"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          height: 70 + Math.max(0, fontScale - 1) * 18 + insets.bottom,
+          paddingTop: 4,
+          paddingBottom: Math.max(4, insets.bottom),
+        },
+        tabBarAccessibilityLabel: t(
+          route.name === "Today"
+            ? "today"
+            : route.name === "Inbox"
+              ? "inbox"
+              : "more",
+        ),
+        tabBarLabelStyle: { fontSize: 12, lineHeight: 18, fontWeight: "600" },
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons
+            accessible={false}
+            name={
+              route.name === "Today"
+                ? "grid-outline"
+                : route.name === "Inbox"
+                  ? "mail-outline"
+                  : "ellipsis-horizontal-circle-outline"
+            }
+            color={color}
+            size={size}
+          />
+        ),
+        tabBarHideOnKeyboard: true,
+      })}
+    >
+      <Tab.Screen
+        name="Today"
+        component={Today}
+        options={{ title: t("today") }}
+      />
+      {model.context.capabilities.includes("overview.read") &&
+        model.context.branches.length > 0 && (
+          <Tab.Screen
+            name="Inbox"
+            component={Inbox}
+            options={{ title: t("inbox") }}
+          />
+        )}
+      <Tab.Screen name="More" component={More} options={{ title: t("more") }} />
+    </Tab.Navigator>
+  );
+}
+function Branches({
+  navigation,
+  route,
+}: NativeStackScreenProps<Routes, "Branches">) {
+  const model = useModel();
+  function choose(branchId: string | null) {
+    model.setBranch(branchId);
+    if (route.params.destination === "scope") navigation.goBack();
+    else if (branchId)
+      navigation.replace(route.params.destination, { branchId });
+  }
+  return (
+    <Page>
+      {route.params.destination === "scope" && (
+        <Button
+          label={t("allBranches")}
+          secondary={model.branch !== null}
+          onPress={() => choose(null)}
+        />
+      )}
+      {model.context.branches.map((branch) => (
+        <Button
+          key={branch.id}
+          label={branch.name}
+          secondary={model.branch !== branch.id}
+          onPress={() => choose(branch.id)}
+        />
+      ))}
+      <Button
+        label={t("cancel")}
+        secondary
+        onPress={() => navigation.goBack()}
+      />
+    </Page>
+  );
+}
+function NotificationPage({
+  route,
+  navigation,
+}: NativeStackScreenProps<Routes, "Notifications">) {
+  const reducedMotion = useReducedMotion();
+  const model = useModel(),
+    [dirty, setDirty] = useState(false),
+    [action, setAction] = useState<NavigationAction | null>(null),
+    colors = palette(useColorScheme() === "dark");
+  usePreventRemove(dirty, ({ data }) => setAction(data.action));
+  return (
+    <>
+      <Page>
+        <NotificationSettings
+          page
+          credential={model.credential}
+          branchId={route.params.branchId}
+          onAccessLost={model.onAccessLost}
+          onClose={() => navigation.goBack()}
+          onDirtyChanged={setDirty}
+        />
+      </Page>
+      <Modal
+        visible={!!action}
+        transparent
+        animationType={reducedMotion ? "none" : "fade"}
+        onRequestClose={() => setAction(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            padding: 24,
+            backgroundColor: "rgba(0,0,0,0.45)",
+          }}
+          accessibilityViewIsModal
+        >
+          <Card>
+            <Heading>{t("discardChanges")}</Heading>
+            <Text style={{ color: colors.ink, lineHeight: 23 }}>
+              {t("discardChangesHelp")}
+            </Text>
+            <Button label={t("keepEditing")} onPress={() => setAction(null)} />
+            <Button
+              label={t("discard")}
+              secondary
+              onPress={() => {
+                if (action) navigation.dispatch(action);
+                setAction(null);
+              }}
+            />
+          </Card>
+        </View>
+      </Modal>
+    </>
+  );
+}
+export function BusinessNavigation({
+  credential,
+  context,
+  onAccessLost,
+  onSignOut,
+  security,
+  push,
+  inboxIntent,
+  onInboxConsumed,
+}: Omit<Model, "branch" | "setBranch" | "generation" | "publisherChanged"> & {
+  inboxIntent: number;
+  onInboxConsumed: () => void;
+}) {
+  const [branch, setBranch] = useState<string | null>(null),
+    [generation, setGeneration] = useState(0);
+  const reducedMotion = useReducedMotion();
+  const navigation = useNavigationContainerRef<Routes>(),
+    dark = useColorScheme() === "dark",
+    colors = palette(dark);
+  function openPendingInbox() {
+    if (
+      inboxIntent &&
+      navigation.isReady() &&
+      context.capabilities.includes("overview.read")
+    ) {
+      if (context.branches.length > 0)
+        navigation.navigate("Home", { screen: "Inbox" });
+      onInboxConsumed();
+    }
+  }
+  useEffect(openPendingInbox, [inboxIntent]);
+  const model: Model = {
+    credential,
+    context,
+    branch,
+    setBranch,
+    onAccessLost,
+    onSignOut,
+    security,
+    push,
+    generation,
+    publisherChanged: () => setGeneration((value) => value + 1),
+  };
+  return (
+    <Context.Provider value={model}>
+      <NavigationContainer
+        ref={navigation}
+        onReady={openPendingInbox}
+        theme={{
+          ...(dark ? DarkTheme : DefaultTheme),
+          colors: {
+            ...(dark ? DarkTheme : DefaultTheme).colors,
+            primary: colors.brand,
+            background: colors.background,
+            card: colors.card,
+            text: colors.ink,
+            border: colors.border,
+          },
+        }}
+      >
+        <Stack.Navigator
+          screenOptions={{
+            headerBackTitle: t("back"),
+            animation: reducedMotion ? "none" : "default",
+            headerTintColor: colors.brand,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Branches"
+            component={Branches}
+            options={{ title: t("chooseBranch"), presentation: "modal" }}
+          />
+          <Stack.Screen
+            name="Notifications"
+            component={NotificationPage}
+            options={{ title: t("notificationSettings") }}
+          />
+          <Stack.Screen
+            name="Publisher"
+            options={{ title: t("reportingDesktop") }}
+          >
+            {({ route, navigation: nav }) => (
+              <Page>
+                <ReportingDesktop
+                  page
+                  credential={credential}
+                  branchId={route.params.branchId}
+                  onAccessLost={onAccessLost}
+                  onChanged={model.publisherChanged}
+                  onClose={() => nav.goBack()}
+                />
+              </Page>
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Devices"
+            options={{ title: t("connectedDevices") }}
+          >
+            {({ navigation: nav }) => (
+              <Page>
+                <ConnectedDevices
+                  page
+                  credential={credential}
+                  onAccessLost={onAccessLost}
+                  onClose={() => nav.goBack()}
+                />
+              </Page>
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Security"
+            options={{ title: t("securitySettings") }}
+          >
+            {() => <Page>{security}</Page>}
+          </Stack.Screen>
+          <Stack.Screen
+            name="PhoneNotifications"
+            options={{ title: t("phoneNotifications") }}
+          >
+            {() => (
+              <Page>
+                <PushSettings state={push} />
+              </Page>
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Context.Provider>
+  );
+}

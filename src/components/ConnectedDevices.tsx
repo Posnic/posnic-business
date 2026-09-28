@@ -13,11 +13,15 @@ import { t } from "../i18n";
 export function ConnectedDevices({
   credential,
   onAccessLost,
+  page = false,
+  onClose,
 }: {
   credential: Credential;
   onAccessLost: () => void;
+  page?: boolean;
+  onClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(page),
     [rows, setRows] = useState<BusinessSession[]>([]),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
@@ -37,6 +41,9 @@ export function ConnectedDevices({
     },
     [],
   );
+  useEffect(() => {
+    if (page) void load();
+  }, []);
   async function load(removeId?: string) {
     if (busy) return;
     setBusy(true);
@@ -151,6 +158,10 @@ export function ConnectedDevices({
         secondary
         disabled={busy}
         onPress={() => {
+          if (onClose) {
+            onClose();
+            return;
+          }
           setOpen(false);
           setRows([]);
           setSelected(null);

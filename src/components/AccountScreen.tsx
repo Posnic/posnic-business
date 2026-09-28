@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
-  BackHandler,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -9,12 +9,8 @@ import {
   useColorScheme,
 } from "react-native";
 import { Button, Card } from "./ui";
-import { ConnectedDevices } from "./ConnectedDevices";
-import { LiveOverview, type RefreshBinding } from "./LiveOverview";
-import { ReportingDesktop } from "./ReportingDesktop";
-import { BusinessInbox } from "./BusinessInbox";
-import { NotificationSettings } from "./NotificationSettings";
-import { PushSettings } from "./PushSettings";
+import { BusinessNavigation } from "./BusinessNavigation";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { usePushSettings } from "./usePushSettings";
 import { listenPush } from "../platform/push";
 import { type Session, revokeSession } from "../services/authorization";
@@ -34,12 +30,10 @@ export function AccountScreen({
   initialSession,
   onExit,
   onSessionConsumed,
-  onRefreshBinding,
 }: {
   initialSession: Session | null;
   onExit: (message?: string) => void;
   onSessionConsumed: () => void;
-  onRefreshBinding: (binding: RefreshBinding) => void;
 }) {
   const [credential, setCredential] = useState<Credential | null>(
     initialSession
@@ -64,17 +58,7 @@ export function AccountScreen({
     [confirm, setConfirm] = useState(""),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
-  const [branch, setBranch] = useState<string | null>(null);
-  const [inboxOpen, setInboxOpen] = useState(false);
-  useEffect(() => {
-    if (!inboxOpen) return;
-    const handler = BackHandler.addEventListener("hardwareBackPress", () => {
-      setInboxOpen(false);
-      return true;
-    });
-    return () => handler.remove();
-  }, [inboxOpen]);
-  const [reportGeneration, setReportGeneration] = useState(0);
+  const [inboxIntent, setInboxIntent] = useState(0);
   const [biometricReady, setBiometricReady] = useState(false),
     [biometricEnabled, setBiometricEnabled] = useState(false),
     [foreground, setForeground] = useState(AppState.currentState === "active");
@@ -85,7 +69,7 @@ export function AccountScreen({
   useEffect(
     () =>
       listenPush(
-        () => setInboxOpen(true),
+        () => setInboxIntent((value) => value + 1),
         () => renewPush.current(),
       ),
     [],
@@ -102,7 +86,7 @@ export function AccountScreen({
     title = [styles.title, { color: ink }];
   function lock() {
     nativePrompt.current = false;
-    setInboxOpen(false);
+    setInboxIntent(0);
     generation.current++;
     controller.current?.abort();
     vault.lock();
@@ -196,7 +180,6 @@ export function AccountScreen({
           setContext(fresh);
           setStage("active");
           setPin("");
-          setBranch(null);
         }
       }
     } catch (error) {
@@ -257,42 +240,32 @@ export function AccountScreen({
       setMessage(t("storageUnavailable"));
     }
   }
-  if (!foreground)
+  if (!foreground && stage !== "active")
     return (
-      <Card>
-        <Text style={title}>{t("appName")}</Text>
-        <Text style={text}>{t("privacyCover")}</Text>
-      </Card>
+      <AuthFrame>
+        <Card>
+          <Text style={title}>{t("appName")}</Text>
+          <Text style={text}>{t("privacyCover")}</Text>
+        </Card>
+      </AuthFrame>
     );
   if (stage !== "active")
     return (
-      <Card>
-        <Text accessibilityRole="header" style={title}>
-          {t(stage === "setup" ? "createPin" : "unlockBusiness")}
-        </Text>
-        <Text style={text}>
-          {t(stage === "setup" ? "createPinHelp" : "unlockHelp")}
-        </Text>
-        <TextInput
-          accessibilityLabel={t("sixDigitPin")}
-          placeholder={t("sixDigitPin")}
-          placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
-          value={pin}
-          onChangeText={(value) => setPin(value.replace(/\D/g, "").slice(0, 6))}
-          secureTextEntry
-          keyboardType="number-pad"
-          maxLength={6}
-          autoComplete="off"
-          style={[styles.input, { color: ink }]}
-        />
-        {stage === "setup" && (
+      <AuthFrame>
+        <Card>
+          <Text accessibilityRole="header" style={title}>
+            {t(stage === "setup" ? "createPin" : "unlockBusiness")}
+          </Text>
+          <Text style={text}>
+            {t(stage === "setup" ? "createPinHelp" : "unlockHelp")}
+          </Text>
           <TextInput
-            accessibilityLabel={t("confirmPin")}
-            placeholder={t("confirmPin")}
+            accessibilityLabel={t("sixDigitPin")}
+            placeholder={t("sixDigitPin")}
             placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
-            value={confirm}
+            value={pin}
             onChangeText={(value) =>
-              setConfirm(value.replace(/\D/g, "").slice(0, 6))
+              setPin(value.replace(/\D/g, "").slice(0, 6))
             }
             secureTextEntry
             keyboardType="number-pad"
@@ -300,178 +273,147 @@ export function AccountScreen({
             autoComplete="off"
             style={[styles.input, { color: ink }]}
           />
-        )}
-        {message ? (
-          <Text accessibilityRole="alert" style={text}>
-            {message}
-          </Text>
-        ) : null}
-        <Button
-          label={t(
-            busy ? "unlocking" : stage === "setup" ? "savePin" : "unlock",
+          {stage === "setup" && (
+            <TextInput
+              accessibilityLabel={t("confirmPin")}
+              placeholder={t("confirmPin")}
+              placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
+              value={confirm}
+              onChangeText={(value) =>
+                setConfirm(value.replace(/\D/g, "").slice(0, 6))
+              }
+              secureTextEntry
+              keyboardType="number-pad"
+              maxLength={6}
+              autoComplete="off"
+              style={[styles.input, { color: ink }]}
+            />
           )}
-          disabled={busy || pin.length !== 6}
-          onPress={() => {
-            void unlockOrEnroll();
-          }}
-        />
-        {stage === "locked" && biometricEnabled && (
+          {message ? (
+            <Text accessibilityRole="alert" style={text}>
+              {message}
+            </Text>
+          ) : null}
           <Button
-            label={t("unlockBiometrics")}
+            label={t(
+              busy ? "unlocking" : stage === "setup" ? "savePin" : "unlock",
+            )}
+            disabled={busy || pin.length !== 6}
+            onPress={() => {
+              void unlockOrEnroll();
+            }}
+          />
+          {stage === "locked" && biometricEnabled && (
+            <Button
+              label={t("unlockBiometrics")}
+              secondary
+              disabled={busy}
+              onPress={() => {
+                void unlockOrEnroll(true);
+              }}
+            />
+          )}
+          <Button
+            label={t("signInAgain")}
             secondary
             disabled={busy}
             onPress={() => {
-              void unlockOrEnroll(true);
+              void (async () => {
+                try {
+                  await vault.forget();
+                  await biometrics.disable();
+                  exit.current();
+                } catch {
+                  setMessage(t("storageUnavailable"));
+                }
+              })();
             }}
           />
-        )}
-        <Button
-          label={t("signInAgain")}
-          secondary
-          disabled={busy}
-          onPress={() => {
-            void (async () => {
-              try {
-                await vault.forget();
-                await biometrics.disable();
-                exit.current();
-              } catch {
-                setMessage(t("storageUnavailable"));
-              }
-            })();
-          }}
-        />
-      </Card>
+        </Card>
+      </AuthFrame>
     );
-  if (inboxOpen && credential && context)
+  if (!credential || !context)
     return (
-      <View style={{ gap: 14 }}>
-        <Button
-          label={t("backToToday")}
-          secondary
-          onPress={() => setInboxOpen(false)}
-        />
-        <BusinessInbox
-          credential={credential}
-          context={context}
-          onAccessLost={lock}
-          onRefreshBinding={onRefreshBinding}
-        />
-      </View>
+      <AuthFrame>
+        <Text style={text}>{t("unlockBusiness")}</Text>
+      </AuthFrame>
     );
-  return (
-    <View style={{ gap: 14 }}>
-      <Text accessibilityRole="header" style={title}>
-        {context?.businessName}
-      </Text>
-      {context && context.branches.length > 1 ? (
-        <Card>
-          <Text style={text}>{t("scope")}</Text>
-          <Button
-            label={t("allBranches")}
-            secondary={branch !== null}
-            onPress={() => setBranch(null)}
-          />
-          {context.branches.map((b) => (
-            <Button
-              key={b.id}
-              label={b.name}
-              secondary={branch !== b.id}
-              onPress={() => setBranch(b.id)}
-            />
-          ))}
-        </Card>
-      ) : context?.branches[0] ? (
-        <Text style={text}>
-          {t("branchLabel", { name: context.branches[0].name })}
-        </Text>
-      ) : null}
-      {credential && context && context.branches.length > 0 ? (
-        <LiveOverview
-          key={reportGeneration}
-          credential={credential}
-          context={context}
-          branch={branch}
-          onAccessLost={lock}
-          onRefreshBinding={onRefreshBinding}
-        />
-      ) : (
-        <Card>
-          <Text accessibilityRole="header" style={title}>
-            {t(context?.branches.length ? "accountConnected" : "noAccess")}
-          </Text>
-          <Text style={text}>
-            {t(
-              context?.branches.length ? "liveReportsPending" : "noAccessHelp",
-            )}
-          </Text>
-        </Card>
-      )}
-      {message ? (
-        <Text accessibilityRole="alert" style={text}>
-          {message}
-        </Text>
-      ) : null}
-      {supportsRememberedSession && (
-        <Button label={t("lockApp")} secondary onPress={lock} />
-      )}
-      {credential && context?.capabilities.includes("overview.read") && (
-        <Button
-          label={t("inbox")}
-          secondary
-          onPress={() => setInboxOpen(true)}
-        />
-      )}
-      {credential &&
-        context?.capabilities.includes("overview.read") &&
-        context.capabilities.includes("notifications.self.manage") &&
-        (branch || context.branches.length === 1) && (
-          <NotificationSettings
-            key={"notifications:" + (branch ?? context.branches[0]!.id)}
-            credential={credential}
-            branchId={branch ?? context.branches[0]!.id}
-            onAccessLost={lock}
-          />
-        )}
-      {credential &&
-        context?.capabilities.includes("reporting.manage") &&
-        (branch || context.branches.length === 1) && (
-          <ReportingDesktop
-            key={"publisher:" + (branch ?? context.branches[0]!.id)}
-            credential={credential}
-            branchId={branch ?? context.branches[0]!.id}
-            onAccessLost={lock}
-            onChanged={() => setReportGeneration((value) => value + 1)}
-          />
-        )}
-      {credential && (
-        <ConnectedDevices credential={credential} onAccessLost={lock} />
-      )}
-      {credential && <PushSettings state={push} />}
-      {biometricReady && (
-        <Card>
-          <Text style={title}>{t("quickUnlock")}</Text>
-          <Text style={text}>{t("biometricHelp")}</Text>
+  const security = (
+    <>
+      <Card>
+        <Text style={title}>{t("quickUnlock")}</Text>
+        <Text style={text}>{t("biometricHelp")}</Text>
+        {biometricReady ? (
           <Button
             label={t(
               biometricEnabled ? "disableBiometrics" : "enableBiometrics",
             )}
             secondary
             disabled={busy}
-            onPress={() => {
-              void changeBiometrics();
-            }}
+            onPress={() => void changeBiometrics()}
           />
-        </Card>
+        ) : (
+          <Text style={text}>{t("biometricUnavailable")}</Text>
+        )}
+      </Card>
+      {message ? (
+        <Text accessibilityRole="alert" style={text}>
+          {message}
+        </Text>
+      ) : null}
+    </>
+  );
+  return (
+    <View style={{ flex: 1 }}>
+      <View
+        style={{ flex: 1 }}
+        accessibilityElementsHidden={!foreground}
+        importantForAccessibility={foreground ? "auto" : "no-hide-descendants"}
+      >
+        <BusinessNavigation
+          credential={credential}
+          context={context}
+          onAccessLost={lock}
+          onSignOut={() => void signOut()}
+          security={security}
+          push={push}
+          inboxIntent={inboxIntent}
+          onInboxConsumed={() => setInboxIntent(0)}
+        />
+      </View>
+      {!foreground && (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: dark ? "#101e26" : "#f5f7f8",
+              justifyContent: "center",
+              padding: 24,
+            },
+          ]}
+          accessibilityViewIsModal
+        >
+          <Text style={title}>{t("appName")}</Text>
+          <Text style={text}>{t("privacyCover")}</Text>
+        </View>
       )}
-      <Button
-        label={t("signOut")}
-        secondary
-        onPress={() => {
-          void signOut();
-        }}
-      />
     </View>
+  );
+}
+function AuthFrame({ children }: { children: React.ReactNode }) {
+  const dark = useColorScheme() === "dark";
+  return (
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: dark ? "#101e26" : "#f5f7f8" }}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: 22, gap: 16 }}
+      >
+        {children}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({

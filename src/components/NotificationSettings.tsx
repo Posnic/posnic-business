@@ -15,19 +15,36 @@ export function NotificationSettings({
   credential,
   branchId,
   onAccessLost,
+  page = false,
+  onClose,
+  onDirtyChanged,
 }: {
   credential: Credential;
   branchId: string;
   onAccessLost: () => void;
+  page?: boolean;
+  onClose?: () => void;
+  onDirtyChanged?: (dirty: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(page),
     [value, setValue] = useState<NotificationPreference | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const controller = useRef<AbortController | null>(null),
     running = useRef(false);
+  const [savedValue, setSavedValue] = useState<string | null>(null);
+  useEffect(() => {
+    onDirtyChanged?.(
+      value !== null &&
+        savedValue !== null &&
+        JSON.stringify(value) !== savedValue,
+    );
+  }, [value, savedValue, onDirtyChanged]);
   const ink = { color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37" };
   useEffect(() => () => controller.current?.abort(), []);
+  useEffect(() => {
+    if (page) void load();
+  }, []);
   async function load(save = false) {
     if (running.current) return;
     running.current = true;
@@ -43,6 +60,7 @@ export function NotificationSettings({
           : await readPreference(credential, branchId, options);
       if (!request.signal.aborted) {
         setValue(result);
+        setSavedValue(JSON.stringify(result));
         if (save) setMessage(t("notificationSaved"));
       }
     } catch (error) {
@@ -155,7 +173,16 @@ export function NotificationSettings({
               value={value.quiet.enabled}
               disabled={busy}
               onValueChange={(enabled) =>
-                setValue({ ...value, quiet: { ...value.quiet, enabled } })
+                setValue({
+                  ...value,
+                  quiet: {
+                    enabled,
+                    start: validTime(value.quiet.start)
+                      ? value.quiet.start
+                      : "22:00",
+                    end: validTime(value.quiet.end) ? value.quiet.end : "07:00",
+                  },
+                })
               }
             />
           </View>
@@ -195,6 +222,10 @@ export function NotificationSettings({
         secondary
         disabled={busy}
         onPress={() => {
+          if (onClose) {
+            onClose();
+            return;
+          }
           setOpen(false);
           setValue(null);
           setMessage("");

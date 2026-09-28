@@ -16,13 +16,17 @@ export function ReportingDesktop({
   branchId,
   onAccessLost,
   onChanged,
+  page = false,
+  onClose,
 }: {
   credential: Credential;
   branchId: string;
   onAccessLost: () => void;
   onChanged: () => void;
+  page?: boolean;
+  onClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(page),
     [state, setState] = useState<Publishers | null>(null),
     [selected, setSelected] = useState<string | null>(null),
     [busy, setBusy] = useState(false),
@@ -36,6 +40,9 @@ export function ReportingDesktop({
     },
     [],
   );
+  useEffect(() => {
+    if (page) void load();
+  }, []);
   async function load(replace = false) {
     if (running.current) return;
     running.current = true;
@@ -161,6 +168,10 @@ export function ReportingDesktop({
         secondary
         disabled={busy}
         onPress={() => {
+          if (onClose) {
+            onClose();
+            return;
+          }
           setOpen(false);
           setState(null);
           setSelected(null);

@@ -225,12 +225,45 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-live-today.png",
     fullPage: true,
   });
+  for (const name of ["Today", "Inbox", "More"]) {
+    const label = page
+      .getByRole("tab", { name, exact: true })
+      .getByText(name, { exact: true });
+    const bounds = await label.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
+  }
+  await page.setViewportSize({ width: 320, height: 640 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole("button", { name: "Notification settings", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.screenshot({
+    path: "test-results/business-more.png",
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Notification settings", exact: true })
     .click();
   await page
     .getByRole("textbox", { name: "Summary time (24-hour HH:mm)" })
     .fill("21:30");
+  await page
+    .getByRole("button", { name: "Close notification settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Discard changes?", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Keep editing", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Summary time (24-hour HH:mm)" }),
+  ).toHaveValue("21:30");
   await page
     .getByRole("switch", { name: "Daily summary", exact: true })
     .click();
@@ -243,7 +276,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   await page
     .getByRole("button", { name: "Close notification settings", exact: true })
     .click();
-  await page.getByRole("button", { name: "Inbox", exact: true }).click();
+  await page.getByRole("tab", { name: "Inbox", exact: true }).click();
   await expect(
     page.getByText(/A verified summary was unavailable at the scheduled time/),
   ).toBeVisible();
@@ -256,9 +289,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-inbox.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Back to Today", exact: true })
-    .click();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
   await page
     .getByRole("button", { name: "Reporting desktop", exact: true })
     .click();
@@ -271,6 +302,10 @@ test("approved Business connection shows only real scope and revokes on sign-out
     .click();
   await expect(page.getByText(/Reporting desktop updated/)).toBeVisible();
   expect(publisherChanged).toBe(true);
+  await page
+    .getByRole("button", { name: "Close desktop settings", exact: true })
+    .click();
+  await page.getByRole("tab", { name: "Today", exact: true }).click();
   await expect(page.getByText("₹75.00", { exact: true })).toHaveCount(0);
   summaryUnavailable = true;
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
@@ -281,6 +316,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
     token,
   );
+  await page.getByRole("tab", { name: "More", exact: true }).click();
   await page
     .getByRole("button", { name: "Connected devices", exact: true })
     .click();
@@ -294,6 +330,9 @@ test("approved Business connection shows only real scope and revokes on sign-out
     .click();
   await expect(page.getByText("Old phone", { exact: true })).toHaveCount(0);
   expect(removedDevice).toBe(true);
+  await page
+    .getByRole("button", { name: "Close devices", exact: true })
+    .click();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Continue with Posnic Cloud" }),
