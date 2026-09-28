@@ -10,6 +10,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
     token = "pb1_" + "t".repeat(43);
   let revoked = false,
     removedDevice = false;
+  let summaryUnavailable = false;
   await context.route(origin + "/api/business/v1/**", async (route) => {
     const url = new URL(route.request().url());
     let result: unknown;
@@ -20,7 +21,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
         issuer: origin,
         authorization: "business-pkce-v1",
         audience: "posnic-business",
-        reporting: "unavailable",
+        reporting: "bounded-summary-v2",
       };
     else if (url.pathname.endsWith("/requests")) {
       expect(route.request().postDataJSON().codeChallenge).toMatch(
@@ -48,7 +49,41 @@ test("approved Business connection shows only real scope and revokes on sign-out
           businessName: "Connected test business",
         },
       };
-    else if (url.pathname.endsWith("/sessions")) {
+    else if (url.pathname.endsWith("/overview")) {
+      expect(route.request().headers().authorization).toBe("Bearer " + token);
+      const scope = sampleContext("manager");
+      expect(url.searchParams.getAll("branchId")).toEqual(
+        scope.branches.map((b) => b.id),
+      );
+      if (summaryUnavailable) {
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "summary_unavailable" }),
+        });
+        return;
+      }
+      result = {
+        schemaVersion: 2,
+        metricDefinitionVersion: 2,
+        businessId: scope.businessId,
+        branchIds: scope.branches.map((b) => b.id),
+        businessDate: url.searchParams.get("businessDate"),
+        currency: "INR",
+        currencyDigits: 2,
+        billedSalesMinor: 10000,
+        refundsMinor: 2500,
+        salesAfterReturnsMinor: 7500,
+        completedSales: 2,
+        preparedAt: new Date().toISOString(),
+        freshness: {
+          state: "partial",
+          sourceUpdatedAt: null,
+          checkedAt: new Date().toISOString(),
+          complete: false,
+        },
+      };
+    } else if (url.pathname.endsWith("/sessions")) {
       result = [
         {
           id: "c".repeat(43),
@@ -107,6 +142,20 @@ test("approved Business connection shows only real scope and revokes on sign-out
     page.getByRole("button", { name: "All branches", exact: true }),
   ).toHaveCount(0);
   await expect(page.getByText("₹42,850.00", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("₹75.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Some sales may still be syncing", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/business-live-today.png",
+    fullPage: true,
+  });
+  summaryUnavailable = true;
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(
+    page.getByText(/A prepared summary is not available yet/),
+  ).toBeVisible();
+  await expect(page.getByText("₹75.00", { exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
     token,
   );

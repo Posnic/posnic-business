@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { communityOrigin } from "../domain/server";
+import { validatePreparedOverview } from "../domain/preparedOverview";
 import {
   contextSchema,
   validateOverview,
@@ -33,7 +34,11 @@ const discoverySchema = z
     issuer: z.string(),
     authorization: z.enum(["business-pkce-v1", "business-cloud-pkce-v1"]),
     audience: z.literal("posnic-business"),
-    reporting: z.enum(["bounded-summary-v1", "unavailable"]),
+    reporting: z.enum([
+      "bounded-summary-v1",
+      "bounded-summary-v2",
+      "unavailable",
+    ]),
   })
   .strict();
 export type Discovery = z.infer<typeof discoverySchema>;
@@ -146,9 +151,7 @@ export async function discoverBusinessServer(
   return parsed.data;
 }
 
-/** Transport foundation, not wired to live UI until the dedicated grant ships.
- * Native transport must qualify redirect rejection before receiving a token.
- */
+/** Every request retains the dedicated Business audience and exact origin. */
 export function createReportingClient(
   address: string,
   token: string,
@@ -170,6 +173,7 @@ export function createReportingClient(
       context: BusinessContext,
       branchIds: string[],
       businessDate: string,
+      version: 1 | 2 = 1,
     ) {
       if (
         !context.capabilities.includes("overview.read") ||
@@ -194,7 +198,10 @@ export function createReportingClient(
         token,
       );
       try {
-        const result = validateOverview(value, context, branchIds);
+        const result =
+          version === 2
+            ? validatePreparedOverview(value, context, branchIds, businessDate)
+            : validateOverview(value, context, branchIds);
         if (result.businessDate !== businessDate)
           throw new Error("Date mismatch");
         return result;

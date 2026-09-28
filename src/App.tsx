@@ -40,6 +40,7 @@ import { t, releaseLanguages } from "./i18n";
 import { Button, Card, UIContext } from "./components/ui";
 import { AuthorizationPanel } from "./components/AuthorizationPanel";
 import { AccountScreen } from "./components/AccountScreen";
+import { type RefreshBinding } from "./components/LiveOverview";
 import { type Session } from "./services/authorization";
 import { supportsRememberedSession, vault } from "./platform/vault";
 import { businessFetch } from "./platform/network";
@@ -256,6 +257,7 @@ function BusinessApp() {
     [branchOpen, setBranchOpen] = useState(false),
     [itemIndex, setItemIndex] = useState<number | null>(null),
     [refreshing, setRefreshing] = useState(false);
+  const [accountRefresh, setAccountRefresh] = useState<RefreshBinding>(null);
   const context = useMemo(() => sampleContext(profile), [profile]);
   const scope = resolveBranchScope(context, branch),
     moneyAllowed = hasCapability(context, "overview.read");
@@ -423,13 +425,18 @@ function BusinessApp() {
               }}
               scrollEventThrottle={100}
               refreshControl={
-                started && tab !== "more" && !noScope ? (
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={refresh}
-                    tintColor={colors.brand}
-                  />
-                ) : undefined
+                <RefreshControl
+                  enabled={
+                    accountOpen
+                      ? !!accountRefresh
+                      : started && tab !== "more" && !noScope
+                  }
+                  refreshing={
+                    accountOpen ? (accountRefresh?.busy ?? false) : refreshing
+                  }
+                  onRefresh={accountOpen ? accountRefresh?.run : refresh}
+                  tintColor={colors.brand}
+                />
               }
             >
               <Text style={styles.brand}>{t("appName").toUpperCase()}</Text>
@@ -437,6 +444,7 @@ function BusinessApp() {
                 <Text style={styles.text}>{t("unlocking")}</Text>
               ) : accountOpen ? (
                 <AccountScreen
+                  onRefreshBinding={setAccountRefresh}
                   initialSession={connectedSession}
                   onSessionConsumed={() => setConnectedSession(null)}
                   onExit={(notice) => {

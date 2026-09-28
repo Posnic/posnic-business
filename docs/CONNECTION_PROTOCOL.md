@@ -25,7 +25,7 @@ Requests use a ten-second timeout with cancellation, no cookies, no HTTP cache a
 
 ## Read transport foundation
 
-The reporting client loads current context after native PIN unlock; live overview reads are not yet wired to the app UI. It requires an explicitly supplied fetch transport and a proposed opaque Business token matching `pb1_` plus 43 base64url characters. The format check rejects existing POS JWTs; it is not authentication. Only the server can validate and authorize a token.
+The reporting client loads current context after native PIN unlock. Live Today requires discovery to advertise `bounded-summary-v2`; older servers show an unavailable message. It requires an explicitly supplied fetch transport and an opaque Business token matching `pb1_` plus 43 base64url characters. The format check rejects existing POS JWTs; it is not authentication. Only the server can validate and authorize a token.
 
 | Request                                                              | Client validation                                                                                                                              |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -49,6 +49,12 @@ Only the fixed Cloud origin may advertise `business-cloud-pkce-v1`. Its consent 
 5. Reconcile prepared metrics with authoritative POS fixtures, establish source checkpoints, then connect the live screens. No totals are substituted from the legacy dashboard in this milestone.
 
 Tests use synthetic responses and do not establish that a deployed server supports this draft.
+
+## Version-2 prepared overview
+
+The live response has schema/metric version 2 and includes billed sales, refunds, sales after returns and issued-bill count in safe minor units, plus currency precision, exact business/date/branch scope and preparation time. Sales include tax and already-applied discounts/rounding; tips are excluded. Returns belong to their own business date. This measure is not cash collected or profit. Negative return-only days are valid.
+
+The app only accepts partial/delayed completeness states. It uses the branch's timezone for Today and asks the user to select a branch when currencies or timezones differ. It clears displayed amounts on a failed request instead of presenting an older amount as refreshed. Auth/ACL failures lock the account. Native pull-to-refresh and a visible Refresh button use the same cancellation-aware request path. No automatic long-report request or local heavy computation is introduced.
 
 ## Local unlock
 

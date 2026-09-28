@@ -14,12 +14,13 @@ Version 0.1.0 development foundation, 28 September 2026.
 - Native six-digit PIN vault with device secure storage, scrypt/AES-GCM encryption, a persistent five-attempt limit and background locking. Only origin/token/expiry are remembered; device testing remains required. Browser preview keeps sessions in memory only.
 - Optional strong biometric unlock using OS-protected credential reads, PIN-enrollment binding, background cancellation and an inactive-screen privacy cover. PIN fallback remains available. Connected-device listing and confirmed removal use the account-scoped server session API.
 - Reporting transport with POS-token format rejection, bounded response streaming and exact scope/date checks. Expo fetch is used for explicit native cookie omission and redirect rejection; native runtime qualification remains pending.
+- Live Today screen for version-2 prepared summaries: sales after returns including tax, billed sales, returns and bill count. Branch-local dates, single-branch auto-selection, pull-to-refresh, strict reconciliation and partial/delayed labels. Failed refresh clears amounts; access loss locks the account. The companion desktop/gateway pipeline has local real-database tests; production deployment is pending.
 - Centralized English copy, 18-language target registry, test/format/build scripts and CI workflow.
 
 ## Pending
 
 - Phase 0 completion and reconciliation with real POS report fixtures.
-- Live reporting API and prepared summaries, source checkpoints, native secure-storage qualification and cache revocation.
+- Reporting publisher transfer/settings, large-history performance, source-completeness checkpoints, Community publication without a gateway, native secure-storage qualification and cache revocation.
 - Actual notification schedules/delivery and remote approval request/application service.
 - The 17 non-English Business translations and native-speaker sign-off. Current UI is English only.
 - Full native navigation stack, iPhone interactive Back, Android predictive-back animation, native haptics, sheet behavior and device accessibility/lifecycle checks.
@@ -36,3 +37,5 @@ Connection milestone local verification: TypeScript, 16 domain/transport tests, 
 Authorization checkpoint: 29 app domain/transport/vault tests and six tenant-server integration tests pass locally. The Cloud account-service suite passes 598 tests and the gateway suite 214. Five browser flows cover sample behavior, connection, real scope, sign-out and connected-device removal. These use controlled responses, not a deployed production account.
 
 Native build run 36376341281 produced an Android debug APK and iOS simulator app for the earlier authorization commit. The additional native-build workflow was removed from this branch after the repository's local-verification/cost rule was discovered; local commands remain documented in NATIVE_VALIDATION.md. No device readiness is claimed. The inherited uuid build dependency is overridden to patched 11.1.1.
+
+Prepared-report checkpoint: 31 app tests and five browser flows pass. Browser coverage includes verified live totals, explicit partial data, no branch selector for a single branch and clearing an amount after unavailable refresh. Companion local verification includes 14 POS authentication/read/preparation tests, nine gateway publication/agent integration tests and 82 sale-writer/metric tests. These do not prove deployed source completeness, native readiness or production scale.

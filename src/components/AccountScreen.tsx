@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Button, Card } from "./ui";
 import { ConnectedDevices } from "./ConnectedDevices";
+import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { type Session, revokeSession } from "../services/authorization";
 import { createReportingClient } from "../services/businessConnection";
 import {
@@ -26,10 +27,12 @@ export function AccountScreen({
   initialSession,
   onExit,
   onSessionConsumed,
+  onRefreshBinding,
 }: {
   initialSession: Session | null;
   onExit: (message?: string) => void;
   onSessionConsumed: () => void;
+  onRefreshBinding: (binding: RefreshBinding) => void;
 }) {
   const [credential, setCredential] = useState<Credential | null>(
     initialSession
@@ -339,14 +342,26 @@ export function AccountScreen({
           {t("branchLabel", { name: context.branches[0].name })}
         </Text>
       ) : null}
-      <Card>
-        <Text accessibilityRole="header" style={title}>
-          {t(context?.branches.length ? "accountConnected" : "noAccess")}
-        </Text>
-        <Text style={text}>
-          {t(context?.branches.length ? "liveReportsPending" : "noAccessHelp")}
-        </Text>
-      </Card>
+      {credential && context && context.branches.length > 0 ? (
+        <LiveOverview
+          credential={credential}
+          context={context}
+          branch={branch}
+          onAccessLost={lock}
+          onRefreshBinding={onRefreshBinding}
+        />
+      ) : (
+        <Card>
+          <Text accessibilityRole="header" style={title}>
+            {t(context?.branches.length ? "accountConnected" : "noAccess")}
+          </Text>
+          <Text style={text}>
+            {t(
+              context?.branches.length ? "liveReportsPending" : "noAccessHelp",
+            )}
+          </Text>
+        </Card>
+      )}
       {message ? (
         <Text accessibilityRole="alert" style={text}>
           {message}
