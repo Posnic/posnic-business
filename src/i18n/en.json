@@ -154,7 +154,7 @@
   "notificationSettings": "Notification settings",
   "notificationSaved": "Notification settings saved.",
   "notificationSettingsUnavailable": "Could not confirm these settings. Refresh before trying again; they may have changed on another device.",
-  "inboxDeliveryHelp": "Daily summaries are saved in your Business Inbox, even while the app is closed. Phone push alerts are not available yet.",
+  "inboxDeliveryHelp": "Daily summaries are saved in your Business Inbox, even while the app is closed. Phone alerts are optional and require a supported device and server.",
   "dailySummary": "Daily summary",
   "branchTimezone": "Branch time · {timezone}",
   "summaryTime": "Summary time (24-hour HH:mm)",
@@ -172,5 +172,13 @@
   "digestUnavailable": "A verified summary was unavailable at the scheduled time. Open Today to check again. No amount has been assumed.",
   "markRead": "Mark as read",
   "loadOlder": "Load older summaries",
-  "backToToday": "Back to Today"
+  "backToToday": "Back to Today",
+  "phoneNotifications": "Phone notifications",
+  "pushPrivacyHelp": "Alerts only say an update is ready. Unlock Business to read it. Your sales figures and approval decisions stay off the lock screen.",
+  "enablePush": "Enable phone notifications",
+  "disablePush": "Disable phone notifications",
+  "refreshPushSettings": "Refresh phone notification settings",
+  "pushServerUnavailable": "Phone delivery is not configured for this app and server. Your Business Inbox is still available.",
+  "pushPermissionDenied": "Notifications are disabled in your phone settings. You can enable them there, then refresh. Your Inbox remains available.",
+  "pushUnavailable": "Could not confirm phone notification settings. Check your connection and refresh before trying again."
 }

@@ -14,6 +14,9 @@ import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { ReportingDesktop } from "./ReportingDesktop";
 import { BusinessInbox } from "./BusinessInbox";
 import { NotificationSettings } from "./NotificationSettings";
+import { PushSettings } from "./PushSettings";
+import { usePushSettings } from "./usePushSettings";
+import { listenPush } from "../platform/push";
 import { type Session, revokeSession } from "../services/authorization";
 import { createReportingClient } from "../services/businessConnection";
 import {
@@ -76,6 +79,17 @@ export function AccountScreen({
     [biometricEnabled, setBiometricEnabled] = useState(false),
     [foreground, setForeground] = useState(AppState.currentState === "active");
   const nativePrompt = useRef(false);
+  const push = usePushSettings(credential, nativePrompt, lock);
+  const renewPush = useRef(push.renew);
+  renewPush.current = push.renew;
+  useEffect(
+    () =>
+      listenPush(
+        () => setInboxOpen(true),
+        () => renewPush.current(),
+      ),
+    [],
+  );
   const controller = useRef<AbortController | null>(null),
     generation = useRef(0);
   const live = useRef({ stage, credential });
@@ -87,6 +101,7 @@ export function AccountScreen({
   const text = [styles.text, { color: ink }],
     title = [styles.title, { color: ink }];
   function lock() {
+    nativePrompt.current = false;
     setInboxOpen(false);
     generation.current++;
     controller.current?.abort();
@@ -432,6 +447,7 @@ export function AccountScreen({
       {credential && (
         <ConnectedDevices credential={credential} onAccessLost={lock} />
       )}
+      {credential && <PushSettings state={push} />}
       {biometricReady && (
         <Card>
           <Text style={title}>{t("quickUnlock")}</Text>

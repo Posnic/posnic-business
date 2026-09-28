@@ -1,0 +1,55 @@
+import { z } from "zod";
+import { type Credential } from "./sessionVault";
+import { readJson, ConnectionError, type Options } from "./businessConnection";
+const statusSchema = z
+  .object({
+    available: z.boolean(),
+    projectId: z.string().uuid().nullable(),
+    enabled: z.boolean(),
+  })
+  .strict()
+  .refine((value) =>
+    value.available
+      ? !!value.projectId
+      : !value.enabled && value.projectId === null,
+  );
+export type PushStatus = z.infer<typeof statusSchema>;
+export async function readPushStatus(credential: Credential, options: Options) {
+  const result = statusSchema.safeParse(
+    await readJson(
+      credential.origin,
+      "/notifications/device",
+      options,
+      credential.token,
+    ),
+  );
+  if (!result.success) throw new ConnectionError("invalidResponse");
+  return result.data;
+}
+export async function setPushRegistration(
+  credential: Credential,
+  registration: {
+    token: string;
+    projectId: string;
+    platform: "ios" | "android";
+  } | null,
+  options: Options,
+) {
+  const result = z
+    .object({ enabled: z.boolean() })
+    .strict()
+    .safeParse(
+      await readJson(
+        credential.origin,
+        "/notifications/device",
+        options,
+        credential.token,
+        {
+          method: registration ? "POST" : "DELETE",
+          ...(registration ? { body: registration } : {}),
+        },
+      ),
+    );
+  if (!result.success || result.data.enabled !== !!registration)
+    throw new ConnectionError("invalidResponse");
+}
