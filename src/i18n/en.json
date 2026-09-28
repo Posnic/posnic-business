@@ -190,5 +190,8 @@
   "discardChanges": "Discard changes?",
   "discardChangesHelp": "Your schedule has unsaved changes. Keep editing or discard them before leaving.",
   "keepEditing": "Keep editing",
-  "discard": "Discard changes"
+  "discard": "Discard changes",
+  "summaryConnectionLost": "Could not refresh. Check your connection and try again.",
+  "summaryRefreshing": "Refreshing… Showing the last received summary until the check completes.",
+  "summaryLastKnown": "Could not refresh. These are the last received figures, not a live update. They will be hidden after 15 minutes without a successful check."
 }

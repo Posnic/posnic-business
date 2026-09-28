@@ -19,7 +19,10 @@ export type ConnectionProblem =
   | "busy"
   | "invalidResponse";
 export class ConnectionError extends Error {
-  constructor(public readonly problem: ConnectionProblem) {
+  constructor(
+    public readonly problem: ConnectionProblem,
+    public readonly transient = false,
+  ) {
     super(problem);
     this.name = "ConnectionError";
   }
@@ -86,8 +89,10 @@ export async function readJson(
     if (response.status === 403) throw new ConnectionError("accessChanged");
     if ([404, 405, 426, 501].includes(response.status))
       throw new ConnectionError("unsupported");
-    if ([429, 503].includes(response.status)) throw new ConnectionError("busy");
-    if (!response.ok) throw new ConnectionError("unreachable");
+    if ([429, 503].includes(response.status))
+      throw new ConnectionError("busy", response.status === 429);
+    if (!response.ok)
+      throw new ConnectionError("unreachable", response.status >= 500);
     if (
       !response.headers
         .get("content-type")
@@ -116,7 +121,7 @@ export async function readJson(
       reader.releaseLock();
     }
     if (controller.signal.aborted)
-      throw new ConnectionError(timedOut ? "timeout" : "cancelled");
+      throw new ConnectionError(timedOut ? "timeout" : "cancelled", timedOut);
     try {
       return JSON.parse(raw) as unknown;
     } catch {
@@ -124,9 +129,9 @@ export async function readJson(
     }
   } catch (error) {
     if (controller.signal.aborted)
-      throw new ConnectionError(timedOut ? "timeout" : "cancelled");
+      throw new ConnectionError(timedOut ? "timeout" : "cancelled", timedOut);
     if (error instanceof ConnectionError) throw error;
-    throw new ConnectionError("unreachable");
+    throw new ConnectionError("unreachable", true);
   } finally {
     clearTimeout(timer);
     options.signal?.removeEventListener("abort", cancel);

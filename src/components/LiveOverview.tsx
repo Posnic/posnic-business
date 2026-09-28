@@ -5,7 +5,6 @@ import { type Credential } from "../services/sessionVault";
 import { type BusinessContext, resolveBranchScope } from "../domain/contracts";
 import {
   branchDay,
-  type PreparedOverview,
   validatePreparedOverview,
 } from "../domain/preparedOverview";
 import {
@@ -16,6 +15,12 @@ import {
 import { businessFetch } from "../platform/network";
 import { formatMoney } from "../domain/money";
 import { t, type MessageKey } from "../i18n";
+import {
+  readOverviewSnapshot,
+  snapshotScope,
+  SNAPSHOT_MAX_AGE_MS,
+  type OverviewSnapshot,
+} from "../domain/overviewSnapshot";
 
 export type RefreshBinding = { run: () => void; busy: boolean } | null;
 export function LiveOverview({
@@ -31,7 +36,8 @@ export function LiveOverview({
   onAccessLost: () => void;
   onRefreshBinding: (binding: RefreshBinding) => void;
 }) {
-  const [summary, setSummary] = useState<PreparedOverview | null>(null);
+  const [snapshot, setSnapshot] = useState<OverviewSnapshot | null>(null);
+  const [, tick] = useState(0);
   const [busy, setBusy] = useState(false),
     [notice, setNotice] = useState<MessageKey | null>(null);
   const controller = useRef<AbortController | null>(null),
@@ -41,6 +47,25 @@ export function LiveOverview({
   const dark = useColorScheme() === "dark";
   const ink = { color: dark ? "#eef5fa" : "#172b37" };
   const scope = resolveBranchScope(context, branch);
+  const identity = snapshotScope(
+    credential.origin,
+    credential.token,
+    context,
+    scope,
+  );
+  const summary = readOverviewSnapshot(snapshot, identity, context, scope);
+  useEffect(() => {
+    if (!snapshot) return;
+    const expire = setTimeout(
+      () => setSnapshot(null),
+      Math.max(0, snapshot.expiresAt - Date.now()),
+    );
+    const calendar = setInterval(() => tick((value) => value + 1), 30_000);
+    return () => {
+      clearTimeout(expire);
+      clearInterval(calendar);
+    };
+  }, [snapshot]);
   const selected = context.branches.filter((b) => scope.includes(b.id));
   const mixed = selected.some(
     (b) =>
@@ -57,9 +82,10 @@ export function LiveOverview({
     const request = new AbortController(),
       run = ++generation.current;
     controller.current = request;
-    setSummary(null);
+    setSnapshot((previous) => (previous?.scope === identity ? previous : null));
     setNotice(null);
     if (!allowed) {
+      setSnapshot(null);
       setBusy(false);
       return;
     }
@@ -81,10 +107,22 @@ export function LiveOverview({
         credential.token,
         options,
       ).overview(context, ids, day, 2);
-      if (run === generation.current)
-        setSummary(validatePreparedOverview(result, context, ids, day));
+      if (run === generation.current) {
+        const receivedAt = Date.now();
+        setSnapshot({
+          value: validatePreparedOverview(result, context, ids, day),
+          scope: identity,
+          receivedAt,
+          expiresAt: Math.min(
+            receivedAt + SNAPSHOT_MAX_AGE_MS,
+            Date.parse(credential.expiresAt),
+          ),
+        });
+      }
     } catch (error) {
       if (run !== generation.current || request.signal.aborted) return;
+      const preserve = error instanceof ConnectionError && error.transient;
+      if (!preserve) setSnapshot(null);
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -93,16 +131,26 @@ export function LiveOverview({
         return;
       }
       setNotice(
-        error instanceof ConnectionError && error.problem === "unsupported"
-          ? "liveReportsPending"
-          : error instanceof ConnectionError && error.problem === "busy"
-            ? "summaryPreparing"
-            : "summaryUnavailable",
+        preserve
+          ? "summaryConnectionLost"
+          : error instanceof ConnectionError && error.problem === "unsupported"
+            ? "liveReportsPending"
+            : error instanceof ConnectionError && error.problem === "busy"
+              ? "summaryPreparing"
+              : "summaryUnavailable",
       );
     } finally {
       if (run === generation.current) setBusy(false);
     }
-  }, [credential.origin, credential.token, context, branch, allowed]);
+  }, [
+    credential.origin,
+    credential.token,
+    credential.expiresAt,
+    context,
+    branch,
+    allowed,
+    identity,
+  ]);
   useEffect(() => {
     void refresh();
     return () => {
@@ -150,6 +198,13 @@ export function LiveOverview({
         </Card>
       ) : summary ? (
         <>
+          {(notice || busy) && (
+            <Card>
+              <Text accessibilityLiveRegion="polite" style={[styles.text, ink]}>
+                {t(busy ? "summaryRefreshing" : "summaryLastKnown")}
+              </Text>
+            </Card>
+          )}
           <View
             style={[
               styles.hero,

@@ -11,6 +11,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let revoked = false,
     removedDevice = false;
   let summaryUnavailable = false;
+  let summaryOffline = false;
   let publisherChanged = false;
   let inboxRead = false;
   let notificationRevision = 0;
@@ -62,6 +63,10 @@ test("approved Business connection shows only real scope and revokes on sign-out
         context: liveContext,
       };
     else if (url.pathname.endsWith("/overview")) {
+      if (summaryOffline) {
+        await route.abort("internetdisconnected");
+        return;
+      }
       expect(route.request().headers().authorization).toBe("Bearer " + token);
       const scope = liveContext;
       expect(url.searchParams.getAll("branchId")).toEqual(
@@ -218,6 +223,17 @@ test("approved Business connection shows only real scope and revokes on sign-out
   ).toHaveCount(0);
   await expect(page.getByText("₹42,850.00", { exact: true })).toHaveCount(0);
   await expect(page.getByText("₹75.00", { exact: true })).toBeVisible();
+  summaryOffline = true;
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(
+    page.getByText(/These are the last received figures/),
+  ).toBeVisible();
+  await expect(page.getByText("₹75.00", { exact: true })).toBeVisible();
+  summaryOffline = false;
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(
+    page.getByText(/These are the last received figures/),
+  ).toHaveCount(0);
   await expect(
     page.getByText("Some sales may still be syncing", { exact: true }),
   ).toBeVisible();
