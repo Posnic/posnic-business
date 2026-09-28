@@ -14,6 +14,52 @@ const json = (value: unknown) =>
   new Response(JSON.stringify(value), {
     headers: { "content-type": "application/json" },
   });
+
+test("push language negotiation accepts legacy servers and validates capability responses", async () => {
+  const base = {
+    available: true,
+    projectId: "11111111-1111-4111-8111-111111111111",
+    enabled: true,
+  };
+  const current = await readPushStatus(credential, {
+    fetcher: async (url) => {
+      assert.equal(new URL(String(url)).search, "?language=1");
+      return json({ ...base, supportedLanguages: ["en", "ta"], locale: "ta" });
+    },
+  });
+  assert.equal(current.locale, "ta");
+  const legacy = await readPushStatus(credential, {
+    fetcher: async () => json(base),
+  });
+  assert.equal(legacy.supportedLanguages, undefined);
+  for (const extra of [
+    { locale: "ta" },
+    { supportedLanguages: ["en"] },
+    { supportedLanguages: ["en", "en"], locale: "en" },
+    { supportedLanguages: ["en"], locale: "ta" },
+    { supportedLanguages: ["constructor"], locale: "constructor" },
+  ])
+    await assert.rejects(
+      readPushStatus(credential, {
+        fetcher: async () => json({ ...base, ...extra }),
+      }),
+    );
+  await setPushRegistration(
+    credential,
+    {
+      token: "ExpoPushToken[abcdefghij]",
+      platform: "android",
+      projectId: base.projectId,
+      locale: "ta",
+    },
+    {
+      fetcher: async (_url, options) => {
+        assert.equal(JSON.parse(String(options?.body)).locale, "ta");
+        return json({ enabled: true });
+      },
+    },
+  );
+});
 test("notification taps only request the authenticated Inbox and cannot carry URLs or approve actions", () => {
   const data = { kind: "business-inbox", eventId: "a".repeat(24) };
   assert.equal(notificationIntent(data), "inbox");

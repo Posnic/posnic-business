@@ -6,8 +6,24 @@ const statusSchema = z
     available: z.boolean(),
     projectId: z.string().uuid().nullable(),
     enabled: z.boolean(),
+    supportedLanguages: z
+      .array(z.string().regex(/^[a-z]{2}$/))
+      .max(18)
+      .optional(),
+    locale: z
+      .string()
+      .regex(/^[a-z]{2}$/)
+      .optional(),
   })
   .strict()
+  .refine((value) =>
+    value.supportedLanguages === undefined
+      ? value.locale === undefined
+      : new Set(value.supportedLanguages).size ===
+          value.supportedLanguages.length &&
+        !!value.locale &&
+        value.supportedLanguages.includes(value.locale),
+  )
   .refine((value) =>
     value.available
       ? !!value.projectId
@@ -18,7 +34,7 @@ export async function readPushStatus(credential: Credential, options: Options) {
   const result = statusSchema.safeParse(
     await readJson(
       credential.origin,
-      "/notifications/device",
+      "/notifications/device?language=1",
       options,
       credential.token,
     ),
@@ -32,6 +48,7 @@ export async function setPushRegistration(
     token: string;
     projectId: string;
     platform: "ios" | "android";
+    locale?: string;
   } | null,
   options: Options,
 ) {

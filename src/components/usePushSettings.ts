@@ -13,13 +13,20 @@ import {
 } from "../platform/push";
 import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
-import { t } from "../i18n";
+import { t, getLocale } from "../i18n";
+import { useLocale } from "../i18n/useLocale";
 
 export function usePushSettings(
   credential: Credential | null,
   nativePrompt: MutableRefObject<boolean>,
   onAccessLost: () => void,
 ) {
+  const locale = useLocale();
+  const previousLocale = useRef(locale),
+    pendingRenew = useRef(false);
+  const latestChange = useRef<(action: "renew") => Promise<void>>(
+    async () => {},
+  );
   const [status, setStatus] = useState<PushStatus | null>(null),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
@@ -28,7 +35,11 @@ export function usePushSettings(
     lost = useRef(onAccessLost);
   lost.current = onAccessLost;
   async function change(action: "load" | "enable" | "disable" | "renew") {
-    if (!credential || !supportsPush || running.current) return;
+    if (!credential || !supportsPush) return;
+    if (running.current) {
+      if (action === "renew") pendingRenew.current = true;
+      return;
+    }
     running.current = true;
     setBusy(true);
     setMessage("");
@@ -50,7 +61,17 @@ export function usePushSettings(
         try {
           const registration = await requestPushToken(action === "enable");
           if (request.signal.aborted) return;
-          await setPushRegistration(credential, registration, options);
+          const selectedLocale = getLocale();
+          await setPushRegistration(
+            credential,
+            {
+              ...registration,
+              ...(current.supportedLanguages?.includes(selectedLocale)
+                ? { locale: selectedLocale }
+                : {}),
+            },
+            options,
+          );
         } finally {
           if (controller.current === request) nativePrompt.current = false;
         }
@@ -76,9 +97,19 @@ export function usePushSettings(
       if (controller.current === request) {
         running.current = false;
         if (!request.signal.aborted) setBusy(false);
+        if (pendingRenew.current && !request.signal.aborted) {
+          pendingRenew.current = false;
+          void latestChange.current("renew");
+        }
       }
     }
   }
+  latestChange.current = change;
+  useEffect(() => {
+    if (previousLocale.current === locale) return;
+    previousLocale.current = locale;
+    void change("renew");
+  }, [locale]);
   useEffect(() => {
     setStatus(null);
     setMessage("");
@@ -87,6 +118,7 @@ export function usePushSettings(
       controller.current?.abort();
       controller.current = null;
       running.current = false;
+      pendingRenew.current = false;
     };
   }, [credential]);
   return {
