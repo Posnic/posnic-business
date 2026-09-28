@@ -56,21 +56,79 @@ test("sample scope, item paging, offline refresh and restricted access", async (
 test("Cloud and Community do not impersonate completed authorization", async ({
   page,
 }) => {
+  await page.route(
+    "https://www.posnic.com/api/business/v1/discovery",
+    (route) =>
+      route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: "{}",
+      }),
+  );
   await page.goto("/");
   await page
     .getByRole("button", { name: "Continue with Posnic Cloud" })
     .click();
   await expect(
-    page.getByText(/Business sign-in is not connected yet/),
+    page.getByText(/This server does not yet support Posnic Business/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Connect your own server" }).click();
   await page
     .getByRole("textbox", { name: "HTTPS server address" })
     .fill("http://shop.example.com");
-  await page.getByRole("button", { name: "Check address" }).click();
+  await page.getByRole("button", { name: "Check server", exact: true }).click();
   await expect(
     page.getByText(/Use a secure HTTPS server origin/),
   ).toBeVisible();
+});
+test("Community compatibility does not sign in and obsolete checks cannot update the welcome screen", async ({
+  page,
+}) => {
+  const origin = "https://shop.example.com";
+  const body = JSON.stringify({
+    product: "posnic-business",
+    apiVersion: 1,
+    issuer: origin,
+    authorization: "business-pkce-v1",
+    audience: "posnic-business",
+    reporting: "bounded-summary-v1",
+  });
+  await page.route(origin + "/api/business/v1/discovery", (route) =>
+    route.fulfill({ contentType: "application/json", body }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Connect your own server" }).click();
+  await page
+    .getByRole("textbox", { name: "HTTPS server address" })
+    .fill(origin);
+  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  await expect(
+    page.getByText(/This server supports the Business connection protocol/),
+  ).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Today" })).toHaveCount(0);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.unroute(origin + "/api/business/v1/discovery");
+  await page.route(origin + "/api/business/v1/discovery", async (route) => {
+    await gate;
+    await route
+      .fulfill({ contentType: "application/json", body })
+      .catch(() => {});
+  });
+  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Checking server…", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
+  release();
+  await expect(
+    page.getByRole("button", { name: "Continue with Posnic Cloud" }),
+  ).toBeEnabled();
+  await expect(
+    page.getByText(/This server supports the Business connection protocol/),
+  ).toHaveCount(0);
 });
 test("small screen has no horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 780 });

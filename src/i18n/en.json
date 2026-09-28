@@ -56,10 +56,8 @@
   "networkCurrent": "Current",
   "networkDelayed": "Delayed",
   "networkOffline": "Offline",
-  "connectionPending": "Business sign-in is not connected yet. This foundation never requests a till enrollment or stores account passwords.",
   "serverAddress": "HTTPS server address",
-  "checkServer": "Check address",
-  "serverReady": "Address format accepted. Server compatibility and authentication are not connected yet.",
+  "checkServer": "Check server",
   "sourceDate": "Sample business date: 28 Sep 2026 · Asia/Kolkata",
   "untaxed": "Excluding tax",
   "itemRanking": "Ranked by net sales for the selected branches",
@@ -67,5 +65,13 @@
   "branchLabel": "{name} branch",
   "noInsight": "No insights are available with this access.",
   "readOnly": "Read-only foundation",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "checkingServer": "Checking server…",
+  "invalidServer": "Use a secure HTTPS server origin without a path or credentials.",
+  "serverCompatible": "This server supports the Business connection protocol. Account sign-in is the next development step; no account is connected yet.",
+  "serverUnsupported": "This server does not yet support Posnic Business. Check with your administrator or try again after the Business server update.",
+  "serverTimeout": "The server took too long to respond. Check your connection and try again.",
+  "serverBusy": "The server is busy. Please try again shortly.",
+  "serverInvalidResponse": "The server returned an unexpected response. Check the address with your administrator.",
+  "serverUnreachable": "Unable to check this server. Check your connection and server address, then try again."
 }

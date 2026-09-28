@@ -24,6 +24,11 @@ import { averageBill, formatMoney } from "./domain/money";
 import { recordSwipe, adjacentIndex } from "./domain/gestures";
 import { communityOrigin } from "./domain/server";
 import {
+  CLOUD_ORIGIN,
+  ConnectionError,
+  discoverBusinessServer,
+} from "./services/businessConnection";
+import {
   sampleContext,
   sampleOverview,
   sampleItems,
@@ -156,6 +161,57 @@ function BusinessApp() {
     [community, setCommunity] = useState(false),
     [server, setServer] = useState(""),
     [message, setMessage] = useState("");
+  const [checking, setChecking] = useState(false);
+  const connectionRequest = useRef<AbortController | null>(null);
+  const cancelConnection = () => {
+    connectionRequest.current?.abort();
+    connectionRequest.current = null;
+    setChecking(false);
+    setMessage("");
+  };
+  useEffect(() => () => connectionRequest.current?.abort(), []);
+  const checkConnection = async (address: string) => {
+    if (connectionRequest.current) return;
+    let origin: string;
+    try {
+      origin = communityOrigin(address);
+    } catch {
+      setMessage(t("invalidServer"));
+      return;
+    }
+    const request = new AbortController();
+    connectionRequest.current = request;
+    setChecking(true);
+    setMessage(t("checkingServer"));
+    try {
+      await discoverBusinessServer(origin, { signal: request.signal });
+      if (connectionRequest.current === request)
+        setMessage(t("serverCompatible"));
+    } catch (error) {
+      if (connectionRequest.current === request) {
+        const problem =
+          error instanceof ConnectionError ? error.problem : "unreachable";
+        setMessage(
+          t(
+            problem === "unsupported"
+              ? "serverUnsupported"
+              : problem === "timeout"
+                ? "serverTimeout"
+                : problem === "busy"
+                  ? "serverBusy"
+                  : problem === "invalidResponse"
+                    ? "serverInvalidResponse"
+                    : "serverUnreachable",
+          ),
+        );
+      }
+    } finally {
+      if (connectionRequest.current === request) {
+        connectionRequest.current = null;
+        setChecking(false);
+      }
+    }
+  };
   const [profile, setProfile] = useState<SampleProfile>("owner"),
     [network, setNetwork] = useState<SampleNetwork>("current"),
     [tab, setTab] = useState<Tab>("today"),
@@ -196,6 +252,7 @@ function BusinessApp() {
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       if (community) {
+        cancelConnection();
         setCommunity(false);
         return true;
       }
@@ -357,7 +414,10 @@ function BusinessApp() {
                       <TextInput
                         accessibilityLabel={t("serverAddress")}
                         value={server}
-                        onChangeText={setServer}
+                        onChangeText={(value) => {
+                          cancelConnection();
+                          setServer(value);
+                        }}
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType="url"
@@ -366,20 +426,17 @@ function BusinessApp() {
                         style={styles.field}
                       />
                       <Button
-                        label={t("checkServer")}
+                        label={t(checking ? "checkingServer" : "checkServer")}
+                        disabled={checking}
                         onPress={() => {
-                          try {
-                            communityOrigin(server);
-                            setMessage(t("serverReady"));
-                          } catch (e) {
-                            setMessage((e as Error).message);
-                          }
+                          void checkConnection(server);
                         }}
                       />
                       <Button
                         label={t("back")}
                         secondary
                         onPress={() => {
+                          cancelConnection();
                           setCommunity(false);
                           setMessage("");
                         }}
@@ -389,12 +446,16 @@ function BusinessApp() {
                     <Card>
                       <Button
                         label={t("cloud")}
-                        onPress={() => setMessage(t("connectionPending"))}
+                        disabled={checking}
+                        onPress={() => {
+                          void checkConnection(CLOUD_ORIGIN);
+                        }}
                       />
                       <Button
                         label={t("community")}
                         secondary
                         onPress={() => {
+                          cancelConnection();
                           setCommunity(true);
                           setMessage("");
                         }}
@@ -407,6 +468,7 @@ function BusinessApp() {
                     <Button
                       label={t("sample")}
                       onPress={() => {
+                        cancelConnection();
                         setStarted(true);
                         setCommunity(false);
                         setMessage("");

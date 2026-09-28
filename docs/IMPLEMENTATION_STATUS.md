@@ -9,7 +9,8 @@ Version 0.1.0 development foundation, 28 September 2026.
 - Capability-based sample access, single-branch auto-selection, multiple-branch selector and explicit zero-access state.
 - Overview schema/scope validation, safe money formatting, pure gesture rules and local sample adapter.
 - Refresh control/button with offline preservation; item detail with Previous/Next and native interior swipe responder.
-- Cloud/Community entry screens which explicitly report that authentication is not connected; HTTPS-origin validation.
+- Cloud/Community HTTPS compatibility checks with cancellation, timeout and unsupported/unreachable states. Compatible discovery explicitly says authentication is still pending.
+- Separate reporting transport foundation with POS-token format rejection, context validation and exact business/date/branch response checks. Not wired to live accounts; see [connection protocol](CONNECTION_PROTOCOL.md).
 - Centralized English copy, 18-language target registry, test/format/build scripts and CI workflow.
 
 ## Pending
@@ -26,3 +27,5 @@ Sample access profiles in More are development controls; a production build must
 Validation results are maintained with the initial release commit and repository CI. A passing web export or synthetic unit test is not proof of native device readiness or production report correctness.
 
 Initial local verification: TypeScript check, 11 domain tests, attribution check, formatting check, web export and 3 browser tests passed. Browser coverage includes scope/ACL behavior, item navigation, offline refresh, unavailable sign-in, Community address validation and 320px overflow checks.
+
+Connection milestone local verification: TypeScript, 16 domain/transport tests, attribution, web export and 4 browser tests passed. New checks cover issuer/protocol mismatch, cancellation, timeout, malformed responses, denied scopes, incorrect dates and obsolete UI requests. Responses are mocked; no production account or live reporting endpoint has been exercised.

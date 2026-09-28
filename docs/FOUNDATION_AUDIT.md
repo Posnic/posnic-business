@@ -25,7 +25,7 @@ The POS source baseline inspected is commit `f0ff2e87371bf72e2bc10e70467e99902c5
 - Context contains explicit branches and capabilities. An empty branch set cannot request all data.
 - Validate requested branch membership and exact response scope; reject another business's result.
 - A `current` response requires completeness and a source update time. This shape check is not proof of the upstream protocol; a real adapter must establish that evidence.
-- The sample adapter is intentionally separate and local. There is no live URL, token or background polling.
+- The sample adapter is intentionally separate and local. Compatibility discovery now performs a credential-free request on explicit user action; no real token, live report or background polling is connected.
 
 ## Required evidence before live reads
 
