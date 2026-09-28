@@ -2,6 +2,8 @@ import en from "./en.json";
 import fr from "./fr.json";
 import ar from "./ar.json";
 import ta from "./ta.json";
+import hi from "./hi.json";
+import es from "./es.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -35,6 +37,8 @@ export const bundledCatalogs = {
   fr,
   ar,
   ta,
+  hi,
+  es,
 };
 export const translator = createTranslator<MessageKey>(
   en,

@@ -2,7 +2,7 @@
 
 18 languages: English, Tamil, Hindi, Malayalam, Kannada, Telugu, Sinhala, Nepali, Arabic, French, Spanish, Portuguese, Indonesian, Thai, German, Swahili, Dutch and Italian.
 
-The working localization branch includes complete English, French, Arabic and Tamil catalogs for the current screens. Other languages remain planned and cannot be selected until their packs pass exact-key and interpolation checks. These development packs still need qualified language review; this milestone is not the initial multilingual public app release.
+The working localization branch includes complete English, French, Arabic, Tamil, Hindi and Spanish catalogs for the current screens. Other languages remain planned and cannot be selected until their packs pass exact-key and interpolation checks. These development packs still need qualified language review; this milestone is not the initial multilingual public app release.
 
 Language selection is available before sign-in, in the sample's More tab and on a dedicated Language page in the connected account. Preferences are stored separately from authentication. Changing language updates mounted screens without restarting a session or submitting a pending action. Number and date formatting follows the selected language, while currency precision and business-day timezones remain server properties. The engine isolates interpolated values for RTL and navigation/interior gestures accept the selected direction. Arabic is visually checked in light/dark browser previews, with 320px overflow and simulated touch checks. Native RTL verification remains outstanding.
 
