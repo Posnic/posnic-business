@@ -1,5 +1,6 @@
 import { type ExpoConfig } from "expo/config";
 import config from "./app.json";
+import permissionDescriptions from "./src/i18n/native-permissions.json";
 
 const projectId = process.env.POSNIC_BUSINESS_EXPO_PROJECT_ID;
 if (projectId && !/^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i.test(projectId))
@@ -8,6 +9,19 @@ if (projectId && !/^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i.test(projectId))
   );
 export default {
   ...config.expo,
+  locales: Object.fromEntries(
+    Object.entries(permissionDescriptions).map(([code, description]) => [
+      code,
+      { ios: { NSFaceIDUsageDescription: description } },
+    ]),
+  ),
+  ios: {
+    ...config.expo.ios,
+    infoPlist: {
+      CFBundleDevelopmentRegion: "en",
+      CFBundleLocalizations: Object.keys(permissionDescriptions),
+    },
+  },
   android: {
     ...config.expo.android,
     predictiveBackGestureEnabled: false,
