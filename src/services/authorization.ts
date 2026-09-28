@@ -26,7 +26,7 @@ export const grantSchema = z
   })
   .strict();
 export type Grant = z.infer<typeof grantSchema>;
-export type Session = Grant & { origin: string };
+export type Session = Grant & { origin: string; authorizationOrigin?: string };
 export type AuthorizationAttempt = {
   origin: string;
   request: string;
@@ -44,7 +44,7 @@ export type ProofSource = {
 export async function startAuthorization(
   address: string,
   crypto: ProofSource,
-  options: Options,
+  options: Options & { stepUp?: boolean },
 ): Promise<AuthorizationAttempt> {
   const origin = communityOrigin(address),
     verifier = await crypto.random();
@@ -53,7 +53,11 @@ export async function startAuthorization(
   const parsed = requestSchema.safeParse(
     await readJson(origin, "/requests", options, undefined, {
       method: "POST",
-      body: { codeChallenge, deviceName: "Posnic Business" },
+      body: {
+        codeChallenge,
+        deviceName: "Posnic Business",
+        ...(options.stepUp ? { stepUp: true } : {}),
+      },
     }),
   );
   if (!parsed.success) throw new ConnectionError("invalidResponse");
@@ -123,7 +127,11 @@ export async function checkAuthorization(
   const parsed = grantSchema.safeParse(value);
   if (!parsed.success || Date.parse(parsed.data.expiresAt) <= Date.now())
     throw new ConnectionError("invalidResponse");
-  return { ...parsed.data, origin: sessionOrigin };
+  return {
+    ...parsed.data,
+    origin: sessionOrigin,
+    authorizationOrigin: attempt.origin,
+  };
 }
 export async function revokeSession(
   session: Pick<Session, "origin" | "token">,

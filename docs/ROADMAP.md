@@ -28,4 +28,6 @@ Phase 1's public repository and sample foundation are implemented. Phase 2's Clo
 - Use indexed, bounded reads of prepared summaries and small incremental updates. No historical rebuild or heavy report is triggered by opening a screen.
 - Personal preferences belong under More; organizational settings belong on their corresponding desktop module page. Features cards remain switches only.
 
-Next implementation work: complete the canonical POS fixture/metric mapping and source-completeness protocol, then implement bounded prepared summaries and live read screens. Continue device qualification alongside this work.
+Current implementation includes bounded prepared Today summaries, last-known in-memory read states, scheduled Inbox summaries, opt-in push infrastructure, native navigation and authenticated discount review. Approval review includes current ACL/limits, fresh browser password confirmation, explicit confirmation and uncertain-response recovery; the till transport and execution integration are still pending. See [approval implementation](APPROVALS.md).
+
+Next work: complete authenticated cashier/device transport and durable execution recovery, richer Insights/stock data, session-close summaries, source completeness, the 18-language packs and native release qualification. Production deployment, signing and physical-device evidence remain gates; prepared summaries and browser fixtures do not establish full release readiness.

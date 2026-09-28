@@ -20,8 +20,16 @@ export const credentialSchema = z
     }),
     token: z.string().regex(/^pb1_[A-Za-z0-9_-]{43}$/),
     expiresAt: z.string().datetime(),
+    authorizationOrigin: z.string().optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (value) =>
+      value.authorizationOrigin === undefined ||
+      value.authorizationOrigin === value.origin ||
+      value.authorizationOrigin === "https://www.posnic.com",
+    "Unexpected authorization origin",
+  );
 export type Credential = z.infer<typeof credentialSchema>;
 const recordSchema = z
   .object({

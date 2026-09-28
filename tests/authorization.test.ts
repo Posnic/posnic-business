@@ -52,6 +52,7 @@ test("only Cloud may hand off once to a tenant, with proof and without a token",
     },
   });
   assert.equal(session?.origin, origin);
+  assert.equal(session?.authorizationOrigin, CLOUD_ORIGIN);
   assert.deepEqual(calls, [
     CLOUD_ORIGIN + "/api/business/v1/token",
     origin + "/api/business/v1/token",
@@ -108,6 +109,7 @@ test("browser authorization binds its page, verifier and grant to the chosen iss
       challenge = body.codeChallenge;
       assert.equal(body.deviceName, "Posnic Business");
       assert.equal(body.password, undefined);
+      assert.equal(body.stepUp, undefined);
       return json({
         request,
         authorizationUrl:
@@ -138,6 +140,29 @@ test("browser authorization binds its page, verifier and grant to the chosen iss
     },
   });
   assert.equal(grant?.origin, origin);
+  assert.equal(grant?.authorizationOrigin, origin);
+});
+test("fresh confirmation asks the original issuer to verify a password without sending one from the phone", async () => {
+  await startAuthorization(CLOUD_ORIGIN, crypto, {
+    stepUp: true,
+    fetcher: async (url, options) => {
+      assert.equal(url, CLOUD_ORIGIN + "/api/business/v1/requests");
+      const body = JSON.parse(String(options?.body));
+      assert.equal(body.stepUp, true);
+      assert.deepEqual(Object.keys(body).sort(), [
+        "codeChallenge",
+        "deviceName",
+        "stepUp",
+      ]);
+      return json({
+        request,
+        authorizationUrl:
+          CLOUD_ORIGIN + "/api/business/v1/authorize?request=" + request,
+        expiresIn: 600,
+        interval: 5,
+      });
+    },
+  });
 });
 test("a substituted browser page or password-bearing grant is rejected", async () => {
   await assert.rejects(

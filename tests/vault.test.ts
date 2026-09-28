@@ -43,6 +43,24 @@ test("PIN policy and credential schema reject trivial PINs, account passwords an
   ])
     assert.equal(validPin(pin), false);
   assert.equal(validPin("826493"), true);
+  for (const authorizationOrigin of [
+    undefined,
+    credential.origin,
+    "https://www.posnic.com",
+  ])
+    assert.equal(
+      credentialSchema.parse({ ...credential, authorizationOrigin })
+        .authorizationOrigin,
+      authorizationOrigin,
+    );
+  for (const authorizationOrigin of [
+    "https://attacker.example.com",
+    "http://www.posnic.com",
+    "https://www.posnic.com/path",
+  ])
+    assert.throws(() =>
+      credentialSchema.parse({ ...credential, authorizationOrigin }),
+    );
   assert.throws(() =>
     credentialSchema.parse({ ...credential, password: "do not store" }),
   );

@@ -15,12 +15,20 @@ import { t } from "../i18n";
 export function AuthorizationPanel({
   origin,
   onConnected,
+  stepUp = false,
+  initialAttempt = null,
+  onAttempt,
 }: {
   origin: string;
   onConnected: (session: Session) => void;
+  stepUp?: boolean;
+  initialAttempt?: AuthorizationAttempt | null;
+  onAttempt?: (attempt: AuthorizationAttempt | null) => void;
 }) {
-  const [attempt, setAttempt] = useState<AuthorizationAttempt | null>(null);
-  const [waiting, setWaiting] = useState(false),
+  const [attempt, setAttempt] = useState<AuthorizationAttempt | null>(
+    initialAttempt,
+  );
+  const [waiting, setWaiting] = useState(!!initialAttempt),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(false);
   const controller = useRef<AbortController | null>(null);
@@ -78,8 +86,12 @@ export function AuthorizationPanel({
       const value = await startAuthorization(origin, proofSource, {
         signal: request.signal,
         fetcher: businessFetch,
+        stepUp,
       });
-      if (!request.signal.aborted) setAttempt(value);
+      if (!request.signal.aborted) {
+        setAttempt(value);
+        onAttempt?.(value);
+      }
     } catch {
       if (!request.signal.aborted) setError(true);
     } finally {
@@ -88,9 +100,13 @@ export function AuthorizationPanel({
   }
   return (
     <Card>
-      <Text style={styles.title}>{t("secureSignIn")}</Text>
+      <Text style={styles.title}>
+        {t(stepUp ? "confirmIdentity" : "secureSignIn")}
+      </Text>
       <Text style={styles.text}>{origin}</Text>
-      <Text style={styles.text}>{t("browserSignInHelp")}</Text>
+      <Text style={styles.text}>
+        {t(stepUp ? "confirmIdentityHelp" : "browserSignInHelp")}
+      </Text>
       {error && (
         <Text accessibilityRole="alert" style={styles.text}>
           {t("authorizationFailed")}
@@ -126,13 +142,20 @@ export function AuthorizationPanel({
               controller.current?.abort();
               setWaiting(false);
               setAttempt(null);
+              onAttempt?.(null);
               setError(false);
             }}
           />
         </View>
       ) : (
         <Button
-          label={t(busy ? "preparingSignIn" : "secureSignIn")}
+          label={t(
+            busy
+              ? "preparingSignIn"
+              : stepUp
+                ? "confirmIdentity"
+                : "secureSignIn",
+          )}
           disabled={busy}
           onPress={() => {
             void begin();

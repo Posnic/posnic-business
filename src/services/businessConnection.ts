@@ -56,7 +56,11 @@ export async function readJson(
   path: string,
   options: Options,
   token?: string,
-  request?: { method: "POST" | "DELETE"; body?: unknown },
+  request?: {
+    method: "POST" | "DELETE";
+    body?: unknown;
+    acceptErrorStatuses?: (409 | 410 | 428)[];
+  },
 ) {
   const controller = new AbortController();
   let timedOut = false;
@@ -91,7 +95,12 @@ export async function readJson(
       throw new ConnectionError("unsupported");
     if ([429, 503].includes(response.status))
       throw new ConnectionError("busy", response.status === 429);
-    if (!response.ok)
+    if (
+      !response.ok &&
+      !request?.acceptErrorStatuses?.some(
+        (status) => status === response.status,
+      )
+    )
       throw new ConnectionError("unreachable", response.status >= 500);
     if (
       !response.headers

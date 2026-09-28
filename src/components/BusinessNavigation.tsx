@@ -44,6 +44,8 @@ import { t } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { BusinessInbox } from "./BusinessInbox";
+import { BusinessApprovals, BusinessApprovalDetail } from "./BusinessApprovals";
+import { pendingConfirmation } from "../services/pendingConfirmation";
 import { NotificationSettings } from "./NotificationSettings";
 import { ReportingDesktop } from "./ReportingDesktop";
 import { ConnectedDevices } from "./ConnectedDevices";
@@ -60,6 +62,8 @@ type Routes = {
   Devices: undefined;
   Security: undefined;
   PhoneNotifications: undefined;
+  Approvals: undefined;
+  Approval: { requestId: string };
 };
 type Model = {
   credential: Credential;
@@ -268,9 +272,18 @@ function Today() {
 }
 function Inbox() {
   const model = useModel(),
+    navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>(),
     [refresh, setRefresh] = useState<RefreshBinding>(null);
   return (
     <Page top refresh={refresh}>
+      {model.context.capabilities.includes("approvals.read") && (
+        <MenuRow
+          title={t("approvals")}
+          detail={t("approvalListHelp")}
+          icon="checkmark-circle-outline"
+          onPress={() => navigation.navigate("Approvals")}
+        />
+      )}
       <BusinessInbox
         credential={model.credential}
         context={model.context}
@@ -296,6 +309,14 @@ function More() {
     <Page top>
       <Heading>{t("more")}</Heading>
       <Scope />
+      {model.context.capabilities.includes("approvals.read") &&
+        model.context.branches.length > 0 && (
+          <MenuRow
+            title={t("approvals")}
+            icon="checkmark-circle-outline"
+            onPress={() => navigation.navigate("Approvals")}
+          />
+        )}
       {model.context.capabilities.includes("overview.read") &&
         model.context.capabilities.includes("notifications.self.manage") &&
         model.context.branches.length > 0 && (
@@ -340,6 +361,40 @@ function More() {
         </>
       )}
       <Button label={t("signOut")} secondary onPress={model.onSignOut} />
+    </Page>
+  );
+}
+function ApprovalsPage({
+  navigation,
+}: NativeStackScreenProps<Routes, "Approvals">) {
+  const model = useModel(),
+    [refresh, setRefresh] = useState<RefreshBinding>(null);
+  return (
+    <Page refresh={refresh}>
+      <Scope />
+      <BusinessApprovals
+        credential={model.credential}
+        context={model.context}
+        branchId={model.branch ?? undefined}
+        onAccessLost={model.onAccessLost}
+        onRefreshBinding={setRefresh}
+        onOpen={(requestId) => navigation.navigate("Approval", { requestId })}
+      />
+    </Page>
+  );
+}
+function ApprovalPage({ route }: NativeStackScreenProps<Routes, "Approval">) {
+  const model = useModel(),
+    [refresh, setRefresh] = useState<RefreshBinding>(null);
+  return (
+    <Page refresh={refresh}>
+      <BusinessApprovalDetail
+        credential={model.credential}
+        context={model.context}
+        requestId={route.params.requestId}
+        onAccessLost={model.onAccessLost}
+        onRefreshBinding={setRefresh}
+      />
     </Page>
   );
 }
@@ -544,7 +599,12 @@ export function BusinessNavigation({
     <Context.Provider value={model}>
       <NavigationContainer
         ref={navigation}
-        onReady={openPendingInbox}
+        onReady={() => {
+          const pending = pendingConfirmation(credential.origin, context);
+          if (pending && context.capabilities.includes("approvals.read"))
+            navigation.navigate("Approval", { requestId: pending.requestId });
+          else openPendingInbox();
+        }}
         theme={{
           ...(dark ? DarkTheme : DefaultTheme),
           colors: {
@@ -575,6 +635,20 @@ export function BusinessNavigation({
             component={Branches}
             options={{ title: t("chooseBranch"), presentation: "modal" }}
           />
+          {context.capabilities.includes("approvals.read") && (
+            <>
+              <Stack.Screen
+                name="Approvals"
+                component={ApprovalsPage}
+                options={{ title: t("approvals") }}
+              />
+              <Stack.Screen
+                name="Approval"
+                component={ApprovalPage}
+                options={{ title: t("reviewDecision") }}
+              />
+            </>
+          )}
           <Stack.Screen
             name="Notifications"
             component={NotificationPage}

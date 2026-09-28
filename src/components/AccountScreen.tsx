@@ -25,6 +25,7 @@ import { biometrics, supportsBiometrics } from "../platform/biometrics";
 import { businessFetch } from "../platform/network";
 import { type BusinessContext } from "../domain/contracts";
 import { t } from "../i18n";
+import { clearConfirmation } from "../services/pendingConfirmation";
 
 export function AccountScreen({
   initialSession,
@@ -41,6 +42,8 @@ export function AccountScreen({
           origin: initialSession.origin,
           token: initialSession.token,
           expiresAt: initialSession.expiresAt,
+          authorizationOrigin:
+            initialSession.authorizationOrigin ?? initialSession.origin,
         }
       : null,
   );
@@ -222,6 +225,7 @@ export function AccountScreen({
   async function signOut() {
     if (busy) return;
     setBusy(true);
+    clearConfirmation();
     const saved = credential;
     lock();
     let remoteFailed = false;
