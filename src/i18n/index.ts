@@ -13,6 +13,7 @@ import nl from "./nl.json";
 import sw from "./sw.json";
 import ne from "./ne.json";
 import th from "./th.json";
+import ml from "./ml.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -63,6 +64,7 @@ export const bundledCatalogs = {
   sw,
   ne,
   th,
+  ml,
 };
 export const translator = createTranslator<MessageKey>(
   en,
