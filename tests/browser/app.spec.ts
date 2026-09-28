@@ -11,6 +11,19 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let revoked = false,
     removedDevice = false;
   let summaryUnavailable = false;
+  let publisherChanged = false;
+  const liveContext = {
+    ...sampleContext("manager"),
+    businessName: "Connected test business",
+    branches: sampleContext("manager").branches.map((branch) => ({
+      ...branch,
+      id: "a".repeat(24),
+    })),
+    capabilities: [
+      ...sampleContext("manager").capabilities,
+      "reporting.manage",
+    ],
+  };
   await context.route(origin + "/api/business/v1/**", async (route) => {
     const url = new URL(route.request().url());
     let result: unknown;
@@ -44,14 +57,11 @@ test("approved Business connection shows only real scope and revokes on sign-out
       result = {
         token,
         expiresAt: "2099-01-01T00:00:00.000Z",
-        context: {
-          ...sampleContext("manager"),
-          businessName: "Connected test business",
-        },
+        context: liveContext,
       };
     else if (url.pathname.endsWith("/overview")) {
       expect(route.request().headers().authorization).toBe("Bearer " + token);
-      const scope = sampleContext("manager");
+      const scope = liveContext;
       expect(url.searchParams.getAll("branchId")).toEqual(
         scope.branches.map((b) => b.id),
       );
@@ -83,6 +93,33 @@ test("approved Business connection shows only real scope and revokes on sign-out
           complete: false,
         },
       };
+    } else if (url.pathname.includes("/reporting/publishers/")) {
+      if (route.request().method() === "POST") {
+        expect(route.request().postDataJSON()).toEqual({
+          deviceId: "till-b",
+          expectedEpoch: 1,
+        });
+        publisherChanged = true;
+        summaryUnavailable = true;
+        result = { changed: true, epoch: 2 };
+      } else
+        result = {
+          branchId: liveContext.branches[0]!.id,
+          publisher: {
+            deviceId: publisherChanged ? "till-b" : "till-a",
+            name: publisherChanged ? "Front desk" : "Old desk",
+            epoch: publisherChanged ? 2 : 1,
+            online: true,
+            lastPublishedAt: null,
+          },
+          candidates: [
+            {
+              deviceId: "till-b",
+              name: "Front desk",
+              lastSeenAt: new Date().toISOString(),
+            },
+          ],
+        };
     } else if (url.pathname.endsWith("/sessions")) {
       result = [
         {
@@ -150,6 +187,19 @@ test("approved Business connection shows only real scope and revokes on sign-out
     path: "test-results/business-live-today.png",
     fullPage: true,
   });
+  await page
+    .getByRole("button", { name: "Reporting desktop", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Use Front desk", exact: true })
+    .click();
+  expect(publisherChanged).toBe(false);
+  await page
+    .getByRole("button", { name: "Confirm desktop change", exact: true })
+    .click();
+  await expect(page.getByText(/Reporting desktop updated/)).toBeVisible();
+  expect(publisherChanged).toBe(true);
+  await expect(page.getByText("₹75.00", { exact: true })).toHaveCount(0);
   summaryUnavailable = true;
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(

@@ -10,6 +10,7 @@ import {
 import { Button, Card } from "./ui";
 import { ConnectedDevices } from "./ConnectedDevices";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
+import { ReportingDesktop } from "./ReportingDesktop";
 import { type Session, revokeSession } from "../services/authorization";
 import { createReportingClient } from "../services/businessConnection";
 import {
@@ -58,6 +59,7 @@ export function AccountScreen({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [branch, setBranch] = useState<string | null>(null);
+  const [reportGeneration, setReportGeneration] = useState(0);
   const [biometricReady, setBiometricReady] = useState(false),
     [biometricEnabled, setBiometricEnabled] = useState(false),
     [foreground, setForeground] = useState(
@@ -344,6 +346,7 @@ export function AccountScreen({
       ) : null}
       {credential && context && context.branches.length > 0 ? (
         <LiveOverview
+          key={reportGeneration}
           credential={credential}
           context={context}
           branch={branch}
@@ -370,6 +373,17 @@ export function AccountScreen({
       {supportsRememberedSession && (
         <Button label={t("lockApp")} secondary onPress={lock} />
       )}
+      {credential &&
+        context?.capabilities.includes("reporting.manage") &&
+        (branch || context.branches.length === 1) && (
+          <ReportingDesktop
+            key={branch ?? context.branches[0]!.id}
+            credential={credential}
+            branchId={branch ?? context.branches[0]!.id}
+            onAccessLost={lock}
+            onChanged={() => setReportGeneration((value) => value + 1)}
+          />
+        )}
       {credential && (
         <ConnectedDevices credential={credential} onAccessLost={lock} />
       )}

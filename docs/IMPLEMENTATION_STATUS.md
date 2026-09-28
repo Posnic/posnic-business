@@ -20,7 +20,7 @@ Version 0.1.0 development foundation, 28 September 2026.
 ## Pending
 
 - Phase 0 completion and reconciliation with real POS report fixtures.
-- Reporting publisher transfer/settings, large-history performance, source-completeness checkpoints, Community publication without a gateway, native secure-storage qualification and cache revocation.
+- Large-history reporting performance, source-completeness checkpoints, Community publication without a gateway, native secure-storage qualification and cache revocation.
 - Actual notification schedules/delivery and remote approval request/application service.
 - The 17 non-English Business translations and native-speaker sign-off. Current UI is English only.
 - Full native navigation stack, iPhone interactive Back, Android predictive-back animation, native haptics, sheet behavior and device accessibility/lifecycle checks.
@@ -39,3 +39,5 @@ Authorization checkpoint: 29 app domain/transport/vault tests and six tenant-ser
 Native build run 36376341281 produced an Android debug APK and iOS simulator app for the earlier authorization commit. The additional native-build workflow was removed from this branch after the repository's local-verification/cost rule was discovered; local commands remain documented in NATIVE_VALIDATION.md. No device readiness is claimed. The inherited uuid build dependency is overridden to patched 11.1.1.
 
 Prepared-report checkpoint: 31 app tests and five browser flows pass. Browser coverage includes verified live totals, explicit partial data, no branch selector for a single branch and clearing an amount after unavailable refresh. Companion local verification includes 14 POS authentication/read/preparation tests, nine gateway publication/agent integration tests and 82 sale-writer/metric tests. These do not prove deployed source completeness, native readiness or production scale.
+
+Publisher-management checkpoint: owners with branch membership can select a recently connected desktop, confirm replacement and immediately clear/reload previous totals. The server uses a generation check and durable audit journal. Local checks pass 33 app tests, five browser flows (including explicit confirmation), 16 POS integration tests and ten gateway reporting tests. Management is on the branch's Reporting desktop page, not a Features switch.

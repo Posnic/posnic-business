@@ -137,5 +137,18 @@
   "summaryUnavailable": "Could not verify this summary. Check your connection and refresh. No saved figures are shown for this request.",
   "summaryLoading": "Checking your prepared summary…",
   "signOut": "Sign out",
+  "reportingDesktop": "Reporting desktop",
+  "publisherHelp": "Choose the desktop that prepares this branch’s mobile summaries. Keep it online with all tills synchronized. This setting belongs to this branch.",
+  "publisherOnline": "Recently connected",
+  "publisherOffline": "No recent connection",
+  "publisherUnassigned": "No reporting desktop assigned yet.",
+  "publisherConfirmHelp": "Use {name} for this branch? The previous desktop will stop publishing. Totals will be unavailable until the new desktop prepares its first summary.",
+  "confirmPublisher": "Confirm desktop change",
+  "usePublisher": "Use {name}",
+  "publisherChanged": "Reporting desktop updated. Refresh Today after the new summary is prepared.",
+  "publisherUnavailable": "Could not confirm the desktop setting. Refresh the list before trying again; another owner may have changed it.",
+  "publisherNoCandidates": "No eligible desktop has connected recently. Open Today, keep the updated desktop and sync agent running, then refresh this list.",
+  "refreshDesktops": "Refresh desktops",
+  "closeDesktops": "Close desktop settings",
   "localSignOutOnly": "Signed out on this phone. The server could not be reached to revoke the session; remove this device from a connected Business session."
 }
