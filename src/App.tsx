@@ -37,7 +37,7 @@ import {
   type SampleProfile,
   type SampleNetwork,
 } from "./data/sample";
-import { t, isRTL, translator } from "./i18n";
+import { t, isRTL, translator, getTextAlign } from "./i18n";
 import { readLanguage } from "./platform/language";
 import { LanguageSettings } from "./components/LanguageSettings";
 import { Button, Card, UIContext } from "./components/ui";
@@ -84,19 +84,31 @@ function BusinessApp() {
         frame: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center" },
         body: { padding: 22, paddingBottom: 32, gap: 14 },
         brand: {
+          textAlign: getTextAlign(),
           color: colors.brand,
           fontSize: 12,
           fontWeight: "700",
           letterSpacing: 1.5,
         },
         heading: {
+          textAlign: getTextAlign(),
           color: colors.ink,
           fontSize: 30,
           fontWeight: "700",
           letterSpacing: -0.6,
         },
-        sub: { color: colors.muted, fontSize: 13, lineHeight: 20 },
-        text: { color: colors.ink, fontSize: 15, lineHeight: 23 },
+        sub: {
+          color: colors.muted,
+          fontSize: 13,
+          lineHeight: 20,
+          textAlign: getTextAlign(),
+        },
+        text: {
+          color: colors.ink,
+          fontSize: 15,
+          lineHeight: 23,
+          textAlign: getTextAlign(),
+        },
         card: {
           padding: 19,
           backgroundColor: colors.paper,
@@ -105,8 +117,14 @@ function BusinessApp() {
           borderColor: colors.line,
           gap: 12,
         },
-        title: { color: colors.ink, fontSize: 18, fontWeight: "600" },
+        title: {
+          color: colors.ink,
+          fontSize: 18,
+          fontWeight: "600",
+          textAlign: getTextAlign(),
+        },
         total: {
+          textAlign: getTextAlign(),
           color: colors.ink,
           fontSize: 39,
           fontWeight: "700",
@@ -338,13 +356,15 @@ function BusinessApp() {
     width,
   };
   const singleTouch = useRef(true),
-    gestureStart = useRef(0);
+    gestureStart = useRef(0),
+    gestureStartY = useRef(0);
   const gesture = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponderCapture: (e, g) => {
           singleTouch.current = g.numberActiveTouches === 1;
           gestureStart.current = e.nativeEvent.pageX;
+          gestureStartY.current = e.nativeEvent.pageY;
           return false;
         },
         onMoveShouldSetPanResponderCapture: (_e, g) => {
@@ -354,8 +374,8 @@ function BusinessApp() {
             p.selected &&
             singleTouch.current &&
             recordSwipe(
-              g.dx,
-              g.dy,
+              g.moveX - gestureStart.current,
+              g.moveY - gestureStartY.current,
               gestureStart.current,
               p.width,
               g.numberActiveTouches,
@@ -369,8 +389,10 @@ function BusinessApp() {
         onPanResponderRelease: (_e, g) => {
           const p = pagingRef.current,
             action = recordSwipe(
-              g.dx,
-              g.dy,
+              // PanResponder resets dx/dy when it claims the gesture. Keep the
+              // original touch origin so the threshold is counted only once.
+              g.moveX - gestureStart.current,
+              g.moveY - gestureStartY.current,
               gestureStart.current,
               p.width,
               1,
@@ -500,7 +522,10 @@ function BusinessApp() {
                             keyboardType="url"
                             placeholder="https://shop.example.com"
                             placeholderTextColor={colors.muted}
-                            style={styles.field}
+                            style={[
+                              styles.field,
+                              { writingDirection: "ltr", textAlign: "left" },
+                            ]}
                           />
                           <Button
                             label={t(
@@ -573,7 +598,7 @@ function BusinessApp() {
                       </View>
                       {selectedItem && (
                         <Button
-                          label={"‹ " + t("back")}
+                          label={t("back")}
                           secondary
                           onPress={() => setItemIndex(null)}
                         />

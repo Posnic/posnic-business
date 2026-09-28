@@ -124,6 +124,8 @@ export function NotificationSettings({
             borderRadius: 12,
             padding: 12,
             fontSize: 18,
+            writingDirection: "ltr",
+            textAlign: "left",
           },
         ]}
       />

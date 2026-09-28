@@ -15,7 +15,7 @@ import {
 } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { formatMoney } from "../domain/money";
-import { t, getFormatLocale, type MessageKey } from "../i18n";
+import { t, getFormatLocale, getTextAlign, type MessageKey } from "../i18n";
 import {
   readOverviewSnapshot,
   snapshotScope,
@@ -47,7 +47,10 @@ export function LiveOverview({
   const lost = useRef(onAccessLost);
   lost.current = onAccessLost;
   const dark = useColorScheme() === "dark";
-  const ink = { color: dark ? "#eef5fa" : "#172b37" };
+  const ink = {
+    color: dark ? "#eef5fa" : "#172b37",
+    textAlign: getTextAlign(),
+  };
   const scope = resolveBranchScope(context, branch);
   const identity = snapshotScope(
     credential.origin,

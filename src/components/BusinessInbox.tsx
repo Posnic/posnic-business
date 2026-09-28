@@ -13,7 +13,7 @@ import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { type RefreshBinding } from "./LiveOverview";
 import { formatMoney } from "../domain/money";
-import { t } from "../i18n";
+import { t, getTextAlign } from "../i18n";
 
 export function BusinessInbox({
   credential,
@@ -36,7 +36,10 @@ export function BusinessInbox({
     running = useRef(false),
     lost = useRef(onAccessLost);
   lost.current = onAccessLost;
-  const ink = { color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37" };
+  const ink = {
+    color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37",
+    textAlign: getTextAlign(),
+  };
   const load = useCallback(
     async (before?: string) => {
       if (running.current) return;

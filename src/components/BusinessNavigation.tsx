@@ -204,7 +204,7 @@ function MenuRow({
         ) : null}
       </View>
       <Ionicons
-        name="chevron-forward"
+        name={isRTL() ? "chevron-back" : "chevron-forward"}
         size={18}
         color={colors.muted}
         accessible={false}

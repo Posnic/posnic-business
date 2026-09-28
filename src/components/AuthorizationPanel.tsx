@@ -1,6 +1,6 @@
 import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, useColorScheme } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { Button, Card } from "./ui";
 import { businessFetch } from "../platform/network";
@@ -27,6 +27,10 @@ export function AuthorizationPanel({
   onAttempt?: (attempt: AuthorizationAttempt | null) => void;
 }) {
   useLocale();
+  const dark = useColorScheme() === "dark";
+  const textStyle = [styles.text, { color: dark ? "#b1c1cb" : "#566a77" }];
+  const titleStyle = [styles.title, { color: dark ? "#8bdfbf" : "#146b54" }];
+  const codeStyle = [styles.code, { color: dark ? "#8bdfbf" : "#146b54" }];
   const [attempt, setAttempt] = useState<AuthorizationAttempt | null>(
     initialAttempt,
   );
@@ -102,22 +106,22 @@ export function AuthorizationPanel({
   }
   return (
     <Card>
-      <Text style={styles.title}>
+      <Text style={titleStyle}>
         {t(stepUp ? "confirmIdentity" : "secureSignIn")}
       </Text>
-      <Text style={styles.text}>{origin}</Text>
-      <Text style={styles.text}>
+      <Text style={[textStyle, { writingDirection: "ltr" }]}>{origin}</Text>
+      <Text style={textStyle}>
         {t(stepUp ? "confirmIdentityHelp" : "browserSignInHelp")}
       </Text>
       {error && (
-        <Text accessibilityRole="alert" style={styles.text}>
+        <Text accessibilityRole="alert" style={textStyle}>
           {t("authorizationFailed")}
         </Text>
       )}
       {attempt ? (
         <View style={{ gap: 12 }}>
-          <Text style={styles.text}>{t("matchingCode")}</Text>
-          <Text selectable style={styles.code}>
+          <Text style={textStyle}>{t("matchingCode")}</Text>
+          <Text selectable style={codeStyle}>
             {attempt.matchingCode}
           </Text>
           <Button
@@ -133,7 +137,7 @@ export function AuthorizationPanel({
             }}
           />
           {waiting && (
-            <Text accessibilityLiveRegion="polite" style={styles.text}>
+            <Text accessibilityLiveRegion="polite" style={textStyle}>
               {t("waitingApproval")}
             </Text>
           )}
@@ -170,5 +174,11 @@ export function AuthorizationPanel({
 const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "600", color: "#146b54" },
   text: { fontSize: 14, lineHeight: 21, color: "#667b88" },
-  code: { fontSize: 28, fontWeight: "700", letterSpacing: 5, color: "#146b54" },
+  code: {
+    fontSize: 28,
+    fontWeight: "700",
+    letterSpacing: 5,
+    color: "#146b54",
+    writingDirection: "ltr",
+  },
 });

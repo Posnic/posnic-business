@@ -25,7 +25,7 @@ import { businessFetch } from "../platform/network";
 import { proofSource } from "../platform/proof";
 import { formatMoney } from "../domain/money";
 import { type RefreshBinding } from "./LiveOverview";
-import { t, getFormatLocale, type MessageKey } from "../i18n";
+import { t, getFormatLocale, getTextAlign, type MessageKey } from "../i18n";
 
 type Props = {
   credential: Credential;
@@ -54,6 +54,7 @@ function accessLost(error: unknown) {
 function useInk() {
   return {
     color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37",
+    textAlign: getTextAlign(),
     fontSize: 16,
     lineHeight: 24,
   };

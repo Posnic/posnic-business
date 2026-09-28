@@ -25,7 +25,7 @@ import { vault, supportsRememberedSession } from "../platform/vault";
 import { biometrics, supportsBiometrics } from "../platform/biometrics";
 import { businessFetch } from "../platform/network";
 import { type BusinessContext } from "../domain/contracts";
-import { t } from "../i18n";
+import { t, getTextAlign } from "../i18n";
 import { clearConfirmation } from "../services/pendingConfirmation";
 import { pinInput } from "../i18n/digits";
 
@@ -88,8 +88,8 @@ export function AccountScreen({
   exit.current = onExit;
   const dark = useColorScheme() === "dark",
     ink = dark ? "#eef5fa" : "#172b37";
-  const text = [styles.text, { color: ink }],
-    title = [styles.title, { color: ink }];
+  const text = [styles.text, { color: ink, textAlign: getTextAlign() }],
+    title = [styles.title, { color: ink, textAlign: getTextAlign() }];
   function lock() {
     nativePrompt.current = false;
     setInboxIntent(0);
@@ -423,6 +423,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 25, lineHeight: 31, fontWeight: "700" },
   text: { fontSize: 15, lineHeight: 23 },
   input: {
+    writingDirection: "ltr",
+    textAlign: "left",
     minHeight: 52,
     borderWidth: 1,
     borderColor: "#a5b7c2",

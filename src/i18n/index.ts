@@ -1,5 +1,6 @@
 import en from "./en.json";
 import fr from "./fr.json";
+import ar from "./ar.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -31,6 +32,7 @@ const definitions = [
 export const translator = createTranslator<MessageKey>(en, definitions, {
   en,
   fr,
+  ar,
 });
 export const releaseLanguages = definitions.map((language) => ({
   ...language,
@@ -39,6 +41,8 @@ export const releaseLanguages = definitions.map((language) => ({
 export const getLocale = translator.getLocale;
 export const getFormatLocale = () => translator.getLanguage().formatLocale;
 export const isRTL = () => translator.getLanguage().rtl;
+export const getTextAlign = (): "left" | "right" =>
+  isRTL() ? "right" : "left";
 export function t(key: MessageKey, values: Interpolation = {}) {
   return translator.translate(key, values);
 }
