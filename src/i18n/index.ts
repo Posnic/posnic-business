@@ -10,6 +10,7 @@ import de from "./de.json";
 import it from "./it.json";
 import nl from "./nl.json";
 import sw from "./sw.json";
+import ne from "./ne.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -51,6 +52,7 @@ export const bundledCatalogs = {
   it,
   nl,
   sw,
+  ne,
 };
 export const translator = createTranslator<MessageKey>(
   en,
