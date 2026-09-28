@@ -2,7 +2,7 @@
 
 An owner and manager companion for Android and iOS. See daily performance, understand useful exceptions, and eventually review important business decisions away from the shop.
 
-**Status: early development foundation, not a production release.** Version 0.1.0 runs a clearly labelled synthetic sample business. Cloud/Community authentication, PIN storage, live reporting, push delivery and financial approvals are not connected. Do not enter production credentials. The existing Mobile POS and Captain apps retain their own selling and service workflows.
+**Status: early development foundation, not a production release.** Version 0.1.0 runs a clearly labelled synthetic sample business. Tenant-server browser sign-in and native encrypted PIN storage are implemented for development testing with the companion POS server change. Central Cloud account-directory sign-in, live reporting, push delivery and financial approvals remain under development. Do not use this preview with production credentials. The existing Mobile POS and Captain apps retain their own selling and service workflows.
 
 ## Run locally
 

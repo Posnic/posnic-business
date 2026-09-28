@@ -33,21 +33,22 @@ const discoverySchema = z
     issuer: z.string(),
     authorization: z.literal("business-pkce-v1"),
     audience: z.literal("posnic-business"),
-    reporting: z.literal("bounded-summary-v1"),
+    reporting: z.enum(["bounded-summary-v1", "unavailable"]),
   })
   .strict();
 export type Discovery = z.infer<typeof discoverySchema>;
-type Options = {
+export type Options = {
   signal?: AbortSignal;
   fetcher?: typeof fetch;
   timeoutMs?: number;
 };
 
-async function readJson(
+export async function readJson(
   origin: string,
   path: string,
   options: Options,
   token?: string,
+  request?: { method: "POST" | "DELETE"; body?: unknown },
 ) {
   const controller = new AbortController();
   let timedOut = false;
@@ -62,13 +63,15 @@ async function readJson(
     if (controller.signal.aborted) throw new ConnectionError("cancelled");
     const url = origin + BUSINESS_PATH + path;
     const response = await (options.fetcher ?? fetch)(url, {
-      method: "GET",
+      method: request?.method ?? "GET",
+      ...(request?.body ? { body: JSON.stringify(request.body) } : {}),
       credentials: "omit",
       redirect: "error",
       cache: "no-store",
       signal: controller.signal,
       headers: {
         Accept: "application/json",
+        ...(request?.body ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
@@ -87,8 +90,26 @@ async function readJson(
         .startsWith("application/json")
     )
       throw new ConnectionError("invalidResponse");
-    const raw = await response.text();
-    if (raw.length > 256_000) throw new ConnectionError("invalidResponse");
+    const reader = response.body?.getReader();
+    if (!reader) throw new ConnectionError("invalidResponse");
+    const decoder = new TextDecoder();
+    let raw = "",
+      bytes = 0;
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        bytes += chunk.value.byteLength;
+        if (bytes > 256_000) {
+          await reader.cancel();
+          throw new ConnectionError("invalidResponse");
+        }
+        raw += decoder.decode(chunk.value, { stream: true });
+      }
+      raw += decoder.decode();
+    } finally {
+      reader.releaseLock();
+    }
     if (controller.signal.aborted)
       throw new ConnectionError(timedOut ? "timeout" : "cancelled");
     try {

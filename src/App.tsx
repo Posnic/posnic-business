@@ -38,6 +38,11 @@ import {
 } from "./data/sample";
 import { t, releaseLanguages } from "./i18n";
 import { Button, Card, UIContext } from "./components/ui";
+import { AuthorizationPanel } from "./components/AuthorizationPanel";
+import { AccountScreen } from "./components/AccountScreen";
+import { type Session } from "./services/authorization";
+import { supportsRememberedSession, vault } from "./platform/vault";
+import { businessFetch } from "./platform/network";
 
 type Tab = "today" | "insights" | "inbox" | "more";
 function BusinessApp() {
@@ -162,12 +167,39 @@ function BusinessApp() {
     [server, setServer] = useState(""),
     [message, setMessage] = useState("");
   const [checking, setChecking] = useState(false);
+  const [compatibleOrigin, setCompatibleOrigin] = useState<string | null>(null);
+  const [connectedSession, setConnectedSession] = useState<Session | null>(
+    null,
+  );
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [restoringSession, setRestoringSession] = useState(
+    supportsRememberedSession,
+  );
+  useEffect(() => {
+    let cancelled = false;
+    if (supportsRememberedSession)
+      void vault
+        .hasCredential()
+        .then((saved) => {
+          if (!cancelled && saved) setAccountOpen(true);
+        })
+        .catch(() => {
+          if (!cancelled) setMessage(t("storageUnavailable"));
+        })
+        .finally(() => {
+          if (!cancelled) setRestoringSession(false);
+        });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const connectionRequest = useRef<AbortController | null>(null);
   const cancelConnection = () => {
     connectionRequest.current?.abort();
     connectionRequest.current = null;
     setChecking(false);
     setMessage("");
+    setCompatibleOrigin(null);
   };
   useEffect(() => () => connectionRequest.current?.abort(), []);
   const checkConnection = async (address: string) => {
@@ -184,9 +216,14 @@ function BusinessApp() {
     setChecking(true);
     setMessage(t("checkingServer"));
     try {
-      await discoverBusinessServer(origin, { signal: request.signal });
-      if (connectionRequest.current === request)
+      await discoverBusinessServer(origin, {
+        signal: request.signal,
+        fetcher: businessFetch,
+      });
+      if (connectionRequest.current === request) {
         setMessage(t("serverCompatible"));
+        setCompatibleOrigin(origin);
+      }
     } catch (error) {
       if (connectionRequest.current === request) {
         const problem =
@@ -396,7 +433,22 @@ function BusinessApp() {
               }
             >
               <Text style={styles.brand}>{t("appName").toUpperCase()}</Text>
-              {!started ? (
+              {restoringSession ? (
+                <Text style={styles.text}>{t("unlocking")}</Text>
+              ) : accountOpen ? (
+                <AccountScreen
+                  initialSession={connectedSession}
+                  onSessionConsumed={() => setConnectedSession(null)}
+                  onExit={(notice) => {
+                    setAccountOpen(false);
+                    setCommunity(false);
+                    setStarted(false);
+                    setConnectedSession(null);
+                    cancelConnection();
+                    if (notice) setMessage(notice);
+                  }}
+                />
+              ) : !started ? (
                 <>
                   <Text
                     accessibilityRole="header"
@@ -461,6 +513,17 @@ function BusinessApp() {
                         }}
                       />
                     </Card>
+                  )}
+                  {compatibleOrigin && (
+                    <AuthorizationPanel
+                      key={compatibleOrigin}
+                      origin={compatibleOrigin}
+                      onConnected={(session) => {
+                        setConnectedSession(session);
+                        setAccountOpen(true);
+                        cancelConnection();
+                      }}
+                    />
                   )}
                   <Card>
                     <Text style={styles.title}>{t("readOnly")}</Text>

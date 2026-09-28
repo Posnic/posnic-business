@@ -1,4 +1,96 @@
 import { test, expect } from "@playwright/test";
+import { sampleContext } from "../../src/data/sample";
+
+test("approved Business connection shows only real scope and revokes on sign-out", async ({
+  page,
+  context,
+}) => {
+  const origin = "https://shop.example.com",
+    requestId = "r".repeat(43),
+    token = "pb1_" + "t".repeat(43);
+  let revoked = false;
+  await context.route(origin + "/api/business/v1/**", async (route) => {
+    const url = new URL(route.request().url());
+    let result: unknown;
+    if (url.pathname.endsWith("/discovery"))
+      result = {
+        product: "posnic-business",
+        apiVersion: 1,
+        issuer: origin,
+        authorization: "business-pkce-v1",
+        audience: "posnic-business",
+        reporting: "unavailable",
+      };
+    else if (url.pathname.endsWith("/requests")) {
+      expect(route.request().postDataJSON().codeChallenge).toMatch(
+        /^[\w-]{43}$/,
+      );
+      result = {
+        request: requestId,
+        authorizationUrl:
+          origin + "/api/business/v1/authorize?request=" + requestId,
+        expiresIn: 600,
+        interval: 5,
+      };
+    } else if (url.pathname.endsWith("/authorize")) {
+      await route.fulfill({
+        contentType: "text/html",
+        body: "<h1>Test consent completed</h1>",
+      });
+      return;
+    } else if (url.pathname.endsWith("/token"))
+      result = {
+        token,
+        expiresAt: "2099-01-01T00:00:00.000Z",
+        context: {
+          ...sampleContext("manager"),
+          businessName: "Connected test business",
+        },
+      };
+    else if (url.pathname.endsWith("/session")) {
+      expect(route.request().method()).toBe("DELETE");
+      expect(route.request().headers().authorization).toBe("Bearer " + token);
+      revoked = true;
+      result = { revoked: true };
+    } else throw new Error("Unexpected endpoint: " + url.pathname);
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(result),
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Connect your own server" }).click();
+  await page
+    .getByRole("textbox", { name: "HTTPS server address" })
+    .fill(origin);
+  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Sign in securely", exact: true })
+    .click();
+  await expect(page.getByText("RRRRRR", { exact: true })).toBeVisible();
+  const popupPromise = context.waitForEvent("page");
+  await page.getByRole("button", { name: "Open secure sign-in" }).click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState();
+  await page.bringToFront();
+  await expect(
+    page.getByRole("heading", { name: "Connected test business" }),
+  ).toBeVisible({ timeout: 12000 });
+  await expect(page.getByText("Central branch", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "All branches", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText("₹42,850.00", { exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
+    token,
+  );
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Continue with Posnic Cloud" }),
+  ).toBeVisible();
+  expect(revoked).toBe(true);
+  await popup.close().catch(() => {});
+});
 test("sample scope, item paging, offline refresh and restricted access", async ({
   page,
 }) => {

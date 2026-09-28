@@ -24,8 +24,15 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
     "expo": "57.0.24",
+    "expo-crypto": "~57.0.3",
+    "expo-local-authentication": "~57.0.3",
+    "expo-secure-store": "~57.0.4",
     "expo-status-bar": "57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -43,5 +50,10 @@
   },
   "engines": {
     "node": ">=22.13.0"
+  },
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
   }
 }
