@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createTranslator, validateCatalog } from "../src/i18n/translator";
-import { releaseLanguages, t } from "../src/i18n";
+import { releaseLanguages, t, bundledCatalogs } from "../src/i18n";
 import { normalizeDigits, pinInput } from "../src/i18n/digits";
 
 const messages = { amount: "Pay {value}", state: "Approved" };
@@ -107,4 +107,21 @@ test("the release registry distinguishes target languages from complete selectab
     t("decisionPayable", { amount: "₹12.00" }),
     "Customer pays: ₹12.00",
   );
+});
+
+test("bundled non-English packs do not substitute English explanatory paragraphs", () => {
+  for (const [locale, catalog] of Object.entries(bundledCatalogs)) {
+    if (locale === "en") continue;
+    validateCatalog(bundledCatalogs.en, catalog);
+    for (const key of Object.keys(
+      bundledCatalogs.en,
+    ) as (keyof typeof bundledCatalogs.en)[]) {
+      if (bundledCatalogs.en[key].length > 40)
+        assert.notEqual(
+          catalog[key],
+          bundledCatalogs.en[key],
+          `${locale}: ${key}`,
+        );
+    }
+  }
 });

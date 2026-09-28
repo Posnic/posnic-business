@@ -411,11 +411,13 @@ function ApprovalPage({ route }: NativeStackScreenProps<Routes, "Approval">) {
   );
 }
 function Home() {
-  useLocale();
+  const locale = useLocale();
   const model = useModel(),
     colors = palette(useColorScheme() === "dark");
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
+  const { fontScale, width } = useWindowDimensions();
+  const [labelHeight, setLabelHeight] = useState(18 * fontScale);
+  useEffect(() => setLabelHeight(18 * fontScale), [locale, fontScale, width]);
   return (
     <Tab.Navigator
       backBehavior="initialRoute"
@@ -426,7 +428,7 @@ function Home() {
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
-          height: 70 + Math.max(0, fontScale - 1) * 18 + insets.bottom,
+          height: Math.max(70, 42 + labelHeight) + insets.bottom,
           paddingTop: 4,
           paddingBottom: Math.max(4, insets.bottom),
         },
@@ -437,7 +439,33 @@ function Home() {
               ? "inbox"
               : "more",
         ),
-        tabBarLabelStyle: { fontSize: 12, lineHeight: 18, fontWeight: "600" },
+        tabBarLabelPosition: "below-icon",
+        tabBarLabel: ({ color }) => (
+          <Text
+            onLayout={(event) => {
+              const height = Math.ceil(event.nativeEvent.layout.height);
+              if (Number.isFinite(height))
+                setLabelHeight((previous) => Math.max(previous, height));
+            }}
+            style={{
+              color,
+              fontSize: 12,
+              lineHeight: 18,
+              fontWeight: "600",
+              textAlign: "center",
+              alignSelf: "stretch",
+              maxWidth: "100%",
+            }}
+          >
+            {t(
+              route.name === "Today"
+                ? "today"
+                : route.name === "Inbox"
+                  ? "inbox"
+                  : "more",
+            )}
+          </Text>
+        ),
         tabBarIcon: ({ color, size }) => (
           <Ionicons
             accessible={false}

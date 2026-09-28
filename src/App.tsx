@@ -148,7 +148,14 @@ function BusinessApp() {
           alignItems: "center",
           backgroundColor: colors.brand,
         },
-        buttonText: { color: colors.onBrand, fontSize: 15, fontWeight: "600" },
+        buttonText: {
+          color: colors.onBrand,
+          fontSize: 15,
+          fontWeight: "600",
+          maxWidth: "100%",
+          flexShrink: 1,
+          textAlign: "center",
+        },
         secondary: {
           backgroundColor: colors.paper,
           borderWidth: 1,
@@ -166,12 +173,19 @@ function BusinessApp() {
         },
         navButton: {
           flex: 1,
+          minWidth: 0,
           alignItems: "center",
           justifyContent: "center",
           minHeight: 52,
           borderRadius: 12,
         },
-        navLabel: { fontSize: 12, color: colors.muted },
+        navLabel: {
+          fontSize: 12,
+          color: colors.muted,
+          alignSelf: "stretch",
+          flexShrink: 1,
+          textAlign: "center",
+        },
         selected: { backgroundColor: colors.soft },
         field: {
           minHeight: 48,

@@ -1,6 +1,7 @@
 import en from "./en.json";
 import fr from "./fr.json";
 import ar from "./ar.json";
+import ta from "./ta.json";
 import { createTranslator, type Interpolation } from "./translator";
 export type MessageKey = keyof typeof en;
 /** Target registry, not a claim of completed Business translations. */
@@ -29,11 +30,17 @@ const definitions = [
   formatLocale: code === "en" ? "en-IN" : code!,
   rtl: code === "ar",
 }));
-export const translator = createTranslator<MessageKey>(en, definitions, {
+export const bundledCatalogs = {
   en,
   fr,
   ar,
-});
+  ta,
+};
+export const translator = createTranslator<MessageKey>(
+  en,
+  definitions,
+  bundledCatalogs,
+);
 export const releaseLanguages = definitions.map((language) => ({
   ...language,
   status: translator.available(language.code) ? "preview" : "planned",
