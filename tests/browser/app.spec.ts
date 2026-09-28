@@ -8,7 +8,8 @@ test("approved Business connection shows only real scope and revokes on sign-out
   const origin = "https://shop.example.com",
     requestId = "r".repeat(43),
     token = "pb1_" + "t".repeat(43);
-  let revoked = false;
+  let revoked = false,
+    removedDevice = false;
   await context.route(origin + "/api/business/v1/**", async (route) => {
     const url = new URL(route.request().url());
     let result: unknown;
@@ -47,7 +48,32 @@ test("approved Business connection shows only real scope and revokes on sign-out
           businessName: "Connected test business",
         },
       };
-    else if (url.pathname.endsWith("/session")) {
+    else if (url.pathname.endsWith("/sessions")) {
+      result = [
+        {
+          id: "c".repeat(43),
+          name: "Current phone",
+          current: true,
+          issuedAt: "2026-09-28T01:00:00.000Z",
+          expiresAt: "2099-01-01T00:00:00.000Z",
+        },
+        ...(removedDevice
+          ? []
+          : [
+              {
+                id: "d".repeat(43),
+                name: "Old phone",
+                current: false,
+                issuedAt: "2026-09-27T01:00:00.000Z",
+                expiresAt: "2099-01-01T00:00:00.000Z",
+              },
+            ]),
+      ];
+    } else if (url.pathname.endsWith("/sessions/" + "d".repeat(43))) {
+      expect(route.request().method()).toBe("DELETE");
+      removedDevice = true;
+      result = { revoked: true };
+    } else if (url.pathname.endsWith("/session")) {
       expect(route.request().method()).toBe("DELETE");
       expect(route.request().headers().authorization).toBe("Bearer " + token);
       revoked = true;
@@ -84,6 +110,19 @@ test("approved Business connection shows only real scope and revokes on sign-out
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
     token,
   );
+  await page
+    .getByRole("button", { name: "Connected devices", exact: true })
+    .click();
+  await expect(page.getByText("Old phone", { exact: true })).toBeVisible();
+  await page
+    .getByRole("button", { name: "Remove device", exact: true })
+    .click();
+  expect(removedDevice).toBe(false);
+  await page
+    .getByRole("button", { name: "Confirm removal", exact: true })
+    .click();
+  await expect(page.getByText("Old phone", { exact: true })).toHaveCount(0);
+  expect(removedDevice).toBe(true);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Continue with Posnic Cloud" }),

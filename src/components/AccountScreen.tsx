@@ -8,6 +8,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { Button, Card } from "./ui";
+import { ConnectedDevices } from "./ConnectedDevices";
 import { type Session, revokeSession } from "../services/authorization";
 import { createReportingClient } from "../services/businessConnection";
 import {
@@ -16,6 +17,7 @@ import {
   validPin,
 } from "../services/sessionVault";
 import { vault, supportsRememberedSession } from "../platform/vault";
+import { biometrics, supportsBiometrics } from "../platform/biometrics";
 import { businessFetch } from "../platform/network";
 import { type BusinessContext } from "../domain/contracts";
 import { t } from "../i18n";
@@ -53,6 +55,12 @@ export function AccountScreen({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [branch, setBranch] = useState<string | null>(null);
+  const [biometricReady, setBiometricReady] = useState(false),
+    [biometricEnabled, setBiometricEnabled] = useState(false),
+    [foreground, setForeground] = useState(
+      AppState.currentState !== "background",
+    );
+  const nativePrompt = useRef(false);
   const controller = useRef<AbortController | null>(null),
     generation = useRef(0);
   const live = useRef({ stage, credential });
@@ -67,6 +75,7 @@ export function AccountScreen({
     generation.current++;
     controller.current?.abort();
     vault.lock();
+    biometrics.lock();
     setCredential(null);
     setContext(null);
     setPin("");
@@ -78,7 +87,11 @@ export function AccountScreen({
   useEffect(() => {
     onSessionConsumed();
     const subscription = AppState.addEventListener("change", (state) => {
+      setForeground(state === "active");
       if (state === "active") return;
+      // iOS marks the app inactive while its biometric prompt is visible.
+      // The privacy cover remains visible; a true background event still locks.
+      if (state === "inactive" && nativePrompt.current) return;
       const current = live.current;
       lock();
       if (!supportsRememberedSession || current.stage === "setup") {
@@ -93,10 +106,32 @@ export function AccountScreen({
       generation.current++;
       controller.current?.abort();
       vault.lock();
+      biometrics.lock();
       subscription.remove();
     };
   }, []);
-  async function unlockOrEnroll() {
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const available = await supportsBiometrics();
+        const enabled = available && (await biometrics.isEnabled());
+        if (!cancelled) {
+          setBiometricReady(available);
+          setBiometricEnabled(enabled);
+        }
+      } catch {
+        if (!cancelled) {
+          setBiometricReady(false);
+          setBiometricEnabled(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [stage]);
+  async function unlockOrEnroll(useBiometrics = false) {
     if (busy) return;
     if (stage === "setup" && (!validPin(pin) || pin !== confirm)) {
       setMessage(t(pin !== confirm ? "pinMismatch" : "pinWeak"));
@@ -107,6 +142,7 @@ export function AccountScreen({
     const current = generation.current,
       request = new AbortController();
     controller.current = request;
+    nativePrompt.current = useBiometrics;
     try {
       if (stage === "setup" && credential) {
         await vault.enroll(credential, pin);
@@ -116,7 +152,9 @@ export function AccountScreen({
           setConfirm("");
         }
       } else {
-        const saved = await vault.unlock(pin);
+        const saved = useBiometrics
+          ? await biometrics.unlock()
+          : await vault.unlock(pin);
         if (current !== generation.current) return;
         const fresh = await createReportingClient(saved.origin, saved.token, {
           fetcher: businessFetch,
@@ -135,10 +173,35 @@ export function AccountScreen({
         setPin("");
         setConfirm("");
         setMessage(
-          t(error instanceof VaultError ? error.code : "accountUnavailable"),
+          t(
+            error instanceof VaultError
+              ? error.code
+              : useBiometrics
+                ? "biometricUnavailable"
+                : "accountUnavailable",
+          ),
         );
       }
     } finally {
+      nativePrompt.current = false;
+      if (current === generation.current) setBusy(false);
+    }
+  }
+  async function changeBiometrics() {
+    if (busy || !credential) return;
+    setBusy(true);
+    setMessage("");
+    nativePrompt.current = true;
+    const current = generation.current;
+    try {
+      if (biometricEnabled) await biometrics.disable();
+      else await biometrics.enable(credential);
+      if (current === generation.current)
+        setBiometricEnabled(await biometrics.isEnabled());
+    } catch {
+      if (current === generation.current) setMessage(t("biometricUnavailable"));
+    } finally {
+      nativePrompt.current = false;
       if (current === generation.current) setBusy(false);
     }
   }
@@ -154,12 +217,22 @@ export function AccountScreen({
       remoteFailed = true;
     }
     try {
-      if (supportsRememberedSession) await vault.forget();
+      if (supportsRememberedSession) {
+        await vault.forget();
+        await biometrics.disable();
+      }
       exit.current(remoteFailed ? t("localSignOutOnly") : undefined);
     } catch {
       setMessage(t("storageUnavailable"));
     }
   }
+  if (!foreground)
+    return (
+      <Card>
+        <Text style={title}>{t("appName")}</Text>
+        <Text style={text}>{t("privacyCover")}</Text>
+      </Card>
+    );
   if (stage !== "active")
     return (
       <Card>
@@ -211,6 +284,16 @@ export function AccountScreen({
             void unlockOrEnroll();
           }}
         />
+        {stage === "locked" && biometricEnabled && (
+          <Button
+            label={t("unlockBiometrics")}
+            secondary
+            disabled={busy}
+            onPress={() => {
+              void unlockOrEnroll(true);
+            }}
+          />
+        )}
         <Button
           label={t("signInAgain")}
           secondary
@@ -219,6 +302,7 @@ export function AccountScreen({
             void (async () => {
               try {
                 await vault.forget();
+                await biometrics.disable();
                 exit.current();
               } catch {
                 setMessage(t("storageUnavailable"));
@@ -270,6 +354,25 @@ export function AccountScreen({
       ) : null}
       {supportsRememberedSession && (
         <Button label={t("lockApp")} secondary onPress={lock} />
+      )}
+      {credential && (
+        <ConnectedDevices credential={credential} onAccessLost={lock} />
+      )}
+      {biometricReady && (
+        <Card>
+          <Text style={title}>{t("quickUnlock")}</Text>
+          <Text style={text}>{t("biometricHelp")}</Text>
+          <Button
+            label={t(
+              biometricEnabled ? "disableBiometrics" : "enableBiometrics",
+            )}
+            secondary
+            disabled={busy}
+            onPress={() => {
+              void changeBiometrics();
+            }}
+          />
+        </Card>
       )}
       <Button
         label={t("signOut")}

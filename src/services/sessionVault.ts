@@ -90,6 +90,21 @@ export class SessionVault {
   async hasCredential() {
     return (await this.store.get(RECORD)) !== null;
   }
+  /** Non-secret enrollment binding. A replacement PIN vault or exhausted PIN
+   * budget also invalidates its optional biometric credential. */
+  biometricBinding(): Promise<string | null> {
+    const generation = this.generation;
+    return this.serial(async () => {
+      if (generation !== this.generation) return null;
+      const raw = await this.store.get(RECORD);
+      try {
+        const record = recordSchema.parse(JSON.parse(raw ?? "null"));
+        return record.failures < 5 ? record.salt : null;
+      } catch {
+        return null;
+      }
+    });
+  }
   private async derive(
     pin: string,
     salt: string,

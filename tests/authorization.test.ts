@@ -6,6 +6,7 @@ import {
   checkAuthorization,
 } from "../src/services/authorization";
 import { sampleContext } from "../src/data/sample";
+import { CLOUD_ORIGIN } from "../src/services/businessConnection";
 const origin = "https://shop.example.com",
   request = "r".repeat(43);
 const crypto = {
@@ -21,6 +22,84 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { "content-type": "application/json" },
   });
+test("only Cloud may hand off once to a tenant, with proof and without a token", async () => {
+  const attempt = {
+    origin: CLOUD_ORIGIN,
+    request,
+    verifier: "v".repeat(43),
+    authorizationUrl: "",
+    expiresAt: Date.now() + 60000,
+    interval: 5000,
+    matchingCode: "",
+  };
+  const calls: string[] = [];
+  const session = await checkAuthorization(attempt, {
+    fetcher: async (url, options) => {
+      calls.push(String(url));
+      assert.equal(new Headers(options?.headers).has("authorization"), false);
+      assert.equal(
+        JSON.parse(String(options?.body)).codeVerifier,
+        attempt.verifier,
+      );
+      if (calls.length === 1)
+        return json({ handoff: { origin, request: "h".repeat(43) } });
+      assert.equal(JSON.parse(String(options?.body)).request, "h".repeat(43));
+      return json({
+        token: "pb1_" + "t".repeat(43),
+        expiresAt: "2099-01-01T00:00:00.000Z",
+        context: sampleContext("manager"),
+      });
+    },
+  });
+  assert.equal(session?.origin, origin);
+  assert.deepEqual(calls, [
+    CLOUD_ORIGIN + "/api/business/v1/token",
+    origin + "/api/business/v1/token",
+  ]);
+  for (const handoffOrigin of [
+    "http://shop.example.com",
+    CLOUD_ORIGIN,
+    origin + "/path",
+    origin + "/",
+    "https://user:password@shop.example.com",
+  ]) {
+    let count = 0;
+    await assert.rejects(
+      checkAuthorization(attempt, {
+        fetcher: async () => {
+          count++;
+          return json({ handoff: { origin: handoffOrigin, request } });
+        },
+      }),
+    );
+    assert.equal(count, 1);
+  }
+  let count = 0;
+  await assert.rejects(
+    checkAuthorization(
+      { ...attempt, origin },
+      {
+        fetcher: async () => {
+          count++;
+          return json({
+            handoff: { origin: "https://other.example.com", request },
+          });
+        },
+      },
+    ),
+  );
+  assert.equal(count, 1);
+  count = 0;
+  await assert.rejects(
+    checkAuthorization(attempt, {
+      fetcher: async () => {
+        count++;
+        return json({ handoff: { origin, request } });
+      },
+    }),
+  );
+  assert.equal(count, 2);
+});
 test("browser authorization binds its page, verifier and grant to the chosen issuer", async () => {
   let challenge = "";
   const attempt = await startAuthorization(origin, crypto, {

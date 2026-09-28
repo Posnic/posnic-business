@@ -90,3 +90,16 @@ test("background lock cancels pending unlock; forget removes both encrypted toke
   assert.equal(entries.size, 0);
   assert.equal(await vault.hasCredential(), false);
 });
+test("biometric binding changes on enrollment, disappears after PIN exhaustion and sign-out", async () => {
+  const { vault } = fixture();
+  assert.equal(await vault.biometricBinding(), null);
+  await vault.enroll(credential, "826493");
+  const first = await vault.biometricBinding();
+  assert.ok(first);
+  await vault.enroll(credential, "937482");
+  assert.notEqual(await vault.biometricBinding(), first);
+  for (let i = 0; i < 5; i++) await assert.rejects(vault.unlock("000000"));
+  assert.equal(await vault.biometricBinding(), null);
+  await vault.forget();
+  assert.equal(await vault.biometricBinding(), null);
+});

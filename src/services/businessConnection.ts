@@ -31,7 +31,7 @@ const discoverySchema = z
     product: z.literal("posnic-business"),
     apiVersion: z.literal(1),
     issuer: z.string(),
-    authorization: z.literal("business-pkce-v1"),
+    authorization: z.enum(["business-pkce-v1", "business-cloud-pkce-v1"]),
     audience: z.literal("posnic-business"),
     reporting: z.enum(["bounded-summary-v1", "unavailable"]),
   })
@@ -137,6 +137,11 @@ export async function discoverBusinessServer(
     await readJson(origin, "/discovery", options),
   );
   if (!parsed.success || parsed.data.issuer !== origin)
+    throw new ConnectionError("unsupported");
+  if (
+    parsed.data.authorization === "business-cloud-pkce-v1" &&
+    origin !== CLOUD_ORIGIN
+  )
     throw new ConnectionError("unsupported");
   return parsed.data;
 }

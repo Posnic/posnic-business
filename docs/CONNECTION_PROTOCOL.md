@@ -1,6 +1,6 @@
 # Business connection protocol — client draft
 
-This is the evolving client/server contract. Tenant-side authorization is implemented in the companion POS change, but no server deployment or central Cloud account-directory integration is included yet. Existing Mobile POS authorization and till enrollment are not compatible.
+This is the evolving client/server contract. Tenant authorization and the companion Cloud account-service/gateway handoff are implemented for development validation. No production deployment is included. Existing Mobile POS authorization and till enrollment are not compatible.
 
 ## Compatibility check
 
@@ -36,11 +36,15 @@ The overview interface only supports one business date and at most 100 permitted
 
 Both transports request redirect rejection and reject redirected or wrong-URL responses. The app supplies Expo fetch; its installed Android and iOS source explicitly disables redirect following and omits cookies for these options. Native implementations must prove that credentials are not sent through redirects before the reporting client is wired to a real token. A response check after redirect is not sufficient to prevent disclosure. The client consumes a response stream with a 256,000-byte limit and cancels the reader on overflow; native transport behavior remains a device qualification requirement.
 
-## Server/authentication work still required
+## Cloud handoff
 
-1. Implement a Business-specific browser consent and PKCE exchange for Cloud and Community, with the password remaining in the browser. Cloud must resolve the selected business without issuing a till or sync-agent grant.
-2. Issue only opaque Business sessions, store token hashes, and reject them in POS selling routes. Recheck account status, auth version, tenant, branch access and capabilities on every Business request. Define session expiry, rotation, revocation and device management.
-3. Make consent and exchange durable and one-use, with origin/CSRF protection, expiration, rate limits and replay tests. Protocol names above reserve client contracts; the server must not advertise them before implementation passes these checks.
+Only the fixed Cloud origin may advertise `business-cloud-pkce-v1`. Its consent page requires a current Cloud account login, matching code, browser nonce and same-origin approval. An approved exchange returns `{handoff: {origin, request}}`, bound to the same verifier. The client sends the verifier and handoff request to that tenant's HTTPS `/api/business/v1/token` exactly once; it sends no token or cookie between origins. Community cannot redirect authorization to another origin, and nested handoffs are rejected. The tenant rechecks current ACL and branch access before issuing its dedicated session.
+
+## Release qualification still required
+
+1. Deploy the tenant API before enabling the account-service and gateway handoff, then validate with a controlled account on each hosting mode.
+2. Complete the app's device/session management UI over the implemented list/revoke/rotate API.
+3. Exercise account deactivation, password changes, tenant moves and network failures across deployed services.
 4. Qualify Android/iOS TLS and redirect handling, secure token storage, PIN attempt limits and biometric/device-lock behavior. Never persist an account password.
 5. Reconcile prepared metrics with authoritative POS fixtures, establish source checkpoints, then connect the live screens. No totals are substituted from the legacy dashboard in this milestone.
 
@@ -48,6 +52,8 @@ Tests use synthetic responses and do not establish that a deployed server suppor
 
 ## Local unlock
 
-The native vault stores only issuer/token/expiry in an AES-GCM envelope, protected with a six-digit PIN using scrypt (N=32768, r=8, p=1), a random salt and a separate device installation secret. Both the envelope and installation secret use SecureStore with device-only, unlocked accessibility. Five unsuccessful attempts require browser sign-in again. Attempts are reserved before derivation and survive restart; operations serialize and background lock invalidates pending unlocks. Browser preview never persists credentials. Biometric unlock and native device security tests remain pending.
+The native vault stores only issuer/token/expiry in an AES-GCM envelope, protected with a six-digit PIN using scrypt (N=32768, r=8, p=1), a random salt and a separate device installation secret. Both the envelope and installation secret use SecureStore with device-only, unlocked accessibility. Five unsuccessful attempts require browser sign-in again. Attempts are reserved before derivation and survive restart; operations serialize and background lock invalidates pending unlocks. Browser preview never persists credentials.
+
+Optional biometric unlock stores a separate credential under OS-authenticated SecureStore protection, with a different keychain service and device-only passcode accessibility. Only enrolled strong biometrics are offered. A non-secret binding ties it to the current PIN enrollment; changing enrollment, exhausting the PIN budget, sign-out or a changed biometric set prevents reuse. Reads require the OS prompt rather than trusting a preceding Boolean authentication result. Inactive screens show a privacy cover, backgrounding cancels unlock, and every successful unlock reloads current server context. Real-device qualification is still required; simulators cannot prove biometric key protection.
 
 The native storage API is documented in [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/). The patched build dependency is documented in [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq).

@@ -3,6 +3,7 @@ import { contextSchema } from "../domain/contracts";
 import { communityOrigin } from "../domain/server";
 import {
   BUSINESS_PATH,
+  CLOUD_ORIGIN,
   ConnectionError,
   readJson,
   type Options,
@@ -78,7 +79,7 @@ export async function checkAuthorization(
 ): Promise<Session | null> {
   if (Date.now() >= attempt.expiresAt)
     throw new ConnectionError("signInRequired");
-  const value = await readJson(attempt.origin, "/token", options, undefined, {
+  let value = await readJson(attempt.origin, "/token", options, undefined, {
     method: "POST",
     body: { request: attempt.request, codeVerifier: attempt.verifier },
   });
@@ -91,10 +92,38 @@ export async function checkAuthorization(
       .safeParse(value).success
   )
     return null;
+  let sessionOrigin = attempt.origin;
+  const handoff = z
+    .object({
+      handoff: z.object({ origin: z.string(), request: opaque }).strict(),
+    })
+    .strict()
+    .safeParse(value);
+  if (handoff.success) {
+    if (attempt.origin !== CLOUD_ORIGIN)
+      throw new ConnectionError("invalidResponse");
+    try {
+      sessionOrigin = communityOrigin(handoff.data.handoff.origin);
+    } catch {
+      throw new ConnectionError("invalidResponse");
+    }
+    if (
+      sessionOrigin !== handoff.data.handoff.origin ||
+      sessionOrigin === CLOUD_ORIGIN
+    )
+      throw new ConnectionError("invalidResponse");
+    value = await readJson(sessionOrigin, "/token", options, undefined, {
+      method: "POST",
+      body: {
+        request: handoff.data.handoff.request,
+        codeVerifier: attempt.verifier,
+      },
+    });
+  }
   const parsed = grantSchema.safeParse(value);
   if (!parsed.success || Date.parse(parsed.data.expiresAt) <= Date.now())
     throw new ConnectionError("invalidResponse");
-  return { ...parsed.data, origin: attempt.origin };
+  return { ...parsed.data, origin: sessionOrigin };
 }
 export async function revokeSession(
   session: Pick<Session, "origin" | "token">,

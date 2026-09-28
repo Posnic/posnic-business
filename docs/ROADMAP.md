@@ -13,7 +13,7 @@ The dedicated Business app is separate from Mobile POS and Captain. It reads bou
 | 6     | Localization, accessibility, security, device lifecycle, load/battery QA, pilot and release            | Language review, native device evidence, privacy/store requirements and rollback gates                                             |
 | 7     | Evidence-led extra approval types and cross-instance aggregation                                       | Independent ACL, source correctness and bounded computation cost                                                                   |
 
-Phase 0 is in progress. Phase 1's repository and sample foundation are being prepared independently; the sample does not bypass the Phase 0 gate for real data or credentials. A public source repository is not an app-store or production release.
+Phase 1's public repository and sample foundation are implemented. Phase 2's Cloud/Community browser authorization, encrypted PIN, optional biometric unlock and session management are implemented with companion server changes; deployment and real-device qualification remain gates. Phase 0's metric reconciliation and source-completeness work continue before live reporting. A public source repository is not an app-store or production release.
 
 ## Product requirements
 
@@ -28,4 +28,4 @@ Phase 0 is in progress. Phase 1's repository and sample foundation are being pre
 - Use indexed, bounded reads of prepared summaries and small incremental updates. No historical rebuild or heavy report is triggered by opening a screen.
 - Personal preferences belong under More; organizational settings belong on their corresponding desktop module page. Features cards remain switches only.
 
-Next implementation work: complete the canonical POS fixture/metric mapping, define the Business reporting grant and freshness protocol, then implement live read APIs. No dates are promised before those dependency estimates exist.
+Next implementation work: complete the canonical POS fixture/metric mapping and source-completeness protocol, then implement bounded prepared summaries and live read screens. Continue device qualification alongside this work.

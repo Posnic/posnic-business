@@ -18,6 +18,14 @@
       "bundler": "metro",
       "name": "Posnic Business"
     },
-    "plugins": ["expo-web-browser", "expo-secure-store"]
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Use Face ID to unlock your Posnic Business account on this phone."
+        }
+      ]
+    ]
   }
 }
