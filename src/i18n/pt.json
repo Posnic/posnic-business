@@ -90,7 +90,7 @@
   "approvalPlan": "Estão previstos fluxos de aprovação. Não é possível enviar decisões a partir deste exemplo.",
   "noUpdates": "Não há novidades neste exemplo.",
   "language": "Idioma",
-  "languagePlan": "Escolha o idioma da aplicação. Estão a ser preparadas mais traduções para o lançamento em 18 idiomas; as traduções ainda estão em revisão.",
+  "languagePlan": "Escolha o idioma da aplicação. Os 18 idiomas estão disponíveis nesta versão de desenvolvimento; as traduções ainda estão em revisão.",
   "languageSaveFailed": "O idioma mudou nesta sessão, mas não foi possível guardar a escolha. Selecione-o novamente da próxima vez.",
   "desktop": "Use a aplicação de computador para relatórios extensos e gestão detalhada.",
   "leaveSample": "Sair do negócio de exemplo",

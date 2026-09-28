@@ -90,7 +90,7 @@
   "approvalPlan": "Approval workflows are planned. No decision can be submitted from this sample.",
   "noUpdates": "No updates in this sample.",
   "language": "Language",
-  "languagePlan": "Choose your app language. More language packs are being prepared for the 18-language release; translations are still under review.",
+  "languagePlan": "Choose your app language. All 18 language packs are available in this development build; translations are still under review.",
   "languageSaveFailed": "The language changed for this session, but could not be remembered. Please choose it again next time.",
   "desktop": "Long reports and detailed management belong in the desktop app.",
   "leaveSample": "Leave sample business",

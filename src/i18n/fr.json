@@ -90,7 +90,7 @@
   "approvalPlan": "Les circuits d’approbation sont prévus. Aucune décision ne peut être envoyée depuis cette démonstration.",
   "noUpdates": "Aucune mise à jour dans cette démonstration.",
   "language": "Langue",
-  "languagePlan": "Choisissez la langue de l’application. D’autres langues sont en préparation pour la version en 18 langues ; les traductions sont encore en cours de révision.",
+  "languagePlan": "Choisissez la langue de l’application. Les 18 langues sont disponibles dans cette version de développement ; les traductions sont encore en cours de révision.",
   "languageSaveFailed": "La langue a changé pour cette session, mais n’a pas pu être mémorisée. Sélectionnez-la à nouveau la prochaine fois.",
   "desktop": "Les rapports longs et la gestion détaillée se font dans l’application de bureau.",
   "leaveSample": "Quitter l’entreprise de démonstration",
