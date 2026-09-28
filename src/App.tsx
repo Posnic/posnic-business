@@ -43,7 +43,6 @@ import { AccountScreen } from "./components/AccountScreen";
 import { type Session } from "./services/authorization";
 import { supportsRememberedSession, vault } from "./platform/vault";
 import { businessFetch } from "./platform/network";
-import { enableSwitcherPrivacy } from "./platform/privacy";
 
 type Tab = "today" | "insights" | "inbox" | "more";
 function BusinessApp() {
@@ -974,11 +973,6 @@ function BusinessApp() {
   );
 }
 export default function App() {
-  useEffect(() => {
-    void enableSwitcherPrivacy().catch(() => {
-      // Background locking remains active if the OS overlay is unavailable.
-    });
-  }, []);
   return (
     <SafeAreaProvider>
       <BusinessApp />
