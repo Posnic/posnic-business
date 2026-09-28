@@ -1,6 +1,8 @@
 import { useLocale } from "./i18n/useLocale";
+import { deviceFormatting, refreshFormattingTimeZone } from "./i18n/intl";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AppState,
   BackHandler,
   PanResponder,
   Platform,
@@ -1025,6 +1027,12 @@ function BusinessApp() {
 export default function App() {
   const locale = useLocale();
   useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") refreshFormattingTimeZone();
+    });
+    return () => subscription.remove();
+  }, []);
+  useEffect(() => {
     if (Platform.OS === "web") {
       document.documentElement.lang = locale;
       document.documentElement.dir = isRTL() ? "rtl" : "ltr";
@@ -1033,9 +1041,7 @@ export default function App() {
   const [languageReady, setLanguageReady] = useState(false);
   useEffect(() => {
     let mounted = true;
-    const fallback = translator.resolveLocale([
-      Intl.DateTimeFormat().resolvedOptions().locale,
-    ]);
+    const fallback = translator.resolveLocale([deviceFormatting.locale]);
     const timer = setTimeout(() => {
       if (mounted) {
         translator.setLocale(fallback);
