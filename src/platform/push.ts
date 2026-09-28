@@ -1,8 +1,42 @@
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 import { notificationIntent } from "../domain/notificationIntent";
+import { t, translator } from "../i18n";
+import { createPushChannelUpdater } from "../services/pushChannel";
+const updateChannel = createPushChannelUpdater({
+  read: () => Notifications.getNotificationChannelAsync("business-updates"),
+  name: () => t("phoneNotifications"),
+  defaultImportance: Notifications.AndroidImportance.DEFAULT,
+  async write(name, importance, create) {
+    await Notifications.setNotificationChannelAsync("business-updates", {
+      name,
+      importance,
+      ...(create
+        ? {
+            lockscreenVisibility:
+              Notifications.AndroidNotificationVisibility.PRIVATE,
+          }
+        : {}),
+    });
+  },
+});
+export function watchPushChannelLanguage() {
+  if (Platform.OS !== "android") return () => {};
+  const refresh = () => {
+    void updateChannel().catch(() => {});
+  };
+  refresh();
+  const unsubscribe = translator.subscribe(refresh);
+  const foreground = AppState.addEventListener("change", (state) => {
+    if (state === "active") refresh();
+  });
+  return () => {
+    unsubscribe();
+    foreground.remove();
+  };
+}
 const configuredProject =
   Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
 export const pushProjectId: string | null =
@@ -22,12 +56,7 @@ export async function pushAllowed() {
 }
 export async function requestPushToken(prompt: boolean) {
   if (!supportsPush) throw new Error("push_unavailable");
-  if (Platform.OS === "android")
-    await Notifications.setNotificationChannelAsync("business-updates", {
-      name: "Business updates",
-      importance: Notifications.AndroidImportance.DEFAULT,
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
-    });
+  if (Platform.OS === "android") await updateChannel(true);
   if (!(await pushAllowed()) && prompt)
     await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: false, allowSound: false },

@@ -1,5 +1,8 @@
 export const pushProjectId: string | null = null;
 export const supportsPush = false;
+export function watchPushChannelLanguage() {
+  return () => {};
+}
 export class PushPermissionError extends Error {}
 export async function pushAllowed() {
   return false;

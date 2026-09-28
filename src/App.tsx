@@ -41,6 +41,7 @@ import {
 } from "./data/sample";
 import { t, isRTL, translator, getTextAlign } from "./i18n";
 import { readLanguage } from "./platform/language";
+import { watchPushChannelLanguage } from "./platform/push";
 import { LanguageSettings } from "./components/LanguageSettings";
 import { Button, Card, UIContext } from "./components/ui";
 import { AuthorizationPanel } from "./components/AuthorizationPanel";
@@ -1039,6 +1040,10 @@ export default function App() {
     }
   }, [locale]);
   const [languageReady, setLanguageReady] = useState(false);
+  useEffect(
+    () => (languageReady ? watchPushChannelLanguage() : undefined),
+    [languageReady],
+  );
   useEffect(() => {
     let mounted = true;
     const fallback = translator.resolveLocale([deviceFormatting.locale]);
