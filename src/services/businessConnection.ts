@@ -19,6 +19,7 @@ export type ConnectionProblem =
   | "signInRequired"
   | "accessChanged"
   | "busy"
+  | "conflict"
   | "invalidResponse";
 export class ConnectionError extends Error {
   constructor(
@@ -47,6 +48,7 @@ const discoverySchema = z
     itemReporting: z.literal("bounded-items-v1").optional(),
     stockReporting: z.literal("bounded-stock-v1").optional(),
     approvalAlerts: z.literal("inbox-approval-v1").optional(),
+    stockAlertPreferences: z.literal("stock-alert-preferences-v1").optional(),
     registerReporting: z.literal("bounded-register-session-v1").optional(),
     registerInbox: z.literal("inbox-register-v1").optional(),
     registerSchedules: z.literal("register-close-v1").optional(),
@@ -101,6 +103,8 @@ export async function readJson(
     if (response.status === 403) throw new ConnectionError("accessChanged");
     if ([404, 405, 426, 501].includes(response.status))
       throw new ConnectionError("unsupported");
+    if (response.status === 409 && !request?.acceptErrorStatuses?.includes(409))
+      throw new ConnectionError("conflict");
     if ([429, 503].includes(response.status))
       throw new ConnectionError("busy", response.status === 429);
     if (
@@ -162,6 +166,7 @@ export async function discoverBusinessServer(
     approvals?: boolean;
     registerSessions?: boolean;
     stock?: boolean;
+    stockAlertPreferences?: boolean;
   } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
@@ -169,6 +174,7 @@ export async function discoverBusinessServer(
   if (options.items) query.set("items", "1");
   if (options.approvals) query.set("approvals", "1");
   if (options.stock) query.set("stock", "1");
+  if (options.stockAlertPreferences) query.set("stockAlertPreferences", "1");
   if (options.registerSessions) query.set("registerSessions", "1");
   const parsed = discoverySchema.safeParse(
     await readJson(

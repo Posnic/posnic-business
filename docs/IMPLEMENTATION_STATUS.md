@@ -135,3 +135,18 @@ physical-device validation and production source reconciliation remain open.
 Android and iOS Hermes bundle exports also pass (about 12 MB each); these are
 bundle checks, not installed-device qualification. Android preview 2 does not
 include this screen.
+
+Stock-alert preference client checkpoint: `stockNotifications` negotiates the
+opt-in `stockAlertPreferences=1` discovery contract before both reads and saves.
+It requires current stock/notification permission and branch scope, a valid
+unexpired Business credential and the original issuer. Requests remain on the
+fixed stock-preference endpoint within one 20-second operation budget. The strict
+schema checks branch timezone, quiet hours, revision and supported 15/30/60/180
+minute intervals. Saves send only controls plus expected revision and require an
+exact confirmed response. HTTP 409 is a non-transient conflict, while decision
+requests that explicitly accept 409 retain their existing response contract.
+
+All 91 app tests, TypeScript, attribution and formatting pass. This is client
+plumbing, not a mobile settings screen or notification-delivery completion. The
+server advertises this preference capability only for the opt-in query with its
+stock-alert flag enabled. Production activation and preview 3 are unchanged.
