@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.1-android-test.apk
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.2-android-test.apk
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
