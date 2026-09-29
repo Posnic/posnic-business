@@ -13,13 +13,17 @@ opens the authenticated Inbox after any required unlock; it cannot approve an
 action. An iOS permission prompt uses the privacy cover, while actual background
 transitions still cancel registration and lock the account.
 
+## Provider ownership
+
+Posnic manages the push project and credentials for Posnic Cloud. Cloud shop owners only enable notifications; they do not configure a provider. Community owners may use their own project with a separately built app, or choose Posnic-managed delivery once the scoped Community relay is implemented. The relay is not available yet. Provider credentials must never be shared with Community servers.
+
 ## Deployment requirements
 
-Build with `POSNIC_BUSINESS_EXPO_PROJECT_ID` set to the owner's EAS project UUID.
+Build with `POSNIC_BUSINESS_EXPO_PROJECT_ID` set to the app publisher's EAS project UUID.
 For Android, set `POSNIC_BUSINESS_GOOGLE_SERVICES_FILE` to the appropriate
 `google-services.json` outside source control. Configure the project's FCM/APNs
 credentials and enable Expo enhanced push security. Credentials belong to the
-owner's deployment secret store; never put an Expo access token in the app.
+deployment operator's secret store; never put an Expo access token in the app.
 
 The server uses `POSNIC_BUSINESS_PUSH_ENABLED=1`, the same
 `POSNIC_BUSINESS_EXPO_PROJECT_ID` and a secret
