@@ -254,5 +254,15 @@
   "afterRegisterClose": "Alla chiusura di una sessione di cassa",
   "registerSummary": "Riepilogo della sessione di cassa",
   "registerCloseHelp": "Un riepilogo per sessione di cassa, dopo sincronizzazione ed elaborazione. Non è un rapporto di chiusura dell’intera attività.",
-  "registerUnavailable": "I totali della sessione non sono disponibili. Nessun importo è stato presunto."
+  "registerUnavailable": "I totali della sessione non sono disponibili. Nessun importo è stato presunto.",
+  "stockObservationHelp": "Quantità registrate sul computer. La copertura è incompleta; le scorte potrebbero essere cambiate.",
+  "stockCoverage": "{known} articoli verificati · {unknown} non disponibili · {excluded} esclusi",
+  "stockNoKnownLow": "Nessuna scorta bassa nei dati verificati. Gli articoli non disponibili potrebbero richiedere attenzione.",
+  "stockListLimit": "Visualizzati {shown} di {total} articoli noti con scorte basse.",
+  "stockItemThreshold": "Livello di riordino dell’articolo",
+  "stockBranchThreshold": "Livello di riordino della filiale",
+  "stockNegative": "Le scorte sono negative. Controlla i registri sul computer.",
+  "stockObserved": "Rilevato: {time}",
+  "stockOnHand": "Giacenza",
+  "stockDelayed": "Aggiornamento scorte in ritardo"
 }

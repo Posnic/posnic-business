@@ -254,5 +254,15 @@
   "afterRegisterClose": "Após encerrar uma sessão de caixa",
   "registerSummary": "Resumo da sessão de caixa",
   "registerCloseHelp": "Um resumo por sessão de caixa, após sincronização e preparação. Não é um relatório de fecho de todo o negócio.",
-  "registerUnavailable": "Os totais da sessão estão indisponíveis. Nenhum valor foi presumido."
+  "registerUnavailable": "Os totais da sessão estão indisponíveis. Nenhum valor foi presumido.",
+  "stockObservationHelp": "Quantidades registadas no computador. A cobertura está incompleta; o stock pode ter mudado.",
+  "stockCoverage": "{known} artigos verificados · {unknown} indisponíveis · {excluded} excluídos",
+  "stockNoKnownLow": "Sem stock baixo nos dados verificados. Os artigos indisponíveis podem precisar de atenção.",
+  "stockListLimit": "A mostrar {shown} de {total} artigos com stock baixo conhecido.",
+  "stockItemThreshold": "Nível de reposição do artigo",
+  "stockBranchThreshold": "Nível de reposição da filial",
+  "stockNegative": "O stock é negativo. Verifique os registos no computador.",
+  "stockObserved": "Observado: {time}",
+  "stockOnHand": "Em stock",
+  "stockDelayed": "Atualização de stock atrasada"
 }

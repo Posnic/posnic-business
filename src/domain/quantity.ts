@@ -23,3 +23,14 @@ export function formatQuantity(milli: number, locale = getFormatLocale()) {
     }).format(Number(fraction))
   );
 }
+
+/** Preserve localized sign and direction marks without rounding stock units. */
+export function formatStockQuantity(milli: number, locale = getFormatLocale()) {
+  if (!Number.isSafeInteger(milli)) throw new Error("Invalid quantity");
+  const absolute = formatQuantity(Math.abs(milli), locale);
+  if (milli >= 0) return absolute;
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 })
+    .formatToParts(-1)
+    .map((part) => (part.type === "integer" ? absolute : part.value))
+    .join("");
+}

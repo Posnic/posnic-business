@@ -254,5 +254,15 @@
   "afterRegisterClose": "Baada ya kipindi cha kaunta kufungwa",
   "registerSummary": "Muhtasari wa kipindi cha kaunta",
   "registerCloseHelp": "Muhtasari wa kila kipindi cha kaunta baada ya usawazishaji na maandalizi. Hii si ripoti ya kufunga biashara nzima.",
-  "registerUnavailable": "Jumla za kipindi hazipatikani. Hakuna kiasi kilichokadiriwa."
+  "registerUnavailable": "Jumla za kipindi hazipatikani. Hakuna kiasi kilichokadiriwa.",
+  "stockObservationHelp": "Kiasi kilichohifadhiwa kwenye kompyuta yako. Taarifa hazijakamilika; stoo inaweza kuwa imebadilika.",
+  "stockCoverage": "Bidhaa {known} zimekaguliwa · {unknown} hazipatikani · {excluded} zimeondolewa",
+  "stockNoKnownLow": "Hakuna bidhaa zenye stoo ndogo katika taarifa zilizokaguliwa. Bidhaa zisizopatikana zinaweza kuhitaji ukaguzi.",
+  "stockListLimit": "Inaonyesha {shown} kati ya bidhaa {total} zinazojulikana kuwa na stoo ndogo.",
+  "stockItemThreshold": "Kiwango cha kuagiza tena bidhaa",
+  "stockBranchThreshold": "Kiwango cha kuagiza tena cha tawi",
+  "stockNegative": "Stoo iko chini ya sifuri. Kagua rekodi kwenye kompyuta yako.",
+  "stockObserved": "Iliangaliwa {time}",
+  "stockOnHand": "Kiasi kilichopo",
+  "stockDelayed": "Usasishaji wa stoo umechelewa"
 }

@@ -46,6 +46,7 @@ import { t, isRTL } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
 import { BusinessTrends } from "./BusinessTrends";
+import { BusinessStock } from "./BusinessStock";
 import { BusinessItems } from "./BusinessItems";
 import { BusinessInbox } from "./BusinessInbox";
 import { BusinessApprovals, BusinessApprovalDetail } from "./BusinessApprovals";
@@ -61,6 +62,7 @@ import { LanguageSettings } from "./LanguageSettings";
 type Tabs = {
   Today: undefined;
   Insights: undefined;
+  Stock: undefined;
   Inbox: undefined;
   More: undefined;
 };
@@ -331,6 +333,27 @@ function Insights() {
     </Page>
   );
 }
+function Stock() {
+  useLocale();
+  const model = useModel(),
+    focused = useIsFocused();
+  const [refresh, setRefresh] = useState<RefreshBinding>(null);
+  return (
+    <Page top refresh={refresh}>
+      <Scope />
+      {focused && (
+        <BusinessStock
+          key={model.generation}
+          credential={model.credential}
+          context={model.context}
+          branch={model.branch}
+          onAccessLost={model.onAccessLost}
+          onRefreshBinding={setRefresh}
+        />
+      )}
+    </Page>
+  );
+}
 function Inbox() {
   useLocale();
   const focused = useIsFocused();
@@ -510,9 +533,11 @@ function Home() {
             ? "today"
             : route.name === "Insights"
               ? "insights"
-              : route.name === "Inbox"
-                ? "inbox"
-                : "more",
+              : route.name === "Stock"
+                ? "stock"
+                : route.name === "Inbox"
+                  ? "inbox"
+                  : "more",
         ),
         tabBarLabelPosition: "below-icon",
         tabBarLabel: ({ color }) => (
@@ -537,9 +562,11 @@ function Home() {
                 ? "today"
                 : route.name === "Insights"
                   ? "insights"
-                  : route.name === "Inbox"
-                    ? "inbox"
-                    : "more",
+                  : route.name === "Stock"
+                    ? "stock"
+                    : route.name === "Inbox"
+                      ? "inbox"
+                      : "more",
             )}
           </Text>
         ),
@@ -551,9 +578,11 @@ function Home() {
                 ? "grid-outline"
                 : route.name === "Insights"
                   ? "stats-chart-outline"
-                  : route.name === "Inbox"
-                    ? "mail-outline"
-                    : "ellipsis-horizontal-circle-outline"
+                  : route.name === "Stock"
+                    ? "cube-outline"
+                    : route.name === "Inbox"
+                      ? "mail-outline"
+                      : "ellipsis-horizontal-circle-outline"
             }
             color={color}
             size={size}
@@ -581,6 +610,14 @@ function Home() {
             name="Inbox"
             component={Inbox}
             options={{ title: t("inbox") }}
+          />
+        )}
+      {model.context.capabilities.includes("stock.read") &&
+        model.context.branches.length > 0 && (
+          <Tab.Screen
+            name="Stock"
+            component={Stock}
+            options={{ title: t("stock") }}
           />
         )}
       <Tab.Screen name="More" component={More} options={{ title: t("more") }} />

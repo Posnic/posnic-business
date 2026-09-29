@@ -254,5 +254,15 @@
   "afterRegisterClose": "Après la clôture d’une session de caisse",
   "registerSummary": "Résumé de session de caisse",
   "registerCloseHelp": "Un résumé par session de caisse, après synchronisation et préparation. Il ne couvre pas la clôture de tout l’établissement.",
-  "registerUnavailable": "Les totaux de la session sont indisponibles. Aucun montant n’a été supposé."
+  "registerUnavailable": "Les totaux de la session sont indisponibles. Aucun montant n’a été supposé.",
+  "stockObservationHelp": "Quantités enregistrées sur votre ordinateur. Couverture incomplète ; le stock peut avoir changé.",
+  "stockCoverage": "{known} articles vérifiés · {unknown} indisponibles · {excluded} exclus",
+  "stockNoKnownLow": "Aucun stock faible parmi les articles vérifiés. Les articles indisponibles peuvent nécessiter une vérification.",
+  "stockListLimit": "{shown} articles affichés sur {total} en stock faible connu.",
+  "stockItemThreshold": "Seuil de réapprovisionnement de l’article",
+  "stockBranchThreshold": "Seuil de réapprovisionnement de la succursale",
+  "stockNegative": "Le stock est négatif. Vérifiez les mouvements sur votre ordinateur.",
+  "stockObserved": "Observé le {time}",
+  "stockOnHand": "En stock",
+  "stockDelayed": "Mise à jour du stock retardée"
 }

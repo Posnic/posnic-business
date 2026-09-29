@@ -254,5 +254,15 @@
   "afterRegisterClose": "Setelah sesi kasir ditutup",
   "registerSummary": "Ringkasan sesi kasir",
   "registerCloseHelp": "Ringkasan setiap sesi kasir setelah sinkronisasi dan persiapan. Ini bukan laporan penutupan seluruh bisnis.",
-  "registerUnavailable": "Total sesi tidak tersedia. Tidak ada jumlah yang diasumsikan."
+  "registerUnavailable": "Total sesi tidak tersedia. Tidak ada jumlah yang diasumsikan.",
+  "stockObservationHelp": "Jumlah tersimpan dari komputer Anda. Cakupan belum lengkap; stok mungkin telah berubah.",
+  "stockCoverage": "{known} barang diperiksa · {unknown} tidak tersedia · {excluded} dikecualikan",
+  "stockNoKnownLow": "Tidak ada stok rendah dalam data yang diperiksa. Barang yang datanya tidak tersedia mungkin perlu diperiksa.",
+  "stockListLimit": "Menampilkan {shown} dari {total} barang yang diketahui memiliki stok rendah.",
+  "stockItemThreshold": "Batas pemesanan ulang barang",
+  "stockBranchThreshold": "Batas pemesanan ulang cabang",
+  "stockNegative": "Stok di bawah nol. Periksa catatan stok di komputer Anda.",
+  "stockObserved": "Diamati {time}",
+  "stockOnHand": "Stok tersedia",
+  "stockDelayed": "Pembaruan stok tertunda"
 }

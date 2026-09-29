@@ -254,5 +254,15 @@
   "afterRegisterClose": "Na het sluiten van een kassasessie",
   "registerSummary": "Overzicht van de kassasessie",
   "registerCloseHelp": "Een overzicht per kassasessie, na synchronisatie en verwerking. Dit is geen afsluitrapport voor het hele bedrijf.",
-  "registerUnavailable": "De sessietotalen zijn niet beschikbaar. Er is geen bedrag aangenomen."
+  "registerUnavailable": "De sessietotalen zijn niet beschikbaar. Er is geen bedrag aangenomen.",
+  "stockObservationHelp": "Opgeslagen aantallen van uw desktop. De dekking is onvolledig; de voorraad kan zijn veranderd.",
+  "stockCoverage": "{known} artikelen gecontroleerd · {unknown} niet beschikbaar · {excluded} uitgesloten",
+  "stockNoKnownLow": "Geen lage voorraad in de gecontroleerde gegevens. Niet-beschikbare artikelen kunnen nog aandacht vereisen.",
+  "stockListLimit": "{shown} van {total} bekende artikelen met lage voorraad.",
+  "stockItemThreshold": "Bestelniveau van artikel",
+  "stockBranchThreshold": "Bestelniveau van vestiging",
+  "stockNegative": "De voorraad is negatief. Controleer de voorraadgegevens op uw desktop.",
+  "stockObserved": "Waargenomen: {time}",
+  "stockOnHand": "Op voorraad",
+  "stockDelayed": "Voorraadupdate vertraagd"
 }

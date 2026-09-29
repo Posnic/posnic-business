@@ -254,5 +254,15 @@
   "afterRegisterClose": "After a register session closes",
   "registerSummary": "Register session summary",
   "registerCloseHelp": "A summary for each register session, after sync and preparation. This is not a whole-business closing report.",
-  "registerUnavailable": "Session totals are unavailable. No amount has been assumed."
+  "registerUnavailable": "Session totals are unavailable. No amount has been assumed.",
+  "stockObservationHelp": "Stored quantities from your desktop. Coverage is incomplete; stock may have changed.",
+  "stockCoverage": "{known} items checked · {unknown} unavailable · {excluded} excluded",
+  "stockNoKnownLow": "No low-stock items in the checked data. Unavailable items may still need attention.",
+  "stockListLimit": "Showing {shown} of {total} known low-stock items.",
+  "stockItemThreshold": "Item reorder level",
+  "stockBranchThreshold": "Branch reorder level",
+  "stockNegative": "Stock is below zero. Check the stock records on your desktop.",
+  "stockObserved": "Observed {time}",
+  "stockOnHand": "On hand",
+  "stockDelayed": "Stock update delayed"
 }

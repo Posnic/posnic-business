@@ -109,3 +109,29 @@ Six stock tests cover negotiation, ACL, old-server compatibility, corrupt data,
 empty/truncated coverage and freshness. The stock screen, navigation, localized
 coverage explanations and notification settings are not implemented yet. This
 client work is not in Android preview 2.
+
+## Connected stock screen (29 September)
+
+Stock watch is now a capability-controlled account tab, available independently
+of financial insights. It uses the existing branch scope control (no selector
+for a single accessible branch), pull-to-refresh and an explicit refresh button.
+It shows stored on-hand quantities in exact unit thousandths, item/branch reorder
+levels, negative-stock guidance, observation time and checked/unavailable/excluded
+coverage. Empty data never claims all stock is healthy. The first 20 returned
+rows are rendered initially, with Load more in batches of 20 and a visible known
+low-stock count. The server's 100-row bound remains explicit in that count.
+
+Data is memory-only, scoped to session and current ACL context, cancelled on
+screen exit or replacement, cleared on refresh failure and removed on expiry.
+The stock screen does not edit inventory or calculate stock from sales. All ten
+new messages have draft translations in the eighteen language packs. Qualified
+language review remains outstanding.
+
+Validation: 84 app tests, TypeScript, attribution, formatting, web export and all
+35 browser flows pass. English and Arabic connected stock screens were inspected
+at 320px; tests exercise stock-only access, RTL five-tab layout, negative quantities,
+bounded loading and unavailable refresh clearing. Stock alert preferences/delivery,
+physical-device validation and production source reconciliation remain open.
+Android and iOS Hermes bundle exports also pass (about 12 MB each); these are
+bundle checks, not installed-device qualification. Android preview 2 does not
+include this screen.

@@ -254,5 +254,15 @@
   "afterRegisterClose": "Nach Abschluss einer Kassensitzung",
   "registerSummary": "Zusammenfassung der Kassensitzung",
   "registerCloseHelp": "Eine Zusammenfassung je Kassensitzung nach Synchronisierung und Aufbereitung. Dies ist kein Abschlussbericht für den gesamten Betrieb.",
-  "registerUnavailable": "Die Sitzungssummen sind nicht verfügbar. Es wurde kein Betrag angenommen."
+  "registerUnavailable": "Die Sitzungssummen sind nicht verfügbar. Es wurde kein Betrag angenommen.",
+  "stockObservationHelp": "Gespeicherte Mengen vom Desktop. Die Abdeckung ist unvollständig; der Bestand kann sich geändert haben.",
+  "stockCoverage": "{known} Artikel geprüft · {unknown} nicht verfügbar · {excluded} ausgeschlossen",
+  "stockNoKnownLow": "Kein niedriger Bestand in den geprüften Daten. Nicht verfügbare Artikel müssen möglicherweise geprüft werden.",
+  "stockListLimit": "{shown} von {total} bekannten Artikeln mit niedrigem Bestand.",
+  "stockItemThreshold": "Meldebestand des Artikels",
+  "stockBranchThreshold": "Meldebestand der Filiale",
+  "stockNegative": "Der Bestand ist negativ. Prüfen Sie die Bestandsdaten am Desktop.",
+  "stockObserved": "Erfasst: {time}",
+  "stockOnHand": "Lagerbestand",
+  "stockDelayed": "Bestandsaktualisierung verzögert"
 }
