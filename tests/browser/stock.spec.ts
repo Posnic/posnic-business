@@ -10,6 +10,7 @@ for (const [locale, messages] of [
     page,
     context,
   }) => {
+    await page.clock.install();
     await page.setViewportSize({ width: 320, height: 780 });
     await page.addInitScript(
       (locale) => localStorage.setItem("posnic.business.language", locale),
@@ -92,15 +93,19 @@ for (const [locale, messages] of [
           await route.abort("failed");
           return;
         }
-        if (reads === 3 || reads === 5) {
+        if (reads === 3) {
+          await route.abort("failed");
+          return;
+        }
+        if (reads === 4 || reads === 6) {
           await route.fulfill({
-            status: reads === 5 ? 403 : 200,
+            status: reads === 6 ? 403 : 200,
             contentType: "application/json",
             body: "{}",
           });
           return;
         }
-        const at = new Date().toISOString();
+        const at = await page.evaluate(() => new Date().toISOString());
         result = {
           schemaVersion: 1,
           metricDefinitionVersion: "stored-stock-v1",
@@ -211,6 +216,22 @@ for (const [locale, messages] of [
       stock.getByRole("heading", { name: "Rice 23", exact: true }),
     ).toBeAttached();
     expect(reads).toBe(2);
+    await page.clock.fastForward(10 * 60_000);
+    await stock
+      .getByRole("button", { name: messages.refresh, exact: true })
+      .click();
+    await expect(
+      stock.getByText(messages.summaryConnectionLost, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      stock.getByRole("heading", { name: "Rice 23", exact: true }),
+    ).toBeAttached();
+    expect(reads).toBe(3);
+    await page.clock.fastForward(6 * 60_000);
+    await expect(
+      stock.getByRole("heading", { name: "Rice 1", exact: true }),
+    ).toHaveCount(0);
+    expect(reads).toBe(3);
     await stock
       .getByRole("button", { name: messages.refresh, exact: true })
       .click();
@@ -233,6 +254,6 @@ for (const [locale, messages] of [
       .getByRole("button", { name: messages.refresh, exact: true })
       .click();
     await expect(stock).toHaveCount(0);
-    expect(reads).toBe(5);
+    expect(reads).toBe(6);
   });
 }
