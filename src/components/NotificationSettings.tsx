@@ -22,7 +22,12 @@ import {
 } from "../services/registerNotifications";
 import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
-import { t } from "../i18n";
+import { t, getFormatLocale } from "../i18n";
+import {
+  readStockPreference,
+  saveStockPreference,
+  type StockPreference,
+} from "../services/stockNotifications";
 import { normalizeDigits } from "../i18n/digits";
 import { type BusinessContext } from "../domain/contracts";
 import {
@@ -40,6 +45,7 @@ export function NotificationSettings({
   onDirtyChanged,
   approvalContext,
   summaryContext,
+  stockContext,
 }: {
   credential: Credential;
   branchId: string;
@@ -49,14 +55,20 @@ export function NotificationSettings({
   onDirtyChanged?: (dirty: boolean) => void;
   approvalContext?: BusinessContext;
   summaryContext?: BusinessContext;
+  stockContext?: BusinessContext;
 }) {
   useLocale();
   const [open, setOpen] = useState(page),
     [value, setValue] = useState<
-      NotificationPreference | SummarySchedule | ApprovalPreference | null
+      | NotificationPreference
+      | SummarySchedule
+      | ApprovalPreference
+      | StockPreference
+      | null
     >(null),
     [supportsClose, setSupportsClose] = useState(false),
     [busy, setBusy] = useState(false),
+    [conflict, setConflict] = useState(false),
     [message, setMessage] = useState("");
   const controller = useRef<AbortController | null>(null),
     running = useRef(false);
@@ -84,7 +96,22 @@ export function NotificationSettings({
     try {
       const options = { fetcher: businessFetch, signal: request.signal };
       let result;
-      if (summaryContext && !approvalContext) {
+      if (stockContext) {
+        result =
+          save && value && "minimumIntervalMinutes" in value
+            ? await saveStockPreference(
+                credential,
+                stockContext,
+                value,
+                options,
+              )
+            : await readStockPreference(
+                credential,
+                stockContext,
+                branchId,
+                options,
+              );
+      } else if (summaryContext && !approvalContext) {
         const schedule =
           save && value && "mode" in value
             ? await saveSummarySchedule(
@@ -120,13 +147,18 @@ export function NotificationSettings({
             ? await savePreference(credential, value, options)
             : await readPreference(credential, branchId, options);
       if (!request.signal.aborted) {
+        setConflict(false);
         setValue(result);
         setSavedValue(JSON.stringify(result));
         if (save) setMessage(t("notificationSaved"));
       }
     } catch (error) {
       if (request.signal.aborted) return;
-      setValue(null);
+      if (stockContext && save) {
+        setConflict(
+          error instanceof ConnectionError && error.problem === "conflict",
+        );
+      } else setValue(null);
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -135,11 +167,15 @@ export function NotificationSettings({
       else
         setMessage(
           t(
-            approvalContext &&
-              error instanceof ConnectionError &&
-              error.problem === "unsupported"
-              ? "approvalAlertsUnsupported"
-              : "notificationSettingsUnavailable",
+            error instanceof ConnectionError &&
+              error.problem === "unsupported" &&
+              stockContext
+              ? "stockAlertsUnsupported"
+              : approvalContext &&
+                  error instanceof ConnectionError &&
+                  error.problem === "unsupported"
+                ? "approvalAlertsUnsupported"
+                : "notificationSettingsUnavailable",
           ),
         );
     } finally {
@@ -158,6 +194,7 @@ export function NotificationSettings({
         }}
       />
     );
+  const controlsDisabled = busy || conflict;
   const validTime = (text: string) => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(text);
   const valid =
     value &&
@@ -177,7 +214,7 @@ export function NotificationSettings({
         accessibilityLabel={label}
         value={text}
         onChangeText={(input) => change(normalizeDigits(input))}
-        editable={!busy}
+        editable={!controlsDisabled}
         maxLength={5}
         autoCapitalize="none"
         autoCorrect={false}
@@ -204,15 +241,23 @@ export function NotificationSettings({
         accessibilityRole="header"
         style={[ink, { fontSize: 20, fontWeight: "600" }]}
       >
-        {t(approvalContext ? "approvalAlerts" : "notificationSettings")}
+        {t(
+          stockContext
+            ? "stockAlerts"
+            : approvalContext
+              ? "approvalAlerts"
+              : "notificationSettings",
+        )}
       </Text>
       <Text style={[ink, { lineHeight: 23 }]}>
         {t(
-          approvalContext
-            ? "approvalAlertsHelp"
-            : value && "mode" in value && value.mode === "register-close"
-              ? "registerCloseHelp"
-              : "inboxDeliveryHelp",
+          stockContext
+            ? "stockAlertsHelp"
+            : approvalContext
+              ? "approvalAlertsHelp"
+              : value && "mode" in value && value.mode === "register-close"
+                ? "registerCloseHelp"
+                : "inboxDeliveryHelp",
         )}
       </Text>
       {value && (
@@ -227,29 +272,77 @@ export function NotificationSettings({
           >
             <Text style={[ink, { flex: 1 }]}>
               {t(
-                approvalContext
-                  ? "approvalAlerts"
-                  : "mode" in value && value.mode === "register-close"
-                    ? "registerSummary"
-                    : "dailySummary",
+                stockContext
+                  ? "stockAlerts"
+                  : approvalContext
+                    ? "approvalAlerts"
+                    : "mode" in value && value.mode === "register-close"
+                      ? "registerSummary"
+                      : "dailySummary",
               )}
             </Text>
             <Switch
               accessibilityLabel={t(
-                approvalContext
-                  ? "approvalAlerts"
-                  : "mode" in value && value.mode === "register-close"
-                    ? "registerSummary"
-                    : "dailySummary",
+                stockContext
+                  ? "stockAlerts"
+                  : approvalContext
+                    ? "approvalAlerts"
+                    : "mode" in value && value.mode === "register-close"
+                      ? "registerSummary"
+                      : "dailySummary",
               )}
               value={value.enabled}
-              disabled={busy}
+              disabled={controlsDisabled}
               onValueChange={(enabled) => setValue({ ...value, enabled })}
             />
           </View>
           <Text style={ink}>
             {t("branchTimezone", { timezone: value.timezone })}
           </Text>
+          {"minimumIntervalMinutes" in value && (
+            <View
+              style={{ gap: 8 }}
+              accessibilityRole="radiogroup"
+              accessibilityLabel={t("stockAlertFrequency")}
+            >
+              <Text style={[ink, { fontWeight: "600" }]}>
+                {t("stockAlertFrequency")}
+              </Text>
+              {([15, 30, 60, 180] as const).map((minutes) => {
+                const label = t("stockAlertInterval", {
+                  minutes: new Intl.NumberFormat(getFormatLocale()).format(
+                    minutes,
+                  ),
+                });
+                return (
+                  <Pressable
+                    key={minutes}
+                    accessibilityRole="radio"
+                    accessibilityLabel={label}
+                    accessibilityState={{
+                      checked: value.minimumIntervalMinutes === minutes,
+                      disabled: controlsDisabled,
+                    }}
+                    disabled={controlsDisabled}
+                    onPress={() =>
+                      setValue({ ...value, minimumIntervalMinutes: minutes })
+                    }
+                    style={{
+                      minHeight: 48,
+                      padding: 12,
+                      borderWidth:
+                        value.minimumIntervalMinutes === minutes ? 2 : 1,
+                      borderColor: "#8296a2",
+                      borderRadius: 12,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={ink}>{label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
           {supportsClose && "mode" in value && (
             <View style={{ gap: 8 }} accessibilityRole="radiogroup">
               {(["daily", "register-close"] as const).map((mode) => (
@@ -263,7 +356,7 @@ export function NotificationSettings({
                     checked: value.mode === mode,
                     disabled: busy,
                   }}
-                  disabled={busy}
+                  disabled={controlsDisabled}
                   onPress={() => setValue({ ...value, mode })}
                   style={{
                     minHeight: 48,
@@ -300,7 +393,7 @@ export function NotificationSettings({
             <Switch
               accessibilityLabel={t("quietHours")}
               value={value.quiet.enabled}
-              disabled={busy}
+              disabled={controlsDisabled}
               onValueChange={(enabled) =>
                 setValue({
                   ...value,
@@ -326,11 +419,17 @@ export function NotificationSettings({
             </>
           )}
           <Text style={ink}>
-            {t(approvalContext ? "approvalAlertsQuietHelp" : "quietHoursHelp")}
+            {t(
+              stockContext
+                ? "stockAlertsQuietHelp"
+                : approvalContext
+                  ? "approvalAlertsQuietHelp"
+                  : "quietHoursHelp",
+            )}
           </Text>
           <Button
             label={t("saveNotificationSettings")}
-            disabled={busy || !valid}
+            disabled={controlsDisabled || !valid}
             onPress={() => void load(true)}
           />
         </>
@@ -340,7 +439,7 @@ export function NotificationSettings({
           {message}
         </Text>
       ) : null}
-      {!value && (
+      {(!value || conflict) && (
         <Button
           label={t("refresh")}
           secondary

@@ -264,5 +264,11 @@
   "stockNegative": "Stock is below zero. Check the stock records on your desktop.",
   "stockObserved": "Observed {time}",
   "stockOnHand": "On hand",
-  "stockDelayed": "Stock update delayed"
+  "stockDelayed": "Stock update delayed",
+  "stockAlerts": "Stock alerts",
+  "stockAlertsHelp": "Group low-stock alerts for this branch. Turn on phone notifications to receive them on this device.",
+  "stockAlertsUnsupported": "This server does not yet support stock-alert settings.",
+  "stockAlertFrequency": "Minimum time between alerts",
+  "stockAlertInterval": "{minutes} minutes",
+  "stockAlertsQuietHelp": "Alerts wait until quiet hours end. Stock is checked again before delivery."
 }

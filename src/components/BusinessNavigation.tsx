@@ -70,10 +70,15 @@ type Routes = {
   Home: NavigatorScreenParams<Tabs> | undefined;
   Branches: {
     destination:
-      "scope" | "Notifications" | "ApprovalNotifications" | "Publisher";
+      | "scope"
+      | "Notifications"
+      | "ApprovalNotifications"
+      | "StockNotifications"
+      | "Publisher";
   };
   Notifications: { branchId: string };
   ApprovalNotifications: { branchId: string };
+  StockNotifications: { branchId: string };
   Publisher: { branchId: string };
   Devices: undefined;
   Security: undefined;
@@ -336,11 +341,32 @@ function Insights() {
 function Stock() {
   useLocale();
   const model = useModel(),
-    focused = useIsFocused();
+    focused = useIsFocused(),
+    navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
   const [refresh, setRefresh] = useState<RefreshBinding>(null);
   return (
     <Page top refresh={refresh}>
       <Scope />
+      {model.context.capabilities.includes("notifications.self.manage") &&
+        model.context.branches.length > 0 && (
+          <Button
+            label={t("stockAlerts")}
+            secondary
+            onPress={() => {
+              const branchId =
+                model.branch ??
+                (model.context.branches.length === 1
+                  ? model.context.branches[0]!.id
+                  : null);
+              if (branchId)
+                navigation.navigate("StockNotifications", { branchId });
+              else
+                navigation.navigate("Branches", {
+                  destination: "StockNotifications",
+                });
+            }}
+          />
+        )}
       {focused && (
         <BusinessStock
           key={model.generation}
@@ -389,7 +415,11 @@ function More() {
   const model = useModel(),
     navigation = useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
   function openModule(
-    name: "Notifications" | "ApprovalNotifications" | "Publisher",
+    name:
+      | "Notifications"
+      | "ApprovalNotifications"
+      | "StockNotifications"
+      | "Publisher",
   ) {
     const branchId =
       model.branch ??
@@ -428,6 +458,15 @@ function More() {
             title={t("approvalAlerts")}
             icon="notifications-outline"
             onPress={() => openModule("ApprovalNotifications")}
+          />
+        )}
+      {model.context.capabilities.includes("stock.read") &&
+        model.context.capabilities.includes("notifications.self.manage") &&
+        model.context.branches.length > 0 && (
+          <MenuRow
+            title={t("stockAlerts")}
+            icon="notifications-outline"
+            onPress={() => openModule("StockNotifications")}
           />
         )}
       {supportsPush && (
@@ -664,7 +703,10 @@ function Branches({
 function NotificationPage({
   route,
   navigation,
-}: NativeStackScreenProps<Routes, "Notifications" | "ApprovalNotifications">) {
+}: NativeStackScreenProps<
+  Routes,
+  "Notifications" | "ApprovalNotifications" | "StockNotifications"
+>) {
   useLocale();
   const reducedMotion = useReducedMotion();
   const model = useModel(),
@@ -683,9 +725,12 @@ function NotificationPage({
           }
         </Heading>
         <NotificationSettings
-          key={route.name + route.params.branchId}
+          key={route.name + route.params.branchId + model.generation}
           approvalContext={
             route.name === "ApprovalNotifications" ? model.context : undefined
+          }
+          stockContext={
+            route.name === "StockNotifications" ? model.context : undefined
           }
           summaryContext={model.context}
           page
@@ -841,6 +886,14 @@ export function BusinessNavigation({
                 name="ApprovalNotifications"
                 component={NotificationPage}
                 options={{ title: t("approvalAlerts") }}
+              />
+            )}
+          {context.capabilities.includes("stock.read") &&
+            context.capabilities.includes("notifications.self.manage") && (
+              <Stack.Screen
+                name="StockNotifications"
+                component={NotificationPage}
+                options={{ title: t("stockAlerts") }}
               />
             )}
           <Stack.Screen

@@ -264,5 +264,11 @@
   "stockNegative": "Le scorte sono negative. Controlla i registri sul computer.",
   "stockObserved": "Rilevato: {time}",
   "stockOnHand": "Giacenza",
-  "stockDelayed": "Aggiornamento scorte in ritardo"
+  "stockDelayed": "Aggiornamento scorte in ritardo",
+  "stockAlerts": "Avvisi sulle scorte",
+  "stockAlertsHelp": "Raggruppa gli avvisi di scorte basse di questa sede. Attiva le notifiche del telefono per riceverli su questo dispositivo.",
+  "stockAlertsUnsupported": "Questo server non supporta ancora le impostazioni degli avvisi sulle scorte.",
+  "stockAlertFrequency": "Intervallo minimo tra gli avvisi",
+  "stockAlertInterval": "{minutes} minuti",
+  "stockAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le scorte vengono ricontrollate prima dell’invio."
 }

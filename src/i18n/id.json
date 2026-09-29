@@ -264,5 +264,11 @@
   "stockNegative": "Stok di bawah nol. Periksa catatan stok di komputer Anda.",
   "stockObserved": "Diamati {time}",
   "stockOnHand": "Stok tersedia",
-  "stockDelayed": "Pembaruan stok tertunda"
+  "stockDelayed": "Pembaruan stok tertunda",
+  "stockAlerts": "Peringatan stok",
+  "stockAlertsHelp": "Kelompokkan peringatan stok rendah untuk cabang ini. Aktifkan notifikasi ponsel untuk menerimanya di perangkat ini.",
+  "stockAlertsUnsupported": "Server ini belum mendukung pengaturan peringatan stok.",
+  "stockAlertFrequency": "Jarak waktu minimum antarperingatan",
+  "stockAlertInterval": "{minutes} menit",
+  "stockAlertsQuietHelp": "Peringatan menunggu hingga jam tenang berakhir. Stok diperiksa kembali sebelum dikirim."
 }

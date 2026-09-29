@@ -264,5 +264,11 @@
   "stockNegative": "De voorraad is negatief. Controleer de voorraadgegevens op uw desktop.",
   "stockObserved": "Waargenomen: {time}",
   "stockOnHand": "Op voorraad",
-  "stockDelayed": "Voorraadupdate vertraagd"
+  "stockDelayed": "Voorraadupdate vertraagd",
+  "stockAlerts": "Voorraadmeldingen",
+  "stockAlertsHelp": "Groepeer meldingen over lage voorraad voor deze vestiging. Schakel telefoonmeldingen in om ze op dit apparaat te ontvangen.",
+  "stockAlertsUnsupported": "Deze server ondersteunt nog geen instellingen voor voorraadmeldingen.",
+  "stockAlertFrequency": "Minimale tijd tussen meldingen",
+  "stockAlertInterval": "{minutes} minuten",
+  "stockAlertsQuietHelp": "Meldingen wachten tot de stille uren voorbij zijn. De voorraad wordt vóór verzending opnieuw gecontroleerd."
 }

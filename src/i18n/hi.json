@@ -264,5 +264,11 @@
   "stockNegative": "स्टॉक शून्य से नीचे है। डेस्कटॉप पर स्टॉक रिकॉर्ड जाँचें।",
   "stockObserved": "अवलोकन: {time}",
   "stockOnHand": "मौजूदा स्टॉक",
-  "stockDelayed": "स्टॉक अपडेट में देरी"
+  "stockDelayed": "स्टॉक अपडेट में देरी",
+  "stockAlerts": "स्टॉक अलर्ट",
+  "stockAlertsHelp": "इस शाखा के कम स्टॉक वाले अलर्ट एक साथ पाएं। इस डिवाइस पर पाने के लिए फ़ोन सूचनाएं चालू करें।",
+  "stockAlertsUnsupported": "यह सर्वर अभी स्टॉक अलर्ट की सेटिंग का समर्थन नहीं करता।",
+  "stockAlertFrequency": "अलर्ट के बीच न्यूनतम समय",
+  "stockAlertInterval": "{minutes} मिनट",
+  "stockAlertsQuietHelp": "शांत समय समाप्त होने तक अलर्ट रुकते हैं। भेजने से पहले स्टॉक फिर जांचा जाता है।"
 }

@@ -150,3 +150,16 @@ All 91 app tests, TypeScript, attribution and formatting pass. This is client
 plumbing, not a mobile settings screen or notification-delivery completion. The
 server advertises this preference capability only for the opt-in query with its
 stock-alert flag enabled. Production activation and preview 3 are unchanged.
+
+Stock-alert settings preview 4 checkpoint: the dedicated module page offers
+branch-scoped opt-in, 15/30/60/180-minute intervals and quiet hours. Single-branch
+accounts skip the branch chooser. Drafts survive conflicting saves; refresh
+loads the current revision, and navigation protects unsaved edits. Labels are
+in all eighteen draft language packs. Unsupported servers expose no save action.
+
+Validation: 91 app tests and 37 browser flows pass, including English/Arabic
+settings at 320px, conflict recovery, native-digit time entry and unsupported
+server handling. TypeScript, attribution and web export pass. Preview 4 uses
+Android versionCode 4. Stock-alert recipient delivery and production activation
+remain unfinished; settings availability requires the companion server capability.
+Physical-device and qualified translation review remain open.

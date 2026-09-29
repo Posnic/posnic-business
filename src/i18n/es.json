@@ -264,5 +264,11 @@
   "stockNegative": "El stock es negativo. Revisa los registros en tu ordenador.",
   "stockObserved": "Observado: {time}",
   "stockOnHand": "Existencias",
-  "stockDelayed": "Actualización de stock retrasada"
+  "stockDelayed": "Actualización de stock retrasada",
+  "stockAlerts": "Alertas de existencias",
+  "stockAlertsHelp": "Agrupa las alertas de existencias bajas de esta sucursal. Activa las notificaciones del teléfono para recibirlas en este dispositivo.",
+  "stockAlertsUnsupported": "Este servidor aún no admite la configuración de alertas de existencias.",
+  "stockAlertFrequency": "Tiempo mínimo entre alertas",
+  "stockAlertInterval": "{minutes} minutos",
+  "stockAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las existencias se comprueban de nuevo antes del envío."
 }

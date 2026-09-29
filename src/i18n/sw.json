@@ -264,5 +264,11 @@
   "stockNegative": "Stoo iko chini ya sifuri. Kagua rekodi kwenye kompyuta yako.",
   "stockObserved": "Iliangaliwa {time}",
   "stockOnHand": "Kiasi kilichopo",
-  "stockDelayed": "Usasishaji wa stoo umechelewa"
+  "stockDelayed": "Usasishaji wa stoo umechelewa",
+  "stockAlerts": "Arifa za bidhaa",
+  "stockAlertsHelp": "Panga pamoja arifa za bidhaa zilizopungua katika tawi hili. Washa arifa za simu ili uzipokee kwenye kifaa hiki.",
+  "stockAlertsUnsupported": "Seva hii bado haitumii mipangilio ya arifa za bidhaa.",
+  "stockAlertFrequency": "Muda wa chini kati ya arifa",
+  "stockAlertInterval": "Dakika {minutes}",
+  "stockAlertsQuietHelp": "Arifa zinasubiri hadi saa za utulivu ziishe. Bidhaa hukaguliwa tena kabla ya kutuma."
 }

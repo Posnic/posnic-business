@@ -264,5 +264,11 @@
   "stockNegative": "Der Bestand ist negativ. Prüfen Sie die Bestandsdaten am Desktop.",
   "stockObserved": "Erfasst: {time}",
   "stockOnHand": "Lagerbestand",
-  "stockDelayed": "Bestandsaktualisierung verzögert"
+  "stockDelayed": "Bestandsaktualisierung verzögert",
+  "stockAlerts": "Bestandsmeldungen",
+  "stockAlertsHelp": "Fassen Sie Meldungen zu niedrigen Beständen dieser Filiale zusammen. Aktivieren Sie Telefonbenachrichtigungen, um sie auf diesem Gerät zu erhalten.",
+  "stockAlertsUnsupported": "Dieser Server unterstützt noch keine Einstellungen für Bestandsmeldungen.",
+  "stockAlertFrequency": "Mindestabstand zwischen Meldungen",
+  "stockAlertInterval": "{minutes} Minuten",
+  "stockAlertsQuietHelp": "Meldungen warten bis zum Ende der Ruhezeiten. Der Bestand wird vor dem Versand erneut geprüft."
 }
