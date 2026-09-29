@@ -2,39 +2,12 @@
 
 The dedicated Business app is separate from Mobile POS and Captain. It reads bounded summaries and leaves long reports and heavy administration to desktop.
 
-Item-detail checkpoint (29 September): connected ranking rows open a detail
-modal with billed/returned/allocated sales and sold/returned quantities kept by
-unit. Interior touch swipes use the existing edge-safe, single-touch and RTL
-direction rules; Previous/Next buttons stay available and disable at list bounds.
-Closing restores the list, while loss of the parent snapshot removes the detail.
-Exact integer-thousandth formatting avoids quantity rounding at large values.
-All 66 app tests, TypeScript, formatting, attribution and web export pass. The
-connected browser flow verifies paging buttons, fractional quantities and an
-actual Chromium touch swipe; the 320px detail layout was visually checked.
-Android/iOS Hermes exports pass at approximately 12 MB each. These exports are
-not signed builds or physical-device qualification; native gestures, accessibility
-and the wider release gates remain open.
+## Current delivery state
 
-Connected item-list checkpoint (29 September): Insights now lets accounts with
-item access open today's verified ranking for one branch. Single-branch accounts
-keep the branch picker hidden; wider scope asks for a branch. The view shares
-pull-to-refresh, clears figures on failed refresh and focus loss, and hides data
-after expiry or branch midnight. Incomplete history and a valid empty day have
-different messages. Allocation/empty/incomplete wording is present in all 18
-catalogs (248 keys), still subject to qualified linguistic review. The connected
-browser flow checks real-response rendering, replacement by incomplete history,
-offline clearing, unmounting and 320px layout; the collapsed layout was visually
-inspected. Item detail quantities and next/previous swipe navigation remain to
-be implemented, followed by native validation.
-
-Item-ranking reader checkpoint (29 September): the local `codex/business-item-insights`
-branch adds negotiated `bounded-items-v1` discovery and a single-branch prepared-item
-reader. Strict response validation checks scope, exact totals, bounded rows and
-units, ordering, duplicate IDs and incomplete-history states. Older servers are
-not sent item requests, and local ACL failures perform no network work. All 65
-app tests, TypeScript, targeted formatting and attribution pass. The connected
-ranking screen, translated explanations, gestures and browser/native validation
-remain pending; no ranking UI is enabled by this checkpoint.
+The latest installable artifact is [Android preview 7](https://github.com/Posnic/posnic-business/releases/tag/v0.1.0-preview.7).
+[Release readiness](RELEASE_READINESS.md) is the current qualification checklist;
+[implementation checkpoints](IMPLEMENTATION_STATUS.md) retain historical evidence.
+Implemented source and an installable test APK do not establish production readiness.
 
 | Phase | Deliverable                                                                                            | Gate                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -64,4 +37,29 @@ Phase 1's public repository and sample foundation are implemented. Phase 2's Clo
 
 Current implementation includes bounded prepared Today summaries, last-known in-memory read states, scheduled Inbox summaries, opt-in push infrastructure, native navigation and authenticated discount review. Approval review includes current ACL/limits, fresh browser password confirmation, explicit confirmation and uncertain-response recovery; the companion cashier transport and durable execution recovery are implemented in draft branches, with production decisions disabled. See [approval implementation](APPROVALS.md).
 
-Next work: operator resolution for uncertain cashier execution, stock data and alerts, session-close summaries, source completeness, qualified review of the 18-language packs and native release qualification. Connected item rankings/detail and independent approval-alert settings are implemented. Production deployment, signing and physical-device evidence remain gates; prepared summaries and browser fixtures do not establish full release readiness.
+## Remaining work by release gate
+
+1. Deploy compatible non-production Cloud and Community environments and supply
+   controlled accounts. Verify browser authorization, tenant handoff, live ACL,
+   branch revocation and session removal end to end. The configured Cloud discovery
+   endpoint currently returns 404; no deployment is implied by an APK release.
+2. Reconcile prepared Today, item/stock insights and session-close/fixed-time
+   summaries against controlled POS operations, including returns, concurrent
+   receiving, outages and incomplete source history. Qualify desktop cost, slow
+   networks and low-end device behavior. Heavy reports remain on desktop.
+3. Configure the owner's push project/providers and verify delivery, quiet hours,
+   category mute migration, languages and tap-to-locked-Inbox on actual devices.
+   Stock opt-in, history, retention and bounded delivery source are implemented;
+   removed-item lifecycle and general account erasure remain server work.
+4. Rehearse approval recovery on deployed tills. Scoped pre-claim and execution
+   discovery are implemented; cross-cashier escalation and resolution of consumed
+   executions with no verified receipt remain open. Never infer a failed sale from
+   a missing receipt or authorize a replacement merely because a request expired.
+5. Validate physical PIN/biometric storage, process death, app-switcher privacy,
+   in-place Android upgrades, gestures, keyboard/sheets, accessibility and RTL.
+   Obtain a current iOS native build and qualified review of all eighteen languages.
+6. Complete production signing, privacy/store information, pilot monitoring and
+   rollback qualification. Publish a production release only after these gates pass.
+
+These gates preserve the original phases and requirements above. They are not
+replaced by synthetic sample data, bundle exports or browser-only test results.

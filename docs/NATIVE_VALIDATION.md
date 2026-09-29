@@ -17,7 +17,7 @@ cd android
 ./gradlew assembleDebug --no-daemon
 ```
 
-On Windows use `gradlew.bat assembleDebug --no-daemon`. The APK is under `android/app/build/outputs/apk/debug/`. Generated native folders are ignored by Git. The current workstation's configured SDK belongs to another Windows account and is inaccessible; Android prebuild and JavaScript export work, but local native compilation needs an accessible SDK.
+On Windows use `gradlew.bat assembleDebug --no-daemon`. The APK is under `android/app/build/outputs/apk/debug/`. Generated native folders are ignored by Git. On this workstation `C:\Android\adb.exe` is available, but `adb devices -l` reports no connected devices. The earlier configured SDK was inaccessible; no successful local native compilation is recorded. Preview 7 was compiled and smoke-tested by the existing hosted workflow.
 
 ## iOS simulator
 
@@ -71,8 +71,8 @@ the device advertises version 2. Creation inherits legacy importance; renaming f
 a language change preserves per-category user overrides. The new summary-channel
 label has draft translations in all eighteen catalogs.
 
-These changes follow preview 6 and are not included in its published APK. A future
-native build must verify upgrade from a muted legacy channel, independent category
+These changes are included in preview 7, whose Android 15 sample smoke test passed.
+Device qualification must still verify upgrade from a muted legacy channel, independent category
 mute/unmute, language changes, server downgrade and token rotation on a physical
 Android device. Check that a category never becomes audible solely because the
 app updated. Check global OS permission denial and iOS behavior separately.
