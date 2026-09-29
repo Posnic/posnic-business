@@ -94,3 +94,5 @@ browser flows pass, including connected close-mode saving, narrow-screen layout
 and register Inbox rendering. TypeScript, formatting, attribution and web export
 pass. The narrow settings and Inbox screenshots were inspected. Physical-device
 close notifications and a new installable build remain unqualified.
+
+Native bundle checkpoint: Android and iOS Hermes exports pass for the close-summary UI (approximately 12 MB each). This verifies packaging, not physical-device push or production signing.
