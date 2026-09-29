@@ -55,7 +55,9 @@ notifications and optional biometric unlock retain their required permissions.
 The existing APK packaging check rejects those three permissions in `aapt`
 badging output, including any that a dependency attempts to add later.
 
-Local Android prebuild verified all three `tools:node="remove"` declarations and
-retained network/biometric declarations. This source change follows preview 5;
-the published preview 5 APK is unchanged and still contains those permissions.
-The next native build must verify the merged APK and pass install/device checks.
+Preview 6 includes these removals. Build `36557212230` verified the merged APK
+contains none of the three permissions and retains network/biometric declarations.
+Android 15 smoke run `36558301683` passed fresh installation, sample navigation
+and background/resume. Its signing certificate matches preview 5 and versionCode
+increased to 6. An in-place upgrade, connected account and physical-device
+qualification still require testing; the older preview 5 APK is unchanged.

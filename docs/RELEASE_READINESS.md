@@ -5,9 +5,9 @@ Status: test prerelease available; production release is not ready.
 ## Artifacts and verified scope
 
 - Public app: [Posnic Business](https://github.com/Posnic/posnic-business).
-- Published Android test build: [preview 5](https://github.com/Posnic/posnic-business/releases/tag/v0.1.0-preview.5), source `d699c241e98c96e0d0c1fd516db8e311f0d95b93`, versionCode 5. Development-signed, with embedded JavaScript/assets.
+- Published Android test build: [preview 6](https://github.com/Posnic/posnic-business/releases/tag/v0.1.0-preview.6), source `b2b1e9c36de84bf791539c6571525f2026653c51`, versionCode 6. Development-signed, with embedded JavaScript/assets.
 - That release passed 96 app tests, 39 browser flows, native compilation and Android 15 installation/sample/Insights/paging/resume smoke checks. This is not connected-account or physical-device qualification.
-- Later mobile commit `b697358` blocks unused storage/overlay permissions. Android prebuild verifies removal directives; the published APK does not contain this change. The next merged APK needs inspection and installation testing.
+- Preview 6 includes the storage/overlay permission removal. [Build 36557212230](https://github.com/Posnic/posnic-business/actions/runs/36557212230) verified the merged APK, signature and embedded bundle; [smoke run 36558301683](https://github.com/Posnic/posnic-business/actions/runs/36558301683) passed installation and sample navigation on Android 15. The downloaded APK checksum matched `a5f87b8433f7a57ada33b2c8dfd3425cadc08357e5885c8c9bfa69f2d6fffc6d`. Signing certificate matches preview 5; an actual in-place upgrade was not exercised.
 - Companion review: [POS #1023](https://github.com/Posnic/POS/pull/1023), [Gateway #28](https://github.com/Posnic/Gateway/pull/28), and [mobile #17](https://github.com/Posnic/posnic-business/pull/17). These remain drafts, stacked on earlier feature branches.
 - [POS CI](https://github.com/Posnic/POS/actions/runs/36554593950) passed all jobs at `9ce4ab64`. Later local stock-retention commits are not covered by that CI run. Their focused integration evidence is recorded in the POS stock-alert document.
 
@@ -24,7 +24,7 @@ Status: test prerelease available; production release is not ready.
 | Low-stock alerts                                         | Desktop observations, automatic recipient demand, assigned Cloud/Community publication, scoped Inbox and current-stock push validation; restart/race tests | Rollout, network/capacity qualification and remaining account/branch/item lifecycle retention                                            |
 | Standard mobile interactions                             | Pull refresh and visible alternatives, interior item swipes, boundary handling, native stack/Back, unsaved-edit protection and RTL tests                   | Physical edge/back/keyboard/sheet behavior, haptics, TalkBack/VoiceOver and reduced-motion review; predictive-back animation is disabled |
 | Eighteen languages                                       | Complete draft catalogs, key/placeholder/plural checks, local numeral formatting, RTL and browser layout coverage                                          | Qualified linguistic review, native system dialogs and recipient-language push checks                                                    |
-| Installable release                                      | Preview 5 APK and emulator smoke evidence                                                                                                                  | Current-source native builds, iOS compilation, production signing, privacy/store disclosures, pilot and rollback qualification           |
+| Installable release                                      | Preview 6 APK and emulator smoke evidence                                                                                                                  | iOS compilation, physical Android qualification, production signing, privacy/store disclosures, pilot and rollback qualification         |
 
 ## Connected environment check
 
