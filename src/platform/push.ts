@@ -2,7 +2,7 @@ import { AppState, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
-import { notificationIntent } from "../domain/notificationIntent";
+import { listenForInboxNotifications } from "../services/pushResponses";
 import { t, translator } from "../i18n";
 import { createPushChannelUpdater } from "../services/pushChannel";
 const channelDefinitions = [
@@ -111,27 +111,25 @@ export function listenPush(openInbox: () => void, tokenChanged: () => void) {
       shouldShowList: true,
     }),
   });
-  const handle = (response: Notifications.NotificationResponse | null) => {
-    const data = response?.notification.request.content.data;
-    if (
-      !disposed &&
-      response?.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER &&
-      notificationIntent(data) === "inbox"
-    ) {
-      openInbox();
-      void Notifications.clearLastNotificationResponseAsync();
-    }
-  };
-  const tap = Notifications.addNotificationResponseReceivedListener(handle);
+  const stopResponses = listenForInboxNotifications(
+    {
+      defaultAction: Notifications.DEFAULT_ACTION_IDENTIFIER,
+      subscribe(receive) {
+        const subscription =
+          Notifications.addNotificationResponseReceivedListener(receive);
+        return () => subscription.remove();
+      },
+      readLast: () => Notifications.getLastNotificationResponseAsync(),
+      clearLast: () => Notifications.clearLastNotificationResponseAsync(),
+    },
+    openInbox,
+  );
   const tokens = Notifications.addPushTokenListener(() => {
     if (!disposed) tokenChanged();
   });
-  void Notifications.getLastNotificationResponseAsync()
-    .then(handle)
-    .catch(() => {});
   return () => {
     disposed = true;
-    tap.remove();
+    stopResponses();
     tokens.remove();
   };
 }

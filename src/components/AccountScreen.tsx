@@ -90,9 +90,11 @@ export function AccountScreen({
     ink = dark ? "#eef5fa" : "#172b37";
   const text = [styles.text, { color: ink, textAlign: getTextAlign() }],
     title = [styles.title, { color: ink, textAlign: getTextAlign() }];
-  function lock() {
+  function lock(reason: "background" | "accessLoss" = "accessLoss") {
     nativePrompt.current = false;
-    setInboxIntent(0);
+    // Keep only the generic destination across privacy locking. The unlocked
+    // screen must still load fresh account/branch permissions before navigation.
+    if (reason !== "background") setInboxIntent(0);
     generation.current++;
     controller.current?.abort();
     vault.lock();
@@ -114,7 +116,7 @@ export function AccountScreen({
       // The privacy cover remains visible; a true background event still locks.
       if (state === "inactive" && nativePrompt.current) return;
       const current = live.current;
-      lock();
+      lock("background");
       if (!supportsRememberedSession || current.stage === "setup") {
         if (current.credential)
           void revokeSession(current.credential, {

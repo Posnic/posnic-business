@@ -82,3 +82,21 @@ needs the owner's public project identity and securely configured FCM/APNs
 credentials, plus matching server provider configuration. No UUID or signing
 identity is invented for a release. Permission denial and unavailable provider
 configuration must continue to leave authenticated Inbox access usable.
+
+## Notification tap and privacy-lock ordering
+
+Background privacy locking retains only a pending generic Inbox destination.
+Credentials, account data, PIN input and in-flight authenticated work are still
+cleared/cancelled. Unlock must fetch fresh account/branch permissions before the
+navigation layer can consume the hint. Access loss and sign-out discard it.
+The native response listener rejects non-default actions and extra URL/token or
+decision fields, ignores responses after disposal, and contains native last-
+response read/clear failures. A notification is never approval authority.
+
+Three adapter-level response tests cover cold/live responses, late responses after
+cleanup, and native API failures. The full app suite passes 102 cases. They do not
+simulate the physical OS event order: verify a tap before and after background
+locking, a cold launch, failed PIN/biometric unlock, access removal, sign-out during
+resume and app termination before unlock on Android/iOS. No business details may
+appear before authentication, and a successfully unlocked permitted account should
+open Inbox rather than silently dropping the pending navigation request.
