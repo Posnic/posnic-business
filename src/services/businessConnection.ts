@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { communityOrigin } from "../domain/server";
 import { validatePreparedOverview } from "../domain/preparedOverview";
+import { validatePreparedStock } from "../domain/preparedStock";
 import { validatePreparedItems } from "../domain/preparedItems";
 import {
   contextSchema,
@@ -44,6 +45,7 @@ const discoverySchema = z
       "unavailable",
     ]),
     itemReporting: z.literal("bounded-items-v1").optional(),
+    stockReporting: z.literal("bounded-stock-v1").optional(),
     approvalAlerts: z.literal("inbox-approval-v1").optional(),
     registerReporting: z.literal("bounded-register-session-v1").optional(),
     registerInbox: z.literal("inbox-register-v1").optional(),
@@ -159,12 +161,14 @@ export async function discoverBusinessServer(
     items?: boolean;
     approvals?: boolean;
     registerSessions?: boolean;
+    stock?: boolean;
   } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
   const query = new URLSearchParams();
   if (options.items) query.set("items", "1");
   if (options.approvals) query.set("approvals", "1");
+  if (options.stock) query.set("stock", "1");
   if (options.registerSessions) query.set("registerSessions", "1");
   const parsed = discoverySchema.safeParse(
     await readJson(
@@ -194,6 +198,24 @@ export function createReportingClient(
   if (!/^pb1_[A-Za-z0-9_-]{43}$/.test(token))
     throw new ConnectionError("signInRequired");
   return {
+    async stock(context: BusinessContext, branchId: string) {
+      if (
+        !context.capabilities.includes("stock.read") ||
+        !context.branches.some((branch) => branch.id === branchId)
+      )
+        throw new ConnectionError("accessChanged");
+      const value = await readJson(
+        origin,
+        `/stock?${new URLSearchParams({ branchId })}`,
+        options,
+        token,
+      );
+      try {
+        return validatePreparedStock(value, context, branchId);
+      } catch {
+        throw new ConnectionError("invalidResponse");
+      }
+    },
     async items(
       context: BusinessContext,
       branchId: string,

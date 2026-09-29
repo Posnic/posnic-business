@@ -94,3 +94,18 @@ Full catalog checkpoint: Sinhala completes the 18 planned language packs, each c
 Both Android and iOS Hermes exports also pass with all 18 catalogs and Thai calendar data; each is approximately 12 MB. Physical-device startup/memory measurements and signed builds are still pending.
 
 Approval-alert checkpoint: 71 app tests, all 31 browser flows, TypeScript, formatting and attribution checks pass. Android and iOS Hermes exports pass at approximately 12 MB each. The browser exercises separate alert opt-in, quiet-hour validation, unsaved-change retention, filtered empty-page pagination, expiry removal and secure review with lost-response recovery. Settings and Inbox were visually inspected at 390px. Paired POS validation passes 38 real-Mongo integration tests. These checks use controlled provider/browser responses and do not establish physical notification delivery, signed native readiness or qualified translations.
+
+## Stock client contract (29 September)
+
+The connected stock service negotiates `bounded-stock-v1` before an authenticated
+request to the fixed issuer's `/api/business/v1/stock` endpoint. It requires
+`stock.read` and a single accessible branch, without financial permission. Older
+servers receive no stock request, and missing snapshots never become sample data.
+The response validator enforces scope, unit thousandths, coverage and reason
+counts, sorted unique IDs, bounded/truncated lists and incomplete freshness.
+Expired, future, corrupt and falsely complete observations are rejected.
+
+Six stock tests cover negotiation, ACL, old-server compatibility, corrupt data,
+empty/truncated coverage and freshness. The stock screen, navigation, localized
+coverage explanations and notification settings are not implemented yet. This
+client work is not in Android preview 2.
