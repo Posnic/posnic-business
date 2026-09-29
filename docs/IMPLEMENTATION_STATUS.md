@@ -6,6 +6,20 @@ For the current release assessment, see [Release readiness](RELEASE_READINESS.md
 The checkpoints below are chronological implementation evidence; their historical
 open-item statements are not a current release checklist.
 
+## Stock refresh follow-up after preview 7
+
+Stock watch retains its same-session, same-ACL, same-branch in-memory observation
+while refreshing. Transient transport failures keep the visible observation and
+expanded rows with a connection warning; its original observation time, partial
+coverage and expiry are not renewed. A successful refresh replaces the snapshot.
+Expired or mismatched snapshots, malformed responses, unsupported/unavailable
+server results and access loss do not preserve figures. Overlapping refresh calls
+share the active request. Leaving the screen still discards the component state.
+
+English/Arabic browser regressions check in-flight preservation, a failed network
+request, malformed data, recovery and revocation. These source changes follow the
+published preview 7 APK; installed-device refresh qualification remains open.
+
 ## Present
 
 - Approval-alert opt-in and quiet hours on a dedicated branch settings page, independent of daily summaries. Compatible servers advertise the new contract. Inbox accepts scoped request identifiers, removes expired entries, preserves pagination through filtered empty pages and opens the existing authenticated review flow. Push taps still only open the unlocked Inbox. All 18 catalogs include working alert copy; linguistic and native provider qualification remain pending.

@@ -52,13 +52,18 @@ export function BusinessStock({
     lost = useRef(onAccessLost);
   lost.current = onAccessLost;
   const refresh = useCallback(async () => {
-    controller.current?.abort();
+    if (controller.current && !controller.current.signal.aborted) return;
     const request = new AbortController(),
       run = ++generation.current;
     controller.current = request;
-    setData(null);
+    setData((previous) =>
+      allowed &&
+      previous?.identity === identity &&
+      previous.expiresAt > Date.now()
+        ? previous
+        : null,
+    );
     setNotice(null);
-    setLimit(20);
     if (!allowed) {
       setBusy(false);
       return;
@@ -71,7 +76,8 @@ export function BusinessStock({
         resolveBranchScope(context, branch)[0]!,
         { fetcher: businessFetch, signal: request.signal },
       );
-      if (run === generation.current)
+      if (run === generation.current) {
+        setLimit(20);
         setData({
           value,
           identity,
@@ -81,8 +87,11 @@ export function BusinessStock({
             Date.parse(value.preparedAt) + 86400000,
           ),
         });
+      }
     } catch (error) {
       if (run !== generation.current || request.signal.aborted) return;
+      const preserve = error instanceof ConnectionError && error.transient;
+      if (!preserve) setData(null);
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -90,12 +99,18 @@ export function BusinessStock({
         lost.current();
       else
         setNotice(
-          error instanceof ConnectionError && error.problem === "unsupported"
-            ? "liveReportsPending"
-            : "summaryUnavailable",
+          preserve
+            ? "summaryConnectionLost"
+            : error instanceof ConnectionError &&
+                error.problem === "unsupported"
+              ? "liveReportsPending"
+              : "summaryUnavailable",
         );
     } finally {
-      if (run === generation.current) setBusy(false);
+      if (run === generation.current) {
+        controller.current = null;
+        setBusy(false);
+      }
     }
   }, [credential, context, branch, allowed, identity]);
   useEffect(() => {
@@ -179,6 +194,11 @@ export function BusinessStock({
         </Card>
       ) : (
         <>
+          {(busy || notice) && (
+            <Text accessibilityLiveRegion="polite" style={text}>
+              {t(busy ? "summaryLoading" : notice!)}
+            </Text>
+          )}
           <Card>
             {Date.now() - Date.parse(visible.preparedAt) > 900000 && (
               <Text style={text}>{t("stockDelayed")}</Text>

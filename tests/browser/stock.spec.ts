@@ -36,6 +36,7 @@ for (const [locale, messages] of [
       ],
     };
     let reads = 0;
+    let finishRefresh: (() => void) | undefined;
     await context.route(origin + "/api/business/v1/**", async (route) => {
       const url = new URL(route.request().url()),
         path = url.pathname;
@@ -84,9 +85,16 @@ for (const [locale, messages] of [
         expect(route.request().headers().authorization).toBe("Bearer " + token);
         expect(url.searchParams.get("branchId")).toBe(branchId);
         reads++;
-        if (reads > 1) {
+        if (reads === 2) {
+          await new Promise<void>((resolve) => {
+            finishRefresh = resolve;
+          });
+          await route.abort("failed");
+          return;
+        }
+        if (reads === 3 || reads === 5) {
           await route.fulfill({
-            status: 503,
+            status: reads === 5 ? 403 : 200,
             contentType: "application/json",
             body: "{}",
           });
@@ -188,12 +196,43 @@ for (const [locale, messages] of [
     await stock
       .getByRole("button", { name: messages.refresh, exact: true })
       .click();
+    await expect.poll(() => !!finishRefresh).toBe(true);
+    await expect(
+      stock.getByRole("heading", { name: "Rice 23", exact: true }),
+    ).toBeAttached();
+    await expect(
+      stock.getByRole("button", { name: messages.refresh, exact: true }),
+    ).toBeDisabled();
+    finishRefresh!();
+    await expect(
+      stock.getByText(messages.summaryConnectionLost, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      stock.getByRole("heading", { name: "Rice 23", exact: true }),
+    ).toBeAttached();
+    expect(reads).toBe(2);
+    await stock
+      .getByRole("button", { name: messages.refresh, exact: true })
+      .click();
     await expect(
       stock.getByText(messages.summaryUnavailable, { exact: true }),
     ).toBeVisible();
     await expect(
       stock.getByRole("heading", { name: "Rice 1", exact: true }),
     ).toHaveCount(0);
-    expect(reads).toBe(2);
+    await stock
+      .getByRole("button", { name: messages.refresh, exact: true })
+      .click();
+    await expect(
+      stock.getByRole("heading", { name: "Rice 1", exact: true }),
+    ).toBeVisible();
+    await expect(
+      stock.getByText(messages.summaryConnectionLost, { exact: true }),
+    ).toHaveCount(0);
+    await stock
+      .getByRole("button", { name: messages.refresh, exact: true })
+      .click();
+    await expect(stock).toHaveCount(0);
+    expect(reads).toBe(5);
   });
 }
