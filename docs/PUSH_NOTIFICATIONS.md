@@ -68,3 +68,11 @@ This service is not yet wired into the notification settings screen. Register
 Inbox validation/rendering, translations and mobile interaction tests remain next.
 The published Android preview is unchanged. Local verification passes all 74 app
 tests, TypeScript, attribution and targeted formatting.
+
+The register Inbox validator now checks exact versioned fields, branch/financial
+and notification scope, close timing and branch-local day, the SHA-256 source
+fingerprint, currency precision, safe integer reconciliation and explicitly
+incomplete freshness. Overnight sessions and net refunds are supported. Embedded
+entry metadata must match the summary's close. The client still does not request
+register Inbox entries until their rendering and labels are implemented. All 77
+app tests, TypeScript, attribution, targeted formatting and web export pass.

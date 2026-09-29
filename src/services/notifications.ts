@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  registerCloseSchema,
+  registerSummarySchema,
+  validateRegisterClose,
+  validateRegisterSummary,
+} from "../domain/registerSummary";
 import { type Credential } from "./sessionVault";
 import { readJson, ConnectionError, type Options } from "./businessConnection";
 import { type BusinessContext } from "../domain/contracts";
@@ -58,9 +64,16 @@ const approvalEntrySchema = dailyEntrySchema.extend({
   requestId: id,
   requestExpiresAt: z.string().datetime(),
 });
+const registerEntrySchema = dailyEntrySchema.extend({
+  kind: z.enum(["register_summary", "register_unavailable"]),
+  sessionId: id,
+  close: registerCloseSchema,
+  summary: registerSummarySchema.nullable(),
+});
 const entrySchema = z.discriminatedUnion("kind", [
   dailyEntrySchema,
   approvalEntrySchema,
+  registerEntrySchema,
 ]);
 export type InboxEntry = z.infer<typeof entrySchema>;
 const inboxSchema = z
@@ -78,7 +91,10 @@ export function validateInbox(value: unknown, context: BusinessContext) {
   for (const entry of result.entries) {
     if (!context.branches.some((branch) => branch.id === entry.branchId))
       throw new Error("Scope mismatch");
-    if ((entry.kind === "daily_summary") !== (entry.summary !== null))
+    if (
+      ["daily_summary", "register_summary"].includes(entry.kind) !==
+      (entry.summary !== null)
+    )
       throw new Error("Invalid summary state");
     if (
       entry.kind === "approval_requested" &&
@@ -86,7 +102,38 @@ export function validateInbox(value: unknown, context: BusinessContext) {
         Date.parse(entry.requestExpiresAt) <= Date.parse(entry.createdAt))
     )
       throw new Error("Invalid approval scope or expiry");
-    if (entry.summary)
+    if (
+      entry.kind === "register_summary" ||
+      entry.kind === "register_unavailable"
+    ) {
+      validateRegisterClose(
+        entry.close,
+        context,
+        entry.branchId,
+        entry.sessionId,
+      );
+      if (
+        entry.close.businessDate !== entry.businessDate ||
+        Date.parse(entry.createdAt) < Date.parse(entry.close.eligibleAt)
+      )
+        throw new Error("Invalid register entry");
+      if (entry.summary) {
+        validateRegisterSummary(
+          entry.summary,
+          context,
+          entry.branchId,
+          entry.sessionId,
+        );
+        if (
+          Object.keys(entry.close).some(
+            (key) =>
+              entry.close[key as keyof typeof entry.close] !==
+              entry.summary!.close[key as keyof typeof entry.close],
+          )
+        )
+          throw new Error("Register entry mismatch");
+      }
+    } else if (entry.summary)
       validatePreparedOverview(
         entry.summary,
         context,
