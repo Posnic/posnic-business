@@ -1,0 +1,102 @@
+name: Android test build
+on:
+  workflow_dispatch:
+    inputs:
+      test_build_run:
+        description: Existing Android test build run to install and smoke-test (empty builds an APK)
+        required: false
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: android-test-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  android:
+    if: inputs.test_build_run == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run check
+      - run: npx expo prebuild --no-install --platform android
+      # Expo's generated release variant uses the development signing key.
+      # It bundles Hermes and assets, so this test APK needs no Metro server.
+      - run: ./gradlew assembleRelease --no-daemon --max-workers=2 -PreactNativeArchitectures=arm64-v8a,x86_64
+        working-directory: android
+      - name: Verify and package test APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-release
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.7-android-test.apk
+          sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
+          "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
+          if grep -Eq "^uses-permission[^:]*: name='android\.permission\.(READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|SYSTEM_ALERT_WINDOW)'" test-release/package.txt; then
+            echo "Unexpected storage or overlay permission in packaged APK"
+            exit 1
+          fi
+          unzip -l test-release/*.apk assets/index.android.bundle | tee test-release/bundle.txt
+          unzip -p test-release/*.apk assets/index.android.bundle | wc -c | awk '{ if ($1 < 100000) exit 1 }'
+          printf '%s\n' "$GITHUB_SHA" > test-release/SOURCE_COMMIT.txt
+          cd test-release
+          sha256sum *.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: posnic-business-android-test
+          path: test-release/
+          if-no-files-found: error
+          retention-days: 30
+  smoke:
+    if: inputs.test_build_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: posnic-business-android-test
+          run-id: ${{ inputs.test_build_run }}
+          github-token: ${{ github.token }}
+          path: test-release
+      - name: Verify download and start Android emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd test-release && sha256sum -c SHA256SUMS.txt)
+          sudo chmod 666 /dev/kvm
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'emulator' 'system-images;android-35;google_apis;x86_64'
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n business-test -k 'system-images;android-35;google_apis;x86_64' -p "$ANDROID_AVD_HOME/business-test.avd" --force
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -x business-test
+          "$ANDROID_HOME/emulator/emulator" -avd business-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
+          timeout 180 adb wait-for-device
+          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb install test-release/*.apk
+      - name: Launch standalone app and sample business
+        run: python3 scripts/android-smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-smoke-evidence
+          path: |
+            smoke-evidence/
+            emulator.log
+          if-no-files-found: warn

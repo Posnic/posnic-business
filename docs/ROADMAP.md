@@ -2,6 +2,13 @@
 
 The dedicated Business app is separate from Mobile POS and Captain. It reads bounded summaries and leaves long reports and heavy administration to desktop.
 
+## Current delivery state
+
+The latest installable artifact is [Android preview 7](https://github.com/Posnic/posnic-business/releases/tag/v0.1.0-preview.7).
+[Release readiness](RELEASE_READINESS.md) is the current qualification checklist;
+[implementation checkpoints](IMPLEMENTATION_STATUS.md) retain historical evidence.
+Implemented source and an installable test APK do not establish production readiness.
+
 | Phase | Deliverable                                                                                            | Gate                                                                                                                               |
 | ----- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
 | 0     | Reporting, sync, identity, ACL and event compatibility audit; canonical metrics and contract decisions | Reconcile actual POS fixtures; resolve source completeness, reporting credentials, scope and cost blockers before live integration |
@@ -13,7 +20,7 @@ The dedicated Business app is separate from Mobile POS and Captain. It reads bou
 | 6     | Localization, accessibility, security, device lifecycle, load/battery QA, pilot and release            | Language review, native device evidence, privacy/store requirements and rollback gates                                             |
 | 7     | Evidence-led extra approval types and cross-instance aggregation                                       | Independent ACL, source correctness and bounded computation cost                                                                   |
 
-Phase 0 is in progress. Phase 1's repository and sample foundation are being prepared independently; the sample does not bypass the Phase 0 gate for real data or credentials. A public source repository is not an app-store or production release.
+Phase 1's public repository and sample foundation are implemented. Phase 2's Cloud/Community browser authorization, encrypted PIN, optional biometric unlock and session management are implemented with companion server changes; deployment and real-device qualification remain gates. Phase 0's metric reconciliation and source-completeness work continue before live reporting. A public source repository is not an app-store or production release.
 
 ## Product requirements
 
@@ -28,4 +35,31 @@ Phase 0 is in progress. Phase 1's repository and sample foundation are being pre
 - Use indexed, bounded reads of prepared summaries and small incremental updates. No historical rebuild or heavy report is triggered by opening a screen.
 - Personal preferences belong under More; organizational settings belong on their corresponding desktop module page. Features cards remain switches only.
 
-Next implementation work: complete the canonical POS fixture/metric mapping, define the Business reporting grant and freshness protocol, then implement live read APIs. No dates are promised before those dependency estimates exist.
+Current implementation includes bounded prepared Today summaries, last-known in-memory read states, scheduled Inbox summaries, opt-in push infrastructure, native navigation and authenticated discount review. Approval review includes current ACL/limits, fresh browser password confirmation, explicit confirmation and uncertain-response recovery; the companion cashier transport and durable execution recovery are implemented in draft branches, with production decisions disabled. See [approval implementation](APPROVALS.md).
+
+## Remaining work by release gate
+
+1. Deploy compatible non-production Cloud and Community environments and supply
+   controlled accounts. Verify browser authorization, tenant handoff, live ACL,
+   branch revocation and session removal end to end. The configured Cloud discovery
+   endpoint currently returns 404; no deployment is implied by an APK release.
+2. Reconcile prepared Today, item/stock insights and session-close/fixed-time
+   summaries against controlled POS operations, including returns, concurrent
+   receiving, outages and incomplete source history. Qualify desktop cost, slow
+   networks and low-end device behavior. Heavy reports remain on desktop.
+3. Configure the owner's push project/providers and verify delivery, quiet hours,
+   category mute migration, languages and tap-to-locked-Inbox on actual devices.
+   Stock opt-in, history, retention and bounded delivery source are implemented;
+   removed-item lifecycle and general account erasure remain server work.
+4. Rehearse approval recovery on deployed tills. Scoped pre-claim and execution
+   discovery are implemented; cross-cashier escalation and resolution of consumed
+   executions with no verified receipt remain open. Never infer a failed sale from
+   a missing receipt or authorize a replacement merely because a request expired.
+5. Validate physical PIN/biometric storage, process death, app-switcher privacy,
+   in-place Android upgrades, gestures, keyboard/sheets, accessibility and RTL.
+   Obtain a current iOS native build and qualified review of all eighteen languages.
+6. Complete production signing, privacy/store information, pilot monitoring and
+   rollback qualification. Publish a production release only after these gates pass.
+
+These gates preserve the original phases and requirements above. They are not
+replaced by synthetic sample data, bundle exports or browser-only test results.

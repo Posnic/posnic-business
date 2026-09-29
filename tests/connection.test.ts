@@ -85,6 +85,36 @@ test("HTTP failures and malformed responses have safe actionable codes", async (
     failure("invalidResponse"),
   );
 });
+test("only transient transport failures allow last-known reporting data", async () => {
+  for (const [status, transient] of [
+    [400, false],
+    [401, false],
+    [403, false],
+    [404, false],
+    [429, true],
+    [500, true],
+    [502, true],
+    [503, false],
+  ] as const) {
+    await assert.rejects(
+      discoverBusinessServer(origin, { fetcher: async () => json({}, status) }),
+      (error: unknown) =>
+        error instanceof ConnectionError && error.transient === transient,
+    );
+  }
+  await assert.rejects(
+    discoverBusinessServer(origin, {
+      fetcher: async () => {
+        throw new TypeError("network unavailable");
+      },
+    }),
+    (error: unknown) => error instanceof ConnectionError && error.transient,
+  );
+  await assert.rejects(
+    discoverBusinessServer(origin, { fetcher: async () => json({}) }),
+    (error: unknown) => error instanceof ConnectionError && !error.transient,
+  );
+});
 
 test("cancelled requests do not start, and hung requests time out", async () => {
   const controller = new AbortController();

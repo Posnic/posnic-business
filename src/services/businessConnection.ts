@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { communityOrigin } from "../domain/server";
+import { validatePreparedOverview } from "../domain/preparedOverview";
+import { validatePreparedStock } from "../domain/preparedStock";
+import { validatePreparedItems } from "../domain/preparedItems";
 import {
   contextSchema,
   validateOverview,
@@ -16,9 +19,13 @@ export type ConnectionProblem =
   | "signInRequired"
   | "accessChanged"
   | "busy"
+  | "conflict"
   | "invalidResponse";
 export class ConnectionError extends Error {
-  constructor(public readonly problem: ConnectionProblem) {
+  constructor(
+    public readonly problem: ConnectionProblem,
+    public readonly transient = false,
+  ) {
     super(problem);
     this.name = "ConnectionError";
   }
@@ -31,23 +38,40 @@ const discoverySchema = z
     product: z.literal("posnic-business"),
     apiVersion: z.literal(1),
     issuer: z.string(),
-    authorization: z.literal("business-pkce-v1"),
+    authorization: z.enum(["business-pkce-v1", "business-cloud-pkce-v1"]),
     audience: z.literal("posnic-business"),
-    reporting: z.literal("bounded-summary-v1"),
+    reporting: z.enum([
+      "bounded-summary-v1",
+      "bounded-summary-v2",
+      "unavailable",
+    ]),
+    itemReporting: z.literal("bounded-items-v1").optional(),
+    stockReporting: z.literal("bounded-stock-v1").optional(),
+    approvalAlerts: z.literal("inbox-approval-v1").optional(),
+    stockAlerts: z.literal("inbox-stock-v1").optional(),
+    stockAlertPreferences: z.literal("stock-alert-preferences-v1").optional(),
+    registerReporting: z.literal("bounded-register-session-v1").optional(),
+    registerInbox: z.literal("inbox-register-v1").optional(),
+    registerSchedules: z.literal("register-close-v1").optional(),
   })
   .strict();
 export type Discovery = z.infer<typeof discoverySchema>;
-type Options = {
+export type Options = {
   signal?: AbortSignal;
   fetcher?: typeof fetch;
   timeoutMs?: number;
 };
 
-async function readJson(
+export async function readJson(
   origin: string,
   path: string,
   options: Options,
   token?: string,
+  request?: {
+    method: "POST" | "DELETE";
+    body?: unknown;
+    acceptErrorStatuses?: (409 | 410 | 428)[];
+  },
 ) {
   const controller = new AbortController();
   let timedOut = false;
@@ -62,13 +86,15 @@ async function readJson(
     if (controller.signal.aborted) throw new ConnectionError("cancelled");
     const url = origin + BUSINESS_PATH + path;
     const response = await (options.fetcher ?? fetch)(url, {
-      method: "GET",
+      method: request?.method ?? "GET",
+      ...(request?.body ? { body: JSON.stringify(request.body) } : {}),
       credentials: "omit",
       redirect: "error",
       cache: "no-store",
       signal: controller.signal,
       headers: {
         Accept: "application/json",
+        ...(request?.body ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
@@ -78,8 +104,17 @@ async function readJson(
     if (response.status === 403) throw new ConnectionError("accessChanged");
     if ([404, 405, 426, 501].includes(response.status))
       throw new ConnectionError("unsupported");
-    if ([429, 503].includes(response.status)) throw new ConnectionError("busy");
-    if (!response.ok) throw new ConnectionError("unreachable");
+    if (response.status === 409 && !request?.acceptErrorStatuses?.includes(409))
+      throw new ConnectionError("conflict");
+    if ([429, 503].includes(response.status))
+      throw new ConnectionError("busy", response.status === 429);
+    if (
+      !response.ok &&
+      !request?.acceptErrorStatuses?.some(
+        (status) => status === response.status,
+      )
+    )
+      throw new ConnectionError("unreachable", response.status >= 500);
     if (
       !response.headers
         .get("content-type")
@@ -87,10 +122,28 @@ async function readJson(
         .startsWith("application/json")
     )
       throw new ConnectionError("invalidResponse");
-    const raw = await response.text();
-    if (raw.length > 256_000) throw new ConnectionError("invalidResponse");
+    const reader = response.body?.getReader();
+    if (!reader) throw new ConnectionError("invalidResponse");
+    const decoder = new TextDecoder();
+    let raw = "",
+      bytes = 0;
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        bytes += chunk.value.byteLength;
+        if (bytes > 256_000) {
+          await reader.cancel();
+          throw new ConnectionError("invalidResponse");
+        }
+        raw += decoder.decode(chunk.value, { stream: true });
+      }
+      raw += decoder.decode();
+    } finally {
+      reader.releaseLock();
+    }
     if (controller.signal.aborted)
-      throw new ConnectionError(timedOut ? "timeout" : "cancelled");
+      throw new ConnectionError(timedOut ? "timeout" : "cancelled", timedOut);
     try {
       return JSON.parse(raw) as unknown;
     } catch {
@@ -98,9 +151,9 @@ async function readJson(
     }
   } catch (error) {
     if (controller.signal.aborted)
-      throw new ConnectionError(timedOut ? "timeout" : "cancelled");
+      throw new ConnectionError(timedOut ? "timeout" : "cancelled", timedOut);
     if (error instanceof ConnectionError) throw error;
-    throw new ConnectionError("unreachable");
+    throw new ConnectionError("unreachable", true);
   } finally {
     clearTimeout(timer);
     options.signal?.removeEventListener("abort", cancel);
@@ -109,20 +162,41 @@ async function readJson(
 
 export async function discoverBusinessServer(
   address: string,
-  options: Options = {},
+  options: Options & {
+    items?: boolean;
+    approvals?: boolean;
+    registerSessions?: boolean;
+    stock?: boolean;
+    stockAlertPreferences?: boolean;
+    stockAlerts?: boolean;
+  } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
+  const query = new URLSearchParams();
+  if (options.items) query.set("items", "1");
+  if (options.approvals) query.set("approvals", "1");
+  if (options.stock) query.set("stock", "1");
+  if (options.stockAlerts) query.set("stockAlerts", "1");
+  if (options.stockAlertPreferences) query.set("stockAlertPreferences", "1");
+  if (options.registerSessions) query.set("registerSessions", "1");
   const parsed = discoverySchema.safeParse(
-    await readJson(origin, "/discovery", options),
+    await readJson(
+      origin,
+      "/discovery" + (query.size ? "?" + query.toString() : ""),
+      options,
+    ),
   );
   if (!parsed.success || parsed.data.issuer !== origin)
+    throw new ConnectionError("unsupported");
+  if (
+    parsed.data.authorization === "business-cloud-pkce-v1" &&
+    origin !== CLOUD_ORIGIN
+  )
     throw new ConnectionError("unsupported");
   return parsed.data;
 }
 
-/** Transport foundation, not wired to live UI until the dedicated grant ships.
- * Native transport must qualify redirect rejection before receiving a token.
- */
+/** Every request retains the dedicated Business audience and exact origin. */
 export function createReportingClient(
   address: string,
   token: string,
@@ -133,6 +207,49 @@ export function createReportingClient(
   if (!/^pb1_[A-Za-z0-9_-]{43}$/.test(token))
     throw new ConnectionError("signInRequired");
   return {
+    async stock(context: BusinessContext, branchId: string) {
+      if (
+        !context.capabilities.includes("stock.read") ||
+        !context.branches.some((branch) => branch.id === branchId)
+      )
+        throw new ConnectionError("accessChanged");
+      const value = await readJson(
+        origin,
+        `/stock?${new URLSearchParams({ branchId })}`,
+        options,
+        token,
+      );
+      try {
+        return validatePreparedStock(value, context, branchId);
+      } catch {
+        throw new ConnectionError("invalidResponse");
+      }
+    },
+    async items(
+      context: BusinessContext,
+      branchId: string,
+      businessDate: string,
+    ) {
+      if (
+        !context.capabilities.includes("overview.read") ||
+        !context.capabilities.includes("items.read") ||
+        !context.branches.some((branch) => branch.id === branchId)
+      )
+        throw new ConnectionError("accessChanged");
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(businessDate) ||
+        !Number.isFinite(Date.parse(businessDate)) ||
+        new Date(businessDate).toISOString().slice(0, 10) !== businessDate
+      )
+        throw new ConnectionError("invalidResponse");
+      const query = new URLSearchParams({ businessDate, branchId });
+      const value = await readJson(origin, `/items?${query}`, options, token);
+      try {
+        return validatePreparedItems(value, context, branchId, businessDate);
+      } catch {
+        throw new ConnectionError("invalidResponse");
+      }
+    },
     async context(): Promise<BusinessContext> {
       const parsed = contextSchema.safeParse(
         await readJson(origin, "/context", options, token),
@@ -144,6 +261,7 @@ export function createReportingClient(
       context: BusinessContext,
       branchIds: string[],
       businessDate: string,
+      version: 1 | 2 = 1,
     ) {
       if (
         !context.capabilities.includes("overview.read") ||
@@ -168,7 +286,10 @@ export function createReportingClient(
         token,
       );
       try {
-        const result = validateOverview(value, context, branchIds);
+        const result =
+          version === 2
+            ? validatePreparedOverview(value, context, branchIds, businessDate)
+            : validateOverview(value, context, branchIds);
         if (result.businessDate !== businessDate)
           throw new Error("Date mismatch");
         return result;
