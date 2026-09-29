@@ -45,6 +45,9 @@ const discoverySchema = z
     ]),
     itemReporting: z.literal("bounded-items-v1").optional(),
     approvalAlerts: z.literal("inbox-approval-v1").optional(),
+    registerReporting: z.literal("bounded-register-session-v1").optional(),
+    registerInbox: z.literal("inbox-register-v1").optional(),
+    registerSchedules: z.literal("register-close-v1").optional(),
   })
   .strict();
 export type Discovery = z.infer<typeof discoverySchema>;
@@ -152,12 +155,17 @@ export async function readJson(
 
 export async function discoverBusinessServer(
   address: string,
-  options: Options & { items?: boolean; approvals?: boolean } = {},
+  options: Options & {
+    items?: boolean;
+    approvals?: boolean;
+    registerSessions?: boolean;
+  } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
   const query = new URLSearchParams();
   if (options.items) query.set("items", "1");
   if (options.approvals) query.set("approvals", "1");
+  if (options.registerSessions) query.set("registerSessions", "1");
   const parsed = discoverySchema.safeParse(
     await readJson(
       origin,

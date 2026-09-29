@@ -53,3 +53,18 @@ References: [Expo setup](https://docs.expo.dev/push-notifications/push-notificat
 Approval alerts have a separate account/branch opt-in and quiet-hours preference. The server materializes only new, pending, unexpired requests the recipient can review, excluding self-requests and discounts above the current limit. It repeats authorization, preference, session and expiry checks before every send/retry. Requests that would expire during quiet hours are not sent afterward. Daily-summary failures do not block the approval stage.
 
 The phone negotiates support before reading settings. The Inbox request opts into `approval_requested` events, whose strict payload adds only `requestId` and `requestExpiresAt` to the generic entry fields. Opening Review request uses the existing live decision reader and password-confirmation flow. Provider payloads remain generic and contain no decision action. Actual APNs/FCM and physical-device validation remain pending.
+
+## Register-close schedule client foundation
+
+The schedule service negotiates `registerSessions=1` and requires the reporting,
+Inbox and schedule capability versions before enabling the version-2 contract.
+An older Community server retains the exact legacy daily GET/POST shape. Close
+mode cannot be saved through that fallback. Responses are checked against current
+branch permissions and timezone; saves bind the observed revision and require a
+matching acknowledgement of the intended settings. Unknown versions, malformed
+quiet hours and changed scope fail without claiming a save.
+
+This service is not yet wired into the notification settings screen. Register
+Inbox validation/rendering, translations and mobile interaction tests remain next.
+The published Android preview is unchanged. Local verification passes all 74 app
+tests, TypeScript, attribution and targeted formatting.
