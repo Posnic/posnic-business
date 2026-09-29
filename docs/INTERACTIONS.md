@@ -1,6 +1,6 @@
 # Mobile interaction contract
 
-- Native scrolling, momentum and top-of-list pull-to-refresh; visible Refresh as an accessible alternative. Retain data on failure, distinguish API checks from source freshness and coalesce duplicate requests.
+- Native scrolling, momentum and top-of-list pull-to-refresh; visible Refresh as an accessible alternative. Follow each module's verified freshness policy, distinguish API checks from source freshness and coalesce duplicate requests. Authorization, integrity and authoritative-unavailability failures clear affected data; retained last-known values require an explicit bounded policy and label.
 - Tap an item to open detail. Interior left/right swipes navigate the same permitted ordered list, with Previous/Next and no wrapping. Preserve filters and parent position. System edge gestures, multi-touch and vertical scrolling are not captured.
 - Real accounts use a native stack for module pages and persistent Today/Inbox/More tabs. iPhone interactive Back and ordinary Android Back are delegated to that stack, with device testing still required. Android predictive-back animation is disabled as required by the current navigation library; do not claim it supported. The sample shell retains its own ordinary Android Back handling.
 - Active bottom-tab reselection returns to root, then scrolls to top. Retain independent tab state. No horizontal cross-tab gesture.

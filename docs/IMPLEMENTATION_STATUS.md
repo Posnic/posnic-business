@@ -1,6 +1,10 @@
 # Implementation status
 
-Version 0.1.0 development foundation, 28 September 2026.
+Version 0.1.0 development foundation, started 28 September 2026.
+
+For the current release assessment, see [Release readiness](RELEASE_READINESS.md).
+The checkpoints below are chronological implementation evidence; their historical
+open-item statements are not a current release checklist.
 
 ## Present
 
