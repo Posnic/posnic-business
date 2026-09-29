@@ -4,6 +4,10 @@ Run checks locally and batch changes before pushing. Do not add paid/hosted buil
 
 ## Android
 
+The manually dispatched **Android test build** workflow builds a standalone APK with bundled JavaScript and assets for ARM64 phones and x86-64 emulators. It uses the generated development signing key and is for controlled testing, not store submission. Download `posnic-business-android-test` from the selected successful run. Its checksum, signing certificate, package metadata and exact source commit accompany the APK. Supplying that run's ID as `test_build_run` runs an install/launch/sample/resume smoke check on an Android 15 emulator without a development server.
+
+For a published preview APK, open the download on an Android device and allow installation from the downloading app when prompted. Use **Explore sample business** for an immediate walkthrough. Connected accounts require the companion server changes; this build does not configure push-provider credentials. A previously installed APK signed with a different key cannot be updated in place; removing it also removes its local session data. Android 32-bit-only devices are not included in this test build.
+
 Install Node 22+, Java 21 and an Android SDK accessible to your account. Set `ANDROID_HOME` to that SDK. Then:
 
 ```sh

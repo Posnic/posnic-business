@@ -28,8 +28,8 @@ Choose **Explore sample business**. Under **More**, switch the sample access pro
 - A branch chooser only when more than one branch is accessible; automatic single-branch scope and no data for zero access.
 - Typed/versioned overview contract and validation for tenant/scope mismatch, unsafe money values, mixed currencies and invalid freshness claims.
 - Integer minor-unit formatting and a bounded synthetic read adapter, without heavy queries or customer data.
-- Native pull-to-refresh control, explicit Refresh, accessible record navigation, interior swipe recognition and Android back-button handling. Full native navigation-stack integration is still pending.
-- Centralized English messages and an 18-language target registry. The other Business translations are planned, not yet implemented.
+- Native navigation stacks, pull-to-refresh, explicit Refresh, accessible record navigation, interior swipes and Android back-button handling.
+- 18 language packs, RTL layout and offline localized number/date formatting. Qualified language and physical-device review remain outstanding.
 - Credential-free Cloud/Community compatibility checks with cancellation and safe error states; a tested, separate reporting transport foundation. See the [client connection draft](docs/CONNECTION_PROTOCOL.md) for server and native requirements before live sign-in.
 
 Read [implementation status](docs/IMPLEMENTATION_STATUS.md), [roadmap](docs/ROADMAP.md), [initial compatibility audit](docs/FOUNDATION_AUDIT.md), [language scope](docs/LANGUAGES.md), and [interaction rules](docs/INTERACTIONS.md).

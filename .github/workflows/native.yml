@@ -1,13 +1,20 @@
 name: Android test build
 on:
   workflow_dispatch:
+    inputs:
+      test_build_run:
+        description: Existing Android test build run to install and smoke-test (empty builds an APK)
+        required: false
+        type: string
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: android-test-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   android:
+    if: inputs.test_build_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -47,3 +54,38 @@ jobs:
           path: test-release/
           if-no-files-found: error
           retention-days: 30
+  smoke:
+    if: inputs.test_build_run != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: posnic-business-android-test
+          run-id: ${{ inputs.test_build_run }}
+          github-token: ${{ github.token }}
+          path: test-release
+      - name: Verify download and start Android emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd test-release && sha256sum -c SHA256SUMS.txt)
+          sudo chmod 666 /dev/kvm
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'emulator' 'system-images;android-35;google_apis;x86_64'
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n business-test -k 'system-images;android-35;google_apis;x86_64' --force
+          "$ANDROID_HOME/emulator/emulator" -avd business-test -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
+          timeout 180 adb wait-for-device
+          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb install test-release/*.apk
+      - name: Launch standalone app and sample business
+        run: python3 scripts/android-smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-smoke-evidence
+          path: |
+            smoke-evidence/
+            emulator.log
+          if-no-files-found: warn

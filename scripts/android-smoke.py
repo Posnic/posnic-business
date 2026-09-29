@@ -1,0 +1,47 @@
+"""Smoke-test the downloaded standalone APK; no Metro or backend is started."""
+
+from pathlib import Path
+import re
+import subprocess
+import time
+import xml.etree.ElementTree as ET
+
+evidence = Path('smoke-evidence')
+evidence.mkdir(exist_ok=True)
+
+
+def adb(*args):
+    return subprocess.check_output(['adb', *args], timeout=30)
+
+
+def screen(name, expected):
+    for _ in range(30):
+        adb('shell', 'uiautomator', 'dump', '/sdcard/business-ui.xml')
+        xml = adb('shell', 'cat', '/sdcard/business-ui.xml')
+        (evidence / f'{name}.xml').write_bytes(xml)
+        root = ET.fromstring(xml)
+        for node in root.iter('node'):
+            label = node.get('text', '') + ' ' + node.get('content-desc', '')
+            if expected.lower() in label.lower():
+                (evidence / f'{name}.png').write_bytes(adb('exec-out', 'screencap', '-p'))
+                return node
+        time.sleep(1)
+    raise RuntimeError(f'{expected!r} did not appear on {name}')
+
+
+try:
+    adb('logcat', '-c')
+    adb('shell', 'am', 'start', '-W', '-n', 'com.posnic.business/.MainActivity')
+    sample = screen('welcome', 'Explore sample business')
+    coordinates = [int(n) for n in re.findall(r'\d+', sample.get('bounds', ''))]
+    if len(coordinates) != 4:
+        raise RuntimeError('Sample button has no valid screen bounds')
+    x1, y1, x2, y2 = coordinates
+    adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+    screen('sample', 'Today')
+    adb('shell', 'input', 'keyevent', '3')
+    adb('shell', 'am', 'start', '-W', '-n', 'com.posnic.business/.MainActivity')
+    screen('resumed', 'Today')
+    print('Standalone install, welcome, sample dashboard and resume passed.')
+finally:
+    (evidence / 'logcat.txt').write_bytes(adb('logcat', '-d'))
