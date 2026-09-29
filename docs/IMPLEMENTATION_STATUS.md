@@ -202,3 +202,12 @@ and physical-device validation remain release gates.
 
 Android and iOS Hermes bundle exports passed for the stock Inbox source (about
 12 MB each). Bundle export is not installed-device or production qualification.
+
+Android preview 5 packaging checkpoint: versionCode 5 includes the scoped stock
+Inbox source above and retains all preview 4 settings. Local release checks pass
+96 app tests, 39 browser flows, TypeScript, attribution, formatting and web export.
+The existing manual Android build and emulator smoke workflow will verify the
+installable artifact before publication. Connected stock Inbox requires the
+companion server capability and enabled feature flag; releasing this APK does
+not deploy or enable backend services. Production and physical-device gates
+remain open.

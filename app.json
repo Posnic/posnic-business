@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "com.posnic.business",
-      "versionCode": 4
+      "versionCode": 5
     },
     "web": {
       "bundler": "metro",
