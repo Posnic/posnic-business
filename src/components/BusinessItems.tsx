@@ -66,14 +66,22 @@ export function BusinessItems({
     context.capabilities.includes("items.read") &&
     compatible;
   const refresh = useCallback(async () => {
-    controller.current?.abort();
+    if (controller.current && !controller.current.signal.aborted) return;
     const request = new AbortController(),
       run = ++generation.current;
     controller.current = request;
-    setData(null);
-    setSelectedItem(null);
+    setData((previous) =>
+      allowed &&
+      previous?.identity === identity &&
+      previous.expiresAt > Date.now() &&
+      first &&
+      previous.value.businessDate === branchDay(first.timezone)
+        ? previous
+        : null,
+    );
     setNotice(null);
     if (!allowed) {
+      controller.current = null;
       setBusy(false);
       return;
     }
@@ -86,7 +94,8 @@ export function BusinessItems({
         branchDay(first!.timezone),
         { fetcher: businessFetch, signal: request.signal },
       );
-      if (run === generation.current)
+      if (run === generation.current) {
+        setSelectedItem(null);
         setData({
           value,
           identity,
@@ -95,8 +104,14 @@ export function BusinessItems({
             Date.parse(credential.expiresAt),
           ),
         });
+      }
     } catch (error) {
       if (run !== generation.current || request.signal.aborted) return;
+      const preserve = error instanceof ConnectionError && error.transient;
+      if (!preserve) {
+        setData(null);
+        setSelectedItem(null);
+      }
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -104,12 +119,18 @@ export function BusinessItems({
         lost.current();
       else
         setNotice(
-          error instanceof ConnectionError && error.problem === "unsupported"
-            ? "liveReportsPending"
-            : "summaryUnavailable",
+          preserve
+            ? "summaryConnectionLost"
+            : error instanceof ConnectionError &&
+                error.problem === "unsupported"
+              ? "liveReportsPending"
+              : "summaryUnavailable",
         );
     } finally {
-      if (run === generation.current) setBusy(false);
+      if (run === generation.current) {
+        controller.current = null;
+        setBusy(false);
+      }
     }
   }, [credential, context, branch, allowed, identity]);
   useEffect(() => {
@@ -152,6 +173,7 @@ export function BusinessItems({
     lineHeight: 23,
   };
   const visible =
+    allowed &&
     data &&
     data.identity === identity &&
     Date.now() < data.expiresAt &&
@@ -185,6 +207,11 @@ export function BusinessItems({
             void refresh();
           }}
         />
+      )}
+      {visible && (busy || notice) && (
+        <Text accessibilityLiveRegion="polite" style={text}>
+          {t(busy ? "summaryLoading" : notice!)}
+        </Text>
       )}
       {!compatible ? (
         <Card>

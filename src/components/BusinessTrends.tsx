@@ -62,13 +62,22 @@ export function BusinessTrends({
   lost.current = onAccessLost;
   const allowed = context.capabilities.includes("overview.read") && compatible;
   const refresh = useCallback(async () => {
-    controller.current?.abort();
+    if (controller.current && !controller.current.signal.aborted) return;
     const request = new AbortController(),
       run = ++generation.current;
     controller.current = request;
-    setData(null);
+    setData((previous) =>
+      allowed &&
+      previous?.identity === identity &&
+      previous.expiresAt > Date.now() &&
+      first &&
+      previous.value.anchorDay === branchDay(first.timezone)
+        ? previous
+        : null,
+    );
     setNotice(null);
     if (!allowed) {
+      controller.current = null;
       setBusy(false);
       return;
     }
@@ -91,6 +100,10 @@ export function BusinessTrends({
         });
     } catch (error) {
       if (run !== generation.current || request.signal.aborted) return;
+      const preserve = error instanceof ConnectionError && error.transient;
+      if (!preserve) {
+        setData(null);
+      }
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -98,12 +111,18 @@ export function BusinessTrends({
         lost.current();
       else
         setNotice(
-          error instanceof ConnectionError && error.problem === "unsupported"
-            ? "liveReportsPending"
-            : "summaryUnavailable",
+          preserve
+            ? "summaryConnectionLost"
+            : error instanceof ConnectionError &&
+                error.problem === "unsupported"
+              ? "liveReportsPending"
+              : "summaryUnavailable",
         );
     } finally {
-      if (run === generation.current) setBusy(false);
+      if (run === generation.current) {
+        controller.current = null;
+        setBusy(false);
+      }
     }
   }, [credential, context, branch, allowed, identity]);
   useEffect(() => {
@@ -146,6 +165,7 @@ export function BusinessTrends({
     lineHeight: 23,
   };
   const visible =
+    allowed &&
     data &&
     data.identity === identity &&
     Date.now() < data.expiresAt &&
@@ -170,6 +190,11 @@ export function BusinessTrends({
             void refresh();
           }}
         />
+      )}
+      {visible && (busy || notice) && (
+        <Text accessibilityLiveRegion="polite" style={text}>
+          {t(busy ? "summaryLoading" : notice!)}
+        </Text>
       )}
       {!compatible ? (
         <Card>

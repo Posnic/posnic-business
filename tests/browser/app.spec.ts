@@ -14,6 +14,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
     removedDevice = false;
   let summaryUnavailable = false;
   let summaryOffline = false;
+  let summaryCorrupt = false;
   let publisherChanged = false;
   let inboxRead = false;
   let notificationRevision = 0;
@@ -96,6 +97,10 @@ test("approved Business connection shows only real scope and revokes on sign-out
       }
       if (summaryOffline) {
         await route.abort("internetdisconnected");
+        return;
+      }
+      if (summaryCorrupt) {
+        await route.fulfill({ contentType: "application/json", body: "{}" });
         return;
       }
       expect(route.request().headers().authorization).toBe("Bearer " + token);
@@ -392,8 +397,14 @@ test("approved Business connection shows only real scope and revokes on sign-out
   trendMode = false;
   summaryOffline = true;
   await trends.getByRole("button", { name: "Refresh", exact: true }).click();
-  await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(0);
+  await expect(trends.getByText(/Could not refresh/)).toBeVisible();
+  await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(6);
   summaryOffline = false;
+  summaryCorrupt = true;
+  await trends.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(trends.getByText(/Could not verify this summary/)).toBeVisible();
+  await expect(trends.getByText("₹75.00", { exact: true })).toHaveCount(0);
+  summaryCorrupt = false;
   await page
     .getByRole("button", { name: "Best-selling items", exact: true })
     .click();
@@ -473,8 +484,16 @@ test("approved Business connection shows only real scope and revokes on sign-out
   await expect(items.getByText("Verified tea", { exact: true })).toBeVisible();
   summaryOffline = true;
   await items.getByRole("button", { name: "Refresh", exact: true }).click();
-  await expect(items.getByText("Verified tea", { exact: true })).toHaveCount(0);
+  await expect(items.getByText(/Could not refresh/)).toBeVisible();
+  await expect(items.getByText("Verified tea", { exact: true })).toBeVisible();
   summaryOffline = false;
+  summaryCorrupt = true;
+  await items.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(items.getByText(/Could not verify this summary/)).toBeVisible();
+  await expect(items.getByText("Verified tea", { exact: true })).toHaveCount(0);
+  summaryCorrupt = false;
+  await items.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(items.getByText("Verified tea", { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("tab", { name: "Today", exact: true }).click();
   await expect(trends).toHaveCount(0);

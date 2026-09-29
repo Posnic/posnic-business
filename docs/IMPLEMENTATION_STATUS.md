@@ -6,7 +6,7 @@ For the current release assessment, see [Release readiness](RELEASE_READINESS.md
 The checkpoints below are chronological implementation evidence; their historical
 open-item statements are not a current release checklist.
 
-## Stock refresh follow-up after preview 7
+## Reporting refresh follow-up after preview 7
 
 Stock watch retains its same-session, same-ACL, same-branch in-memory observation
 while refreshing. Transient transport failures keep the visible observation and
@@ -15,6 +15,15 @@ coverage and expiry are not renewed. A successful refresh replaces the snapshot.
 Expired or mismatched snapshots, malformed responses, unsupported/unavailable
 server results and access loss do not preserve figures. Overlapping refresh calls
 share the active request. Leaving the screen still discards the component state.
+
+Item rankings and seven-day insights use the same transport-failure behavior.
+They retain only the same authorized scope and branch-local reporting day, leave
+original expiry intact, and clear invalid responses. A successful item refresh
+closes the old detail selection before replacing its ordered result set, so an
+index cannot silently refer to a different item. Transient failures preserve the
+existing seven-day gaps rather than claiming zero or newly checked source data.
+The connected browser flow checks preserved values, malformed-response clearing,
+recovery, incomplete item history and removal on navigation/sign-out.
 
 English/Arabic browser regressions check in-flight preservation, a failed network
 request, malformed data, recovery and revocation. These source changes follow the
