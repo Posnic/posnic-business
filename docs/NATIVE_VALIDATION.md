@@ -45,3 +45,17 @@ The simulator bundle is under `ios/build/Build/Products/Debug-iphonesimulator/`.
 Prior build evidence: GitHub run 36376341281 compiled the earlier authorization commit successfully for Android debug and iOS simulator. It predates subsequent Cloud/biometric work and is not final release evidence.
 
 Native navigation/privacy qualification: check app-switcher snapshots while a branch modal, schedule discard dialog, keyboard and biometric prompt are visible. iOS adds an opaque native cover directly to the application window on resign-active/background, above native modal content, in addition to account background locking. It removes the cover on becoming active. Native modal coverage and rapid app switching must still be verified on device. Android 13+ disables Recents screenshots at the Activity level while preserving ordinary user screenshots. Earlier Android versions rely on the existing privacy cover and lock and require separate snapshot testing. These protections are implemented, not device-qualified.
+
+## Android permission boundary
+
+The app blocks `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE` and
+`SYSTEM_ALERT_WINDOW` through Expo's Android manifest merger configuration.
+The Business app has no shared-storage browsing or overlay feature. Network,
+notifications and optional biometric unlock retain their required permissions.
+The existing APK packaging check rejects those three permissions in `aapt`
+badging output, including any that a dependency attempts to add later.
+
+Local Android prebuild verified all three `tools:node="remove"` declarations and
+retained network/biometric declarations. This source change follows preview 5;
+the published preview 5 APK is unchanged and still contains those permissions.
+The next native build must verify the merged APK and pass install/device checks.

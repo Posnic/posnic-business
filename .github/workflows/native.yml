@@ -43,6 +43,10 @@ jobs:
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
+          if grep -Eq "^uses-permission[^:]*: name='android\.permission\.(READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|SYSTEM_ALERT_WINDOW)'" test-release/package.txt; then
+            echo "Unexpected storage or overlay permission in packaged APK"
+            exit 1
+          fi
           unzip -l test-release/*.apk assets/index.android.bundle | tee test-release/bundle.txt
           unzip -p test-release/*.apk assets/index.android.bundle | wc -c | awk '{ if ($1 < 100000) exit 1 }'
           printf '%s\n' "$GITHUB_SHA" > test-release/SOURCE_COMMIT.txt
