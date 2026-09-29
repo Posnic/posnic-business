@@ -1,4 +1,10 @@
 /** Bundle locale data when the host lacks any release language. No network fetch. */
+// Hermes can omit entire Intl APIs, not just individual language data.
+// Load locale-matching prerequisites before any dependent formatter polyfill.
+if (typeof Intl.getCanonicalLocales !== "function")
+  require("@formatjs/intl-getcanonicallocales/polyfill-force.js");
+if (typeof Intl.Locale !== "function")
+  require("@formatjs/intl-locale/polyfill-force.js");
 const NativeDateTimeFormat = Intl.DateTimeFormat;
 export const deviceFormatting = new NativeDateTimeFormat().resolvedOptions();
 /** Re-read the OS timezone after travel or a settings change while backgrounded. */
@@ -34,6 +40,7 @@ const locales = [
   "it",
 ];
 if (
+  typeof Intl.PluralRules !== "function" ||
   locales.some(
     (locale) => Intl.PluralRules.supportedLocalesOf(locale).length === 0,
   )
@@ -60,6 +67,7 @@ if (
   require("@formatjs/intl-pluralrules/locale-data/it.js");
 }
 if (
+  typeof Intl.NumberFormat !== "function" ||
   locales.some(
     (locale) => Intl.NumberFormat.supportedLocalesOf(locale).length === 0,
   )

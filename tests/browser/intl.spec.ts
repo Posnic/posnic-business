@@ -5,6 +5,38 @@ import fr from "../../src/i18n/fr.json";
 
 test.use({ locale: "fr-CA", timezoneId: "Asia/Kathmandu" });
 
+test("startup restores missing Hermes Intl APIs before rendering", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    for (const key of [
+      "PluralRules",
+      "NumberFormat",
+      "Locale",
+      "getCanonicalLocales",
+    ])
+      Object.defineProperty(Intl, key, {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+  });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: fr.welcome })).toBeVisible();
+  await page.getByRole("button", { name: fr.sample, exact: true }).click();
+  await expect(
+    page.getByRole("tab", { name: fr.today, exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => ({
+      singular: new Intl.PluralRules("en").select(1),
+      plural: new Intl.PluralRules("en").select(2),
+      number: new Intl.NumberFormat("ne", { useGrouping: false }).format(123),
+      locale: new Intl.Locale("ta-IN").language,
+    })),
+  ).toEqual({ singular: "one", plural: "other", number: "१२३", locale: "ta" });
+});
+
 test("missing locale data is bundled without changing device language, timezone or branch dates", async ({
   page,
 }) => {

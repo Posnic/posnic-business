@@ -16,6 +16,8 @@ def adb(*args):
 
 def screen(name, expected):
     for _ in range(30):
+        if not adb('shell', 'pidof', 'com.posnic.business').strip():
+            raise RuntimeError('App exited before the expected screen appeared')
         adb('shell', 'uiautomator', 'dump', '/sdcard/business-ui.xml')
         xml = adb('shell', 'cat', '/sdcard/business-ui.xml')
         (evidence / f'{name}.xml').write_bytes(xml)
@@ -26,6 +28,7 @@ def screen(name, expected):
                 (evidence / f'{name}.png').write_bytes(adb('exec-out', 'screencap', '-p'))
                 return node
         time.sleep(1)
+    (evidence / f'{name}-failed.png').write_bytes(adb('exec-out', 'screencap', '-p'))
     raise RuntimeError(f'{expected!r} did not appear on {name}')
 
 
