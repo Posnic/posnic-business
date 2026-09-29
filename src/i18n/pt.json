@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Guardar configurações de notificações",
   "closeNotificationSettings": "Fechar configurações de notificações",
   "inboxUnavailable": "Não foi possível verificar as suas mensagens. Verifique a ligação e tente novamente.",
-  "inboxHistoryHelp": "Resumos guardados e pedidos de aprovação ativos. Os valores refletem os dados disponíveis quando cada resumo foi guardado.",
+  "inboxHistoryHelp": "Atualizações guardadas e pedidos de aprovação ativos. Os detalhes refletem os dados disponíveis quando cada atualização foi guardada.",
   "inboxEmpty": "Sem atualizações para mostrar.",
   "unread": "Por ler",
   "digestPartial": "As vendas após devoluções incluem impostos e excluem gorjetas. Este resumo guardado pode estar incompleto; não é um fecho definitivo.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Este servidor ainda não suporta as definições de alertas de stock.",
   "stockAlertFrequency": "Tempo mínimo entre alertas",
   "stockAlertInterval": "{minutes} minutos",
-  "stockAlertsQuietHelp": "Os alertas aguardam o fim do período de silêncio. O stock é verificado novamente antes do envio."
+  "stockAlertsQuietHelp": "Os alertas aguardam o fim do período de silêncio. O stock é verificado novamente antes do envio.",
+  "stockNewLowCount": "Novos artigos com stock baixo: {count}"
 }

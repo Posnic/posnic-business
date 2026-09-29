@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Save notification settings",
   "closeNotificationSettings": "Close notification settings",
   "inboxUnavailable": "Could not confirm your Inbox. Check your connection and try again.",
-  "inboxHistoryHelp": "Saved summaries and active approval requests. Amounts reflect data available when each summary was saved.",
+  "inboxHistoryHelp": "Saved updates and active approval requests. Details reflect data available when each update was saved.",
   "inboxEmpty": "No updates to show.",
   "unread": "Unread",
   "digestPartial": "Sales after returns include tax and exclude tips. This saved summary may be incomplete; it is not a final settlement.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "This server does not yet support stock-alert settings.",
   "stockAlertFrequency": "Minimum time between alerts",
   "stockAlertInterval": "{minutes} minutes",
-  "stockAlertsQuietHelp": "Alerts wait until quiet hours end. Stock is checked again before delivery."
+  "stockAlertsQuietHelp": "Alerts wait until quiet hours end. Stock is checked again before delivery.",
+  "stockNewLowCount": "{count} newly low-stock items"
 }

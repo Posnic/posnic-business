@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Guardar configuración de notificaciones",
   "closeNotificationSettings": "Cerrar configuración de notificaciones",
   "inboxUnavailable": "No se pudo verificar tu bandeja. Comprueba tu conexión e inténtalo de nuevo.",
-  "inboxHistoryHelp": "Resúmenes guardados y solicitudes de aprobación activas. Los importes reflejan los datos disponibles al guardar cada resumen.",
+  "inboxHistoryHelp": "Actualizaciones guardadas y solicitudes de aprobación activas. Los detalles reflejan los datos disponibles al guardar cada actualización.",
   "inboxEmpty": "No hay actualizaciones que mostrar.",
   "unread": "Sin leer",
   "digestPartial": "Las ventas tras devoluciones incluyen impuestos y excluyen propinas. Este resumen guardado podría estar incompleto; no es un cierre definitivo.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Este servidor aún no admite la configuración de alertas de existencias.",
   "stockAlertFrequency": "Tiempo mínimo entre alertas",
   "stockAlertInterval": "{minutes} minutos",
-  "stockAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las existencias se comprueban de nuevo antes del envío."
+  "stockAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las existencias se comprueban de nuevo antes del envío.",
+  "stockNewLowCount": "Artículos nuevos con existencias bajas: {count}"
 }

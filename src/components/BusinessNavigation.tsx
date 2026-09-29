@@ -1,3 +1,4 @@
+import { canReadInbox } from "../services/notifications";
 import { useLocale } from "../i18n/useLocale";
 import React, {
   createContext,
@@ -643,14 +644,13 @@ function Home() {
             options={{ title: t("insights") }}
           />
         )}
-      {model.context.capabilities.includes("overview.read") &&
-        model.context.branches.length > 0 && (
-          <Tab.Screen
-            name="Inbox"
-            component={Inbox}
-            options={{ title: t("inbox") }}
-          />
-        )}
+      {canReadInbox(model.context) && (
+        <Tab.Screen
+          name="Inbox"
+          component={Inbox}
+          options={{ title: t("inbox") }}
+        />
+      )}
       {model.context.capabilities.includes("stock.read") &&
         model.context.branches.length > 0 && (
           <Tab.Screen
@@ -797,11 +797,7 @@ export function BusinessNavigation({
     dark = useColorScheme() === "dark",
     colors = palette(dark);
   function openPendingInbox() {
-    if (
-      inboxIntent &&
-      navigation.isReady() &&
-      context.capabilities.includes("overview.read")
-    ) {
+    if (inboxIntent && navigation.isReady() && canReadInbox(context)) {
       if (context.branches.length > 0)
         navigation.navigate("Home", { screen: "Inbox" });
       onInboxConsumed();

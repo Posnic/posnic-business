@@ -1,3 +1,4 @@
+import { StockInboxDetails } from "./StockInboxDetails";
 import { useLocale } from "../i18n/useLocale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text, View, useColorScheme } from "react-native";
@@ -144,6 +145,9 @@ export function BusinessInbox({
         );
     } catch (error) {
       if (request.signal.aborted) return;
+      // A removed event or changed opt-in must not leave actionable stale data.
+      setEntries([]);
+      setNext(null);
       if (
         error instanceof ConnectionError &&
         ["signInRequired", "accessChanged"].includes(error.problem)
@@ -195,9 +199,11 @@ export function BusinessInbox({
             {t(
               entry.kind === "approval_requested"
                 ? "approvalAlerts"
-                : "close" in entry
-                  ? "registerSummary"
-                  : "dailySummary",
+                : entry.kind === "stock_low"
+                  ? "stockAlerts"
+                  : "close" in entry
+                    ? "registerSummary"
+                    : "dailySummary",
             )}
             {entry.read ? "" : " · " + t("unread")}
           </Text>
@@ -244,6 +250,14 @@ export function BusinessInbox({
                 }}
               />
             </>
+          ) : entry.kind === "stock_low" ? (
+            <StockInboxDetails
+              stock={entry.stock}
+              timezone={
+                context.branches.find((branch) => branch.id === entry.branchId)!
+                  .timezone
+              }
+            />
           ) : entry.summary ? (
             <>
               <Text style={[ink, { fontSize: 26, fontWeight: "700" }]}>

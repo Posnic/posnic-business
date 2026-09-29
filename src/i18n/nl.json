@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Meldingsinstellingen opslaan",
   "closeNotificationSettings": "Meldingsinstellingen sluiten",
   "inboxUnavailable": "Uw postvak kon niet worden geverifieerd. Controleer uw verbinding en probeer het opnieuw.",
-  "inboxHistoryHelp": "Opgeslagen samenvattingen en actieve goedkeuringsaanvragen. Bedragen weerspiegelen de gegevens die beschikbaar waren toen elke samenvatting werd opgeslagen.",
+  "inboxHistoryHelp": "Opgeslagen updates en actieve goedkeuringsaanvragen. Details tonen de gegevens die beschikbaar waren toen elke update werd opgeslagen.",
   "inboxEmpty": "Geen updates om weer te geven.",
   "unread": "Ongelezen",
   "digestPartial": "Omzet na retouren is inclusief belasting en exclusief fooien. Deze opgeslagen samenvatting kan onvolledig zijn; het is geen definitieve afrekening.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Deze server ondersteunt nog geen instellingen voor voorraadmeldingen.",
   "stockAlertFrequency": "Minimale tijd tussen meldingen",
   "stockAlertInterval": "{minutes} minuten",
-  "stockAlertsQuietHelp": "Meldingen wachten tot de stille uren voorbij zijn. De voorraad wordt vóór verzending opnieuw gecontroleerd."
+  "stockAlertsQuietHelp": "Meldingen wachten tot de stille uren voorbij zijn. De voorraad wordt vóór verzending opnieuw gecontroleerd.",
+  "stockNewLowCount": "Nieuw gemelde artikelen met lage voorraad: {count}"
 }

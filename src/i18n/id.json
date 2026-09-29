@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Simpan pengaturan notifikasi",
   "closeNotificationSettings": "Tutup pengaturan notifikasi",
   "inboxUnavailable": "Kotak masuk Anda tidak dapat diverifikasi. Periksa koneksi dan coba lagi.",
-  "inboxHistoryHelp": "Ringkasan tersimpan dan permintaan persetujuan aktif. Jumlah mencerminkan data yang tersedia saat setiap ringkasan disimpan.",
+  "inboxHistoryHelp": "Pembaruan tersimpan dan permintaan persetujuan aktif. Detail mencerminkan data yang tersedia saat setiap pembaruan disimpan.",
   "inboxEmpty": "Tidak ada pembaruan untuk ditampilkan.",
   "unread": "Belum dibaca",
   "digestPartial": "Penjualan setelah retur termasuk pajak dan tidak termasuk tip. Ringkasan tersimpan ini mungkin belum lengkap; ini bukan penyelesaian akhir.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Server ini belum mendukung pengaturan peringatan stok.",
   "stockAlertFrequency": "Jarak waktu minimum antarperingatan",
   "stockAlertInterval": "{minutes} menit",
-  "stockAlertsQuietHelp": "Peringatan menunggu hingga jam tenang berakhir. Stok diperiksa kembali sebelum dikirim."
+  "stockAlertsQuietHelp": "Peringatan menunggu hingga jam tenang berakhir. Stok diperiksa kembali sebelum dikirim.",
+  "stockNewLowCount": "Barang yang baru memiliki stok rendah: {count}"
 }

@@ -63,3 +63,20 @@ The native vault stores only issuer/token/expiry in an AES-GCM envelope, protect
 Optional biometric unlock stores a separate credential under OS-authenticated SecureStore protection, with a different keychain service and device-only passcode accessibility. Only enrolled strong biometrics are offered. A non-secret binding ties it to the current PIN enrollment; changing enrollment, exhausting the PIN budget, sign-out or a changed biometric set prevents reuse. Reads require the OS prompt rather than trusting a preceding Boolean authentication result. Inactive screens show a privacy cover, backgrounding cancels unlock, and every successful unlock reloads current server context. Real-device qualification is still required; simulators cannot prove biometric key protection.
 
 The native storage API is documented in [Expo SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/). The patched build dependency is documented in [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq).
+
+## Stock Inbox negotiation
+
+`GET /api/business/v1/discovery?stockAlerts=1` may advertise
+`stockAlerts: "inbox-stock-v1"`. Only then does the client include `stockAlerts=1`
+in authenticated Inbox requests. This is separate from stock reporting and
+stock-alert preference negotiation. The server feature flag controls advertising.
+
+A `stock_low` entry has ordinary Inbox ID, branch, business date, creation time,
+read state, `summary: null`, and a strict `stock` object containing schema version
+1, snapshot ID, observation interval, `sourceComplete: false`, coverage, total/new
+low counts, up to twenty item facts and a truncation flag. Stock-negotiated pages
+contain at most ten raw entries. An empty page may still have a continuation.
+The history is scoped by live account/branch/stock ACL and current opt-in activation.
+Quiet hours and cadence govern delivery, not the reading of saved observations.
+No payload grants inventory-write or approval authority. Stock-only users never
+receive financial summary permission by gaining Inbox access.

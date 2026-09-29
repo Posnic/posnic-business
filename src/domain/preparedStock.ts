@@ -22,7 +22,7 @@ const label = (max: number) =>
     .min(1)
     .max(max)
     .refine((value) => value.trim() === value);
-const row = z
+export const stockItemSchema = z
   .object({
     itemId: id,
     name: label(200),
@@ -33,6 +33,15 @@ const row = z
     low: z.literal(true),
   })
   .strict();
+export const stockCoverageSchema = z
+  .object({
+    scannedItems: count,
+    excludedItems: count,
+    verifiedItems: count,
+    unavailableItems: count,
+    reasons: z.partialRecord(z.enum(stockReasons), count.min(1)),
+  })
+  .strict();
 const schema = z
   .object({
     schemaVersion: z.literal(1),
@@ -41,17 +50,9 @@ const schema = z
     branchId: id,
     observedFrom: instant,
     preparedAt: instant,
-    coverage: z
-      .object({
-        scannedItems: count,
-        excludedItems: count,
-        verifiedItems: count,
-        unavailableItems: count,
-        reasons: z.partialRecord(z.enum(stockReasons), count.min(1)),
-      })
-      .strict(),
+    coverage: stockCoverageSchema,
     lowItemCount: count,
-    lowItems: z.array(row).max(100),
+    lowItems: z.array(stockItemSchema).max(100),
     listTruncated: z.boolean(),
     freshness: z
       .object({

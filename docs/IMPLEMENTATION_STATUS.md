@@ -163,3 +163,42 @@ server handling. TypeScript, attribution and web export pass. Preview 4 uses
 Android versionCode 4. Stock-alert recipient delivery and production activation
 remain unfinished; settings availability requires the companion server capability.
 Physical-device and qualified translation review remain open.
+
+## Stock Inbox history
+
+The app requests `discovery?stockAlerts=1` and opts into Inbox `stockAlerts=1`
+only after the original issuer advertises `inbox-stock-v1`. Older servers keep
+their existing Inbox kinds. Unnegotiated stock entries and stock pages over ten
+entries are rejected. Opaque Business credential format and expiry are checked
+before networking and again after discovery, with stock access rechecked before
+the authenticated read. Read acknowledgements also require a valid credential.
+
+The Inbox tab and notification intent accept financial, approval or stock access
+independently. Each returned entry still requires its own capability and current
+branch membership; stock access never permits a daily or register financial
+summary. The strict `stock_low` contract includes original observation times,
+partial coverage, total/new low counts and at most twenty ordered item facts.
+Contradictory counts, incomplete samples, unsafe quantities, false completeness,
+extra private fields and invalid intervals are rejected. Historical observations
+are not subjected to the live stock screen's freshness expiry.
+
+Stock cards show newly low counts, branch-local observation time, coverage,
+on-hand quantities, reorder levels and negative-stock guidance. Three sample
+items appear initially, with an explicit expansion up to the server's twenty.
+Details describe saved observations, not current inventory or a final balance.
+All eighteen catalogues contain draft labels. Single-branch users see no branch
+chooser. Existing native pull-to-refresh and a visible refresh button share the
+same request path; pagination follows a cursor even when a page is empty. Failed
+refreshes or read acknowledgements clear displayed entries until a new read.
+
+Validation: 96 app tests, TypeScript and attribution checks pass. All 39 browser
+flows passed, including two new 320px English/Arabic connected Inbox cases for
+scope, hidden-page continuation, expanding details, read acknowledgement failure,
+corrupt response clearing and refresh recovery. The final credential guard also
+has a focused repeat of those two browser cases. Translations still need qualified
+review. This is source work after Android preview 4; that APK is unchanged.
+Delivery-time stock revalidation, push, retention cleanup, production scheduling
+and physical-device validation remain release gates.
+
+Android and iOS Hermes bundle exports passed for the stock Inbox source (about
+12 MB each). Bundle export is not installed-device or production qualification.

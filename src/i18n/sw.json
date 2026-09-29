@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Hifadhi mipangilio ya arifa",
   "closeNotificationSettings": "Funga mipangilio ya arifa",
   "inboxUnavailable": "Ujumbe wako haukuweza kuthibitishwa. Kagua muunganisho wako na ujaribu tena.",
-  "inboxHistoryHelp": "Muhtasari uliohifadhiwa na maombi ya idhini yanayotumika. Kiasi kinaonyesha data iliyopatikana wakati kila muhtasari ulihifadhiwa.",
+  "inboxHistoryHelp": "Masasisho yaliyohifadhiwa na maombi ya idhini yanayotumika. Maelezo yanaonyesha data iliyopatikana wakati kila sasisho lilipohifadhiwa.",
   "inboxEmpty": "Hakuna masasisho ya kuonyesha.",
   "unread": "Haujasomwa",
   "digestPartial": "Mauzo baada ya marejesho yanajumuisha kodi na hayajumuishi bakshishi. Muhtasari huu uliohifadhiwa unaweza kuwa haujakamilika; si hesabu ya mwisho.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Seva hii bado haitumii mipangilio ya arifa za bidhaa.",
   "stockAlertFrequency": "Muda wa chini kati ya arifa",
   "stockAlertInterval": "Dakika {minutes}",
-  "stockAlertsQuietHelp": "Arifa zinasubiri hadi saa za utulivu ziishe. Bidhaa hukaguliwa tena kabla ya kutuma."
+  "stockAlertsQuietHelp": "Arifa zinasubiri hadi saa za utulivu ziishe. Bidhaa hukaguliwa tena kabla ya kutuma.",
+  "stockNewLowCount": "Bidhaa mpya zenye akiba ndogo: {count}"
 }

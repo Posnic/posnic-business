@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Enregistrer les réglages des notifications",
   "closeNotificationSettings": "Fermer les réglages des notifications",
   "inboxUnavailable": "Impossible de vérifier votre boîte de réception. Vérifiez votre connexion et réessayez.",
-  "inboxHistoryHelp": "Résumés enregistrés et demandes d’approbation actives. Les montants reflètent les données disponibles lors de l’enregistrement de chaque résumé.",
+  "inboxHistoryHelp": "Mises à jour enregistrées et demandes d’approbation actives. Les détails reflètent les données disponibles au moment de chaque enregistrement.",
   "inboxEmpty": "Aucune mise à jour à afficher.",
   "unread": "Non lu",
   "digestPartial": "Les ventes après retours comprennent les taxes et excluent les pourboires. Ce récapitulatif enregistré peut être incomplet ; il ne constitue pas un arrêté définitif.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Ce serveur ne prend pas encore en charge les paramètres des alertes de stock.",
   "stockAlertFrequency": "Délai minimum entre les alertes",
   "stockAlertInterval": "{minutes} minutes",
-  "stockAlertsQuietHelp": "Les alertes attendent la fin des heures calmes. Le stock est vérifié à nouveau avant l’envoi."
+  "stockAlertsQuietHelp": "Les alertes attendent la fin des heures calmes. Le stock est vérifié à nouveau avant l’envoi.",
+  "stockNewLowCount": "Articles nouvellement en stock faible : {count}"
 }

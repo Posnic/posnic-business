@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Mitteilungseinstellungen speichern",
   "closeNotificationSettings": "Mitteilungseinstellungen schließen",
   "inboxUnavailable": "Ihr Postfach konnte nicht verifiziert werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-  "inboxHistoryHelp": "Gespeicherte Zusammenfassungen und aktive Genehmigungsanfragen. Beträge entsprechen den beim Speichern verfügbaren Daten.",
+  "inboxHistoryHelp": "Gespeicherte Aktualisierungen und aktive Genehmigungsanfragen. Die Details zeigen die beim Speichern verfügbaren Daten.",
   "inboxEmpty": "Keine Aktualisierungen vorhanden.",
   "unread": "Ungelesen",
   "digestPartial": "Der Umsatz nach Retouren enthält Steuern, aber kein Trinkgeld. Diese gespeicherte Zusammenfassung kann unvollständig sein. Sie ist keine endgültige Abrechnung.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Dieser Server unterstützt noch keine Einstellungen für Bestandsmeldungen.",
   "stockAlertFrequency": "Mindestabstand zwischen Meldungen",
   "stockAlertInterval": "{minutes} Minuten",
-  "stockAlertsQuietHelp": "Meldungen warten bis zum Ende der Ruhezeiten. Der Bestand wird vor dem Versand erneut geprüft."
+  "stockAlertsQuietHelp": "Meldungen warten bis zum Ende der Ruhezeiten. Der Bestand wird vor dem Versand erneut geprüft.",
+  "stockNewLowCount": "Neu gemeldete Artikel mit niedrigem Bestand: {count}"
 }

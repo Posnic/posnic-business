@@ -214,7 +214,7 @@
   "saveNotificationSettings": "Salva impostazioni notifiche",
   "closeNotificationSettings": "Chiudi impostazioni notifiche",
   "inboxUnavailable": "Impossibile verificare i tuoi messaggi. Controlla la connessione e riprova.",
-  "inboxHistoryHelp": "Riepiloghi salvati e richieste di approvazione attive. Gli importi riflettono i dati disponibili al salvataggio di ogni riepilogo.",
+  "inboxHistoryHelp": "Aggiornamenti salvati e richieste di approvazione attive. I dettagli riflettono i dati disponibili al momento del salvataggio.",
   "inboxEmpty": "Nessun aggiornamento da mostrare.",
   "unread": "Non letto",
   "digestPartial": "Le vendite dopo i resi includono le imposte ed escludono le mance. Questo riepilogo salvato potrebbe essere incompleto; non è una chiusura definitiva.",
@@ -270,5 +270,6 @@
   "stockAlertsUnsupported": "Questo server non supporta ancora le impostazioni degli avvisi sulle scorte.",
   "stockAlertFrequency": "Intervallo minimo tra gli avvisi",
   "stockAlertInterval": "{minutes} minuti",
-  "stockAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le scorte vengono ricontrollate prima dell’invio."
+  "stockAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le scorte vengono ricontrollate prima dell’invio.",
+  "stockNewLowCount": "Nuovi articoli con scorte basse: {count}"
 }

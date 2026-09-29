@@ -1,3 +1,4 @@
+import { stockAlertSchema, validateStockAlert } from "../domain/stockAlert";
 import { z } from "zod";
 import {
   registerCloseSchema,
@@ -5,8 +6,13 @@ import {
   validateRegisterClose,
   validateRegisterSummary,
 } from "../domain/registerSummary";
-import { type Credential } from "./sessionVault";
-import { readJson, ConnectionError, type Options } from "./businessConnection";
+import { credentialSchema, type Credential } from "./sessionVault";
+import {
+  readJson,
+  discoverBusinessServer,
+  ConnectionError,
+  type Options,
+} from "./businessConnection";
 import { type BusinessContext } from "../domain/contracts";
 import {
   preparedOverviewSchema,
@@ -70,10 +76,27 @@ const registerEntrySchema = dailyEntrySchema.extend({
   close: registerCloseSchema,
   summary: registerSummarySchema.nullable(),
 });
+const stockEntrySchema = dailyEntrySchema.extend({
+  kind: z.literal("stock_low"),
+  summary: z.null(),
+  stock: stockAlertSchema,
+});
+export function canReadInbox(context: BusinessContext) {
+  return (
+    context.branches.length > 0 &&
+    context.capabilities.some(
+      (capability) =>
+        capability === "overview.read" ||
+        capability === "stock.read" ||
+        capability === "approvals.read",
+    )
+  );
+}
 const entrySchema = z.discriminatedUnion("kind", [
   dailyEntrySchema,
   approvalEntrySchema,
   registerEntrySchema,
+  stockEntrySchema,
 ]);
 export type InboxEntry = z.infer<typeof entrySchema>;
 const inboxSchema = z
@@ -81,14 +104,22 @@ const inboxSchema = z
   .strict();
 export function validateInbox(value: unknown, context: BusinessContext) {
   const result = inboxSchema.parse(value);
-  if (!context.capabilities.includes("overview.read") && result.entries.length)
-    throw new Error("Scope mismatch");
   if (
     new Set(result.entries.map((entry) => entry.id)).size !==
     result.entries.length
   )
     throw new Error("Duplicate entry");
   for (const entry of result.entries) {
+    const capability =
+      entry.kind === "stock_low"
+        ? "stock.read"
+        : entry.kind === "approval_requested"
+          ? "approvals.read"
+          : "overview.read";
+    if (!context.capabilities.includes(capability))
+      throw new Error("Scope mismatch");
+    if (entry.kind === "stock_low")
+      validateStockAlert(entry.stock, entry.createdAt);
     if (!context.branches.some((branch) => branch.id === entry.branchId))
       throw new Error("Scope mismatch");
     if (
@@ -192,15 +223,38 @@ export async function savePreference(
     throw new ConnectionError("invalidResponse");
   return result.data;
 }
+function inboxCredential(credential: Credential) {
+  const parsed = credentialSchema.safeParse(credential);
+  if (!parsed.success || Date.parse(parsed.data.expiresAt) <= Date.now())
+    throw new ConnectionError("signInRequired");
+  return parsed.data;
+}
 export async function readInbox(
   credential: Credential,
   context: BusinessContext,
   options: Options,
   before?: string,
 ) {
+  credential = inboxCredential(credential);
   if (before && !id.safeParse(before).success)
     throw new ConnectionError("invalidResponse");
+  if (!canReadInbox(context)) throw new ConnectionError("accessChanged");
+  let stockSupported = false;
+  if (context.capabilities.includes("stock.read")) {
+    const discovery = await discoverBusinessServer(credential.origin, {
+      ...options,
+      stockAlerts: true,
+    });
+    stockSupported = discovery.stockAlerts === "inbox-stock-v1";
+  }
+  inboxCredential(credential);
+  if (
+    !canReadInbox(context) ||
+    (stockSupported && !context.capabilities.includes("stock.read"))
+  )
+    throw new ConnectionError("accessChanged");
   const query = new URLSearchParams();
+  if (stockSupported) query.set("stockAlerts", "1");
   if (context.capabilities.includes("notifications.self.manage"))
     query.set("registerSessions", "1");
   if (before) query.set("before", before);
@@ -215,7 +269,14 @@ export async function readInbox(
     credential.token,
   );
   try {
-    return validateInbox(value, context);
+    const result = validateInbox(value, context);
+    if (
+      (!stockSupported &&
+        result.entries.some((entry) => entry.kind === "stock_low")) ||
+      (stockSupported && result.entries.length > 10)
+    )
+      throw new Error("Unnegotiated stock Inbox");
+    return result;
   } catch {
     throw new ConnectionError("invalidResponse");
   }
@@ -225,6 +286,7 @@ export async function markInboxRead(
   entryId: string,
   options: Options,
 ) {
+  credential = inboxCredential(credential);
   if (!id.safeParse(entryId).success)
     throw new ConnectionError("invalidResponse");
   const result = z
