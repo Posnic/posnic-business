@@ -40,19 +40,27 @@ def screen(name, expected, scroll_search=False):
     raise RuntimeError(f'{expected!r} did not appear on {name}')
 
 
+def tap(node):
+    coordinates = [int(n) for n in re.findall(r'\d+', node.get('bounds', ''))]
+    if len(coordinates) != 4:
+        raise RuntimeError('Control has no valid screen bounds')
+    x1, y1, x2, y2 = coordinates
+    adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+
+
 try:
     adb('logcat', '-c')
     adb('shell', 'am', 'start', '-W', '-n', 'com.posnic.business/.MainActivity')
-    sample = screen('welcome', 'Explore sample business', scroll_search=True)
-    coordinates = [int(n) for n in re.findall(r'\d+', sample.get('bounds', ''))]
-    if len(coordinates) != 4:
-        raise RuntimeError('Sample button has no valid screen bounds')
-    x1, y1, x2, y2 = coordinates
-    adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+    tap(screen('welcome', 'Explore sample business', scroll_search=True))
     screen('sample', 'Today')
+    tap(screen('tabs', 'Insights'))
+    tap(screen('insights', 'Masala dosa', scroll_search=True))
+    screen('item', 'Previous')
+    tap(screen('item-next', 'Next'))
+    screen('next-item', 'Previous')
     adb('shell', 'input', 'keyevent', '3')
     adb('shell', 'am', 'start', '-W', '-n', 'com.posnic.business/.MainActivity')
-    screen('resumed', 'Today')
-    print('Standalone install, welcome, sample dashboard and resume passed.')
+    screen('resumed', 'Previous')
+    print('Standalone install, welcome, dashboard, insights, item paging and resume passed.')
 finally:
     (evidence / 'logcat.txt').write_bytes(adb('logcat', '-d'))

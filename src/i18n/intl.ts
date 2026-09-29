@@ -39,6 +39,20 @@ const locales = [
   "nl",
   "it",
 ];
+/** Some Hermes versions expose NumberFormat but reject or round BigInt values. */
+function supportsExactIntegers() {
+  try {
+    return (
+      new Intl.NumberFormat("en", { useGrouping: false })
+        .formatToParts(9007199254740993n)
+        .filter((part) => part.type === "integer")
+        .map((part) => part.value)
+        .join("") === "9007199254740993"
+    );
+  } catch {
+    return false;
+  }
+}
 if (
   typeof Intl.PluralRules !== "function" ||
   locales.some(
@@ -68,6 +82,7 @@ if (
 }
 if (
   typeof Intl.NumberFormat !== "function" ||
+  !supportsExactIntegers() ||
   locales.some(
     (locale) => Intl.NumberFormat.supportedLocalesOf(locale).length === 0,
   )

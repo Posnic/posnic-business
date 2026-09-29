@@ -5,6 +5,43 @@ import fr from "../../src/i18n/fr.json";
 
 test.use({ locale: "fr-CA", timezoneId: "Asia/Kathmandu" });
 
+test("native number formatters without exact BigInt support receive the offline fallback", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const NativeNumberFormat = Intl.NumberFormat;
+    class LegacyNumberFormat extends NativeNumberFormat {
+      static supportedLocalesOf(locales: string | string[]) {
+        return typeof locales === "string" ? [locales] : locales;
+      }
+      formatToParts(value: number | bigint) {
+        if (typeof value === "bigint")
+          throw new TypeError("Cannot convert BigInt to number");
+        return super.formatToParts(value);
+      }
+    }
+    Object.defineProperty(Intl, "NumberFormat", {
+      value: LegacyNumberFormat,
+      configurable: true,
+      writable: true,
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: fr.sample, exact: true }).click();
+  await expect(
+    page.getByRole("tab", { name: fr.today, exact: true }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      new Intl.NumberFormat("en", { useGrouping: false })
+        .formatToParts(9007199254740993n)
+        .filter((p) => p.type === "integer")
+        .map((p) => p.value)
+        .join(""),
+    ),
+  ).toBe("9007199254740993");
+});
+
 test("startup restores missing Hermes Intl APIs before rendering", async ({
   page,
 }) => {
