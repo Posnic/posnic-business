@@ -250,5 +250,9 @@
   "approvalAlerts": "Peringatan persetujuan",
   "approvalAlertsHelp": "Terima permintaan baru yang dapat Anda tinjau di Kotak Masuk. Aktifkan notifikasi ponsel untuk peringatan di perangkat ini.",
   "approvalAlertsQuietHelp": "Peringatan ponsel menunggu hingga jam tenang berakhir. Permintaan kedaluwarsa tidak dikirim.",
-  "approvalAlertsUnsupported": "Server ini belum mendukung peringatan persetujuan."
+  "approvalAlertsUnsupported": "Server ini belum mendukung peringatan persetujuan.",
+  "afterRegisterClose": "Setelah sesi kasir ditutup",
+  "registerSummary": "Ringkasan sesi kasir",
+  "registerCloseHelp": "Ringkasan setiap sesi kasir setelah sinkronisasi dan persiapan. Ini bukan laporan penutupan seluruh bisnis.",
+  "registerUnavailable": "Total sesi tidak tersedia. Tidak ada jumlah yang diasumsikan."
 }

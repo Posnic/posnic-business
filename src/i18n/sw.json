@@ -250,5 +250,9 @@
   "approvalAlerts": "Arifa za idhini",
   "approvalAlertsHelp": "Pokea maombi mapya unayoweza kukagua kwenye kikasha. Washa arifa za simu ili kupata arifa kwenye kifaa hiki.",
   "approvalAlertsQuietHelp": "Arifa za simu husubiri hadi saa za utulivu ziishe. Maombi yaliyokwisha muda hayatatumwa.",
-  "approvalAlertsUnsupported": "Seva hii bado haitumii arifa za idhini."
+  "approvalAlertsUnsupported": "Seva hii bado haitumii arifa za idhini.",
+  "afterRegisterClose": "Baada ya kipindi cha kaunta kufungwa",
+  "registerSummary": "Muhtasari wa kipindi cha kaunta",
+  "registerCloseHelp": "Muhtasari wa kila kipindi cha kaunta baada ya usawazishaji na maandalizi. Hii si ripoti ya kufunga biashara nzima.",
+  "registerUnavailable": "Jumla za kipindi hazipatikani. Hakuna kiasi kilichokadiriwa."
 }

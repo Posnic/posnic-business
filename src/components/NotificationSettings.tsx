@@ -1,6 +1,13 @@
 import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
-import { Text, TextInput, View, Switch, useColorScheme } from "react-native";
+import {
+  Text,
+  TextInput,
+  View,
+  Switch,
+  Pressable,
+  useColorScheme,
+} from "react-native";
 import { Card, Button } from "./ui";
 import { type Credential } from "../services/sessionVault";
 import {
@@ -8,6 +15,11 @@ import {
   savePreference,
   type NotificationPreference,
 } from "../services/notifications";
+import {
+  readSummarySchedule,
+  saveSummarySchedule,
+  type SummarySchedule,
+} from "../services/registerNotifications";
 import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { t } from "../i18n";
@@ -27,6 +39,7 @@ export function NotificationSettings({
   onClose,
   onDirtyChanged,
   approvalContext,
+  summaryContext,
 }: {
   credential: Credential;
   branchId: string;
@@ -35,23 +48,26 @@ export function NotificationSettings({
   onClose?: () => void;
   onDirtyChanged?: (dirty: boolean) => void;
   approvalContext?: BusinessContext;
+  summaryContext?: BusinessContext;
 }) {
   useLocale();
   const [open, setOpen] = useState(page),
     [value, setValue] = useState<
-      NotificationPreference | ApprovalPreference | null
+      NotificationPreference | SummarySchedule | ApprovalPreference | null
     >(null),
+    [supportsClose, setSupportsClose] = useState(false),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const controller = useRef<AbortController | null>(null),
     running = useRef(false);
   const [savedValue, setSavedValue] = useState<string | null>(null);
   useEffect(() => {
-    onDirtyChanged?.(
+    const dirty =
       value !== null &&
-        savedValue !== null &&
-        JSON.stringify(value) !== savedValue,
-    );
+      savedValue !== null &&
+      JSON.stringify(value) !== savedValue;
+    onDirtyChanged?.(dirty);
+    if (dirty) setMessage("");
   }, [value, savedValue, onDirtyChanged]);
   const ink = { color: useColorScheme() === "dark" ? "#eef5fa" : "#172b37" };
   useEffect(() => () => controller.current?.abort(), []);
@@ -67,23 +83,42 @@ export function NotificationSettings({
     controller.current = request;
     try {
       const options = { fetcher: businessFetch, signal: request.signal };
-      const result = approvalContext
-        ? save && value
-          ? await saveApprovalPreference(
-              credential,
-              approvalContext,
-              value,
-              options,
-            )
-          : await readApprovalPreference(
-              credential,
-              approvalContext,
-              branchId,
-              options,
-            )
-        : save && value && "time" in value
-          ? await savePreference(credential, value, options)
-          : await readPreference(credential, branchId, options);
+      let result;
+      if (summaryContext && !approvalContext) {
+        const schedule =
+          save && value && "mode" in value
+            ? await saveSummarySchedule(
+                credential,
+                summaryContext,
+                { supportsClose, preference: value },
+                options,
+              )
+            : await readSummarySchedule(
+                credential,
+                summaryContext,
+                branchId,
+                options,
+              );
+        result = schedule.preference;
+        if (!request.signal.aborted) setSupportsClose(schedule.supportsClose);
+      } else
+        result = approvalContext
+          ? save && value
+            ? await saveApprovalPreference(
+                credential,
+                approvalContext,
+                value,
+                options,
+              )
+            : await readApprovalPreference(
+                credential,
+                approvalContext,
+                branchId,
+                options,
+              )
+          : save && value && "time" in value
+            ? await savePreference(credential, value, options)
+            : await readPreference(credential, branchId, options);
       if (!request.signal.aborted) {
         setValue(result);
         setSavedValue(JSON.stringify(result));
@@ -172,7 +207,13 @@ export function NotificationSettings({
         {t(approvalContext ? "approvalAlerts" : "notificationSettings")}
       </Text>
       <Text style={[ink, { lineHeight: 23 }]}>
-        {t(approvalContext ? "approvalAlertsHelp" : "inboxDeliveryHelp")}
+        {t(
+          approvalContext
+            ? "approvalAlertsHelp"
+            : value && "mode" in value && value.mode === "register-close"
+              ? "registerCloseHelp"
+              : "inboxDeliveryHelp",
+        )}
       </Text>
       {value && (
         <>
@@ -185,11 +226,21 @@ export function NotificationSettings({
             }}
           >
             <Text style={[ink, { flex: 1 }]}>
-              {t(approvalContext ? "approvalAlerts" : "dailySummary")}
+              {t(
+                approvalContext
+                  ? "approvalAlerts"
+                  : "mode" in value && value.mode === "register-close"
+                    ? "registerSummary"
+                    : "dailySummary",
+              )}
             </Text>
             <Switch
               accessibilityLabel={t(
-                approvalContext ? "approvalAlerts" : "dailySummary",
+                approvalContext
+                  ? "approvalAlerts"
+                  : "mode" in value && value.mode === "register-close"
+                    ? "registerSummary"
+                    : "dailySummary",
               )}
               value={value.enabled}
               disabled={busy}
@@ -199,7 +250,41 @@ export function NotificationSettings({
           <Text style={ink}>
             {t("branchTimezone", { timezone: value.timezone })}
           </Text>
+          {supportsClose && "mode" in value && (
+            <View style={{ gap: 8 }} accessibilityRole="radiogroup">
+              {(["daily", "register-close"] as const).map((mode) => (
+                <Pressable
+                  key={mode}
+                  accessibilityRole="radio"
+                  accessibilityLabel={t(
+                    mode === "daily" ? "dailySummary" : "afterRegisterClose",
+                  )}
+                  accessibilityState={{
+                    checked: value.mode === mode,
+                    disabled: busy,
+                  }}
+                  disabled={busy}
+                  onPress={() => setValue({ ...value, mode })}
+                  style={{
+                    minHeight: 48,
+                    padding: 12,
+                    borderWidth: value.mode === mode ? 2 : 1,
+                    borderColor: "#8296a2",
+                    borderRadius: 12,
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={ink}>
+                    {t(
+                      mode === "daily" ? "dailySummary" : "afterRegisterClose",
+                    )}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
           {"time" in value &&
+            !("mode" in value && value.mode === "register-close") &&
             timeInput(t("summaryTime"), value.time, (time) =>
               setValue({ ...value, time }),
             )}

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { branchDay } from "../../src/domain/preparedOverview";
 import { test, expect } from "@playwright/test";
 import { sampleContext } from "../../src/data/sample";
 
@@ -15,6 +17,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let publisherChanged = false;
   let inboxRead = false;
   let notificationRevision = 0;
+  let scheduleMode = "daily";
   let trendMode = false;
   let itemHistoryIncomplete = false;
   const trendDays: string[] = [];
@@ -41,6 +44,13 @@ test("approved Business connection shows only real scope and revokes on sign-out
         authorization: "business-pkce-v1",
         audience: "posnic-business",
         reporting: "bounded-summary-v2",
+        ...(url.searchParams.get("registerSessions") === "1"
+          ? {
+              registerReporting: "bounded-register-session-v1",
+              registerInbox: "inbox-register-v1",
+              registerSchedules: "register-close-v1",
+            }
+          : {}),
         ...(url.searchParams.get("items") === "1"
           ? { itemReporting: "bounded-items-v1" }
           : {}),
@@ -162,7 +172,11 @@ test("approved Business connection shows only real scope and revokes on sign-out
       };
     } else if (url.pathname.includes("/notifications/preferences/")) {
       if (route.request().method() === "POST") {
-        expect(route.request().postDataJSON().expectedRevision).toBe(0);
+        expect(route.request().postDataJSON().expectedRevision).toBe(
+          notificationRevision,
+        );
+        scheduleMode = route.request().postDataJSON().mode;
+        expect(route.request().postDataJSON().scheduleVersion).toBe(2);
         expect(route.request().postDataJSON().time).toBe("21:30");
         notificationRevision++;
       }
@@ -170,6 +184,8 @@ test("approved Business connection shows only real scope and revokes on sign-out
         branchId: liveContext.branches[0]!.id,
         timezone: "Asia/Kolkata",
         revision: notificationRevision,
+        scheduleVersion: 2,
+        mode: scheduleMode,
         enabled: notificationRevision > 0,
         time: notificationRevision ? "21:30" : "23:00",
         quiet: { enabled: false, start: "22:00", end: "07:00" },
@@ -178,6 +194,35 @@ test("approved Business connection shows only real scope and revokes on sign-out
         nextSendAt: null,
       };
     } else if (url.pathname.endsWith("/inbox")) {
+      const close = {
+        schemaVersion: 1,
+        branchId: liveContext.branches[0]!.id,
+        sessionId: "b".repeat(24),
+        registerId: "c".repeat(24),
+        registerName: "Main counter",
+        openedAt: new Date(Date.now() - 7200000).toISOString(),
+        closedAt: new Date(Date.now() - 3600000).toISOString(),
+        eligibleAt: "",
+        businessDate: "",
+        timezone: "Asia/Kolkata",
+        closeRevision: "",
+      };
+      close.eligibleAt = new Date(
+        Date.parse(close.closedAt) + 600000,
+      ).toISOString();
+      close.businessDate = branchDay(close.timezone, new Date(close.closedAt));
+      close.closeRevision = createHash("sha256")
+        .update(
+          JSON.stringify([
+            liveContext.businessId,
+            close.branchId,
+            close.sessionId,
+            close.registerId,
+            close.openedAt,
+            close.closedAt,
+          ]),
+        )
+        .digest("hex");
       result = {
         entries: [
           {
@@ -188,6 +233,14 @@ test("approved Business connection shows only real scope and revokes on sign-out
             createdAt: new Date().toISOString(),
             read: inboxRead,
             summary: null,
+            ...(scheduleMode === "register-close"
+              ? {
+                  kind: "register_unavailable",
+                  sessionId: close.sessionId,
+                  close,
+                  businessDate: close.businessDate,
+                }
+              : {}),
           },
         ],
         next: null,
@@ -475,12 +528,46 @@ test("approved Business connection shows only real scope and revokes on sign-out
     page.getByText("Notification settings saved.", { exact: true }),
   ).toBeVisible();
   await page
+    .getByRole("radio", {
+      name: "After a register session closes",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Summary time (24-hour HH:mm)" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(/This is not a whole-business closing report/),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 640 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  await expect(
+    page.getByRole("heading", { name: "Discard changes?", exact: true }),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: "test-results/business-close-settings.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("button", { name: "Save notification settings", exact: true })
+    .click();
+  await expect(
+    page.getByText("Notification settings saved.", { exact: true }),
+  ).toBeVisible();
+  await page
     .getByRole("button", { name: "Close notification settings", exact: true })
     .click();
   await page.getByRole("tab", { name: "Inbox", exact: true }).click();
+  await expect(page.getByText("Main counter", { exact: true })).toBeVisible();
   await expect(
-    page.getByText(/A verified summary was unavailable at the scheduled time/),
+    page.getByRole("heading", { name: /Register session summary/ }),
   ).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByText(/Session totals are unavailable/)).toBeVisible();
   await page.getByRole("button", { name: "Mark as read", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Mark as read", exact: true }),

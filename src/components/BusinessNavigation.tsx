@@ -650,6 +650,7 @@ function NotificationPage({
           approvalContext={
             route.name === "ApprovalNotifications" ? model.context : undefined
           }
+          summaryContext={model.context}
           page
           credential={model.credential}
           branchId={route.params.branchId}

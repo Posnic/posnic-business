@@ -76,3 +76,21 @@ incomplete freshness. Overnight sessions and net refunds are supported. Embedded
 entry metadata must match the summary's close. The client still does not request
 register Inbox entries until their rendering and labels are implemented. All 77
 app tests, TypeScript, attribution, targeted formatting and web export pass.
+
+## Register-close controls and Inbox
+
+Notification settings now use the negotiated schedule service. Supported servers
+show mutually exclusive daily/register-close radio options; close mode hides the
+fixed time input and explains the per-register scope. Unsupported Community
+servers retain daily controls. Saved acknowledgements clear when another edit
+makes the form dirty. Existing unsaved-change navigation protection remains.
+
+Inbox opts into register entries only for accounts with notification-management
+permission. Entries name the register, show the session bounds in the branch
+timezone, and distinguish unavailable totals without sending users to an
+unrelated daily total. Four new messages are present in all 18 development
+catalogs; qualified translation review remains required. All 77 app tests and 33
+browser flows pass, including connected close-mode saving, narrow-screen layout
+and register Inbox rendering. TypeScript, formatting, attribution and web export
+pass. The narrow settings and Inbox screenshots were inspected. Physical-device
+close notifications and a new installable build remain unqualified.

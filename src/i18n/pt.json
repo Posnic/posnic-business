@@ -250,5 +250,9 @@
   "approvalAlerts": "Alertas de aprovação",
   "approvalAlertsHelp": "Receba na caixa de entrada os novos pedidos que pode analisar. Ative as notificações do telefone para receber alertas neste dispositivo.",
   "approvalAlertsQuietHelp": "Os alertas aguardam o fim do horário de silêncio. Os pedidos expirados não são enviados.",
-  "approvalAlertsUnsupported": "Este servidor ainda não suporta alertas de aprovação."
+  "approvalAlertsUnsupported": "Este servidor ainda não suporta alertas de aprovação.",
+  "afterRegisterClose": "Após encerrar uma sessão de caixa",
+  "registerSummary": "Resumo da sessão de caixa",
+  "registerCloseHelp": "Um resumo por sessão de caixa, após sincronização e preparação. Não é um relatório de fecho de todo o negócio.",
+  "registerUnavailable": "Os totais da sessão estão indisponíveis. Nenhum valor foi presumido."
 }

@@ -201,6 +201,8 @@ export async function readInbox(
   if (before && !id.safeParse(before).success)
     throw new ConnectionError("invalidResponse");
   const query = new URLSearchParams();
+  if (context.capabilities.includes("notifications.self.manage"))
+    query.set("registerSessions", "1");
   if (before) query.set("before", before);
   // Explicitly opt in to this event shape. Older servers ignore this query
   // and continue to return their daily-only Inbox contract.

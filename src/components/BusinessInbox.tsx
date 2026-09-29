@@ -13,7 +13,7 @@ import { ConnectionError } from "../services/businessConnection";
 import { businessFetch } from "../platform/network";
 import { type RefreshBinding } from "./LiveOverview";
 import { formatMoney } from "../domain/money";
-import { t, getTextAlign } from "../i18n";
+import { t, getTextAlign, getFormatLocale } from "../i18n";
 
 export function BusinessInbox({
   credential,
@@ -163,7 +163,13 @@ export function BusinessInbox({
       >
         {t("inbox")}
       </Text>
-      <Text style={[ink, { lineHeight: 23 }]}>{t("inboxHistoryHelp")}</Text>
+      <Text style={[ink, { lineHeight: 23 }]}>
+        {t(
+          entries.some((entry) => "close" in entry)
+            ? "registerCloseHelp"
+            : "inboxHistoryHelp",
+        )}
+      </Text>
       <Button
         label={t("refresh")}
         secondary
@@ -189,7 +195,9 @@ export function BusinessInbox({
             {t(
               entry.kind === "approval_requested"
                 ? "approvalAlerts"
-                : "dailySummary",
+                : "close" in entry
+                  ? "registerSummary"
+                  : "dailySummary",
             )}
             {entry.read ? "" : " · " + t("unread")}
           </Text>
@@ -200,6 +208,27 @@ export function BusinessInbox({
             }{" "}
             · {entry.businessDate}
           </Text>
+          {"close" in entry && (
+            <>
+              <Text style={[ink, { fontWeight: "600" }]}>
+                {entry.close.registerName}
+              </Text>
+              <Text style={[ink, { lineHeight: 23 }]}>
+                {[entry.close.openedAt, entry.close.closedAt]
+                  .map((at) =>
+                    new Intl.DateTimeFormat(getFormatLocale(), {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      timeZone: entry.close.timezone,
+                    }).format(new Date(at)),
+                  )
+                  .join(" - ")}
+              </Text>
+              <Text style={ink}>
+                {t("branchTimezone", { timezone: entry.close.timezone })}
+              </Text>
+            </>
+          )}
           {entry.kind === "approval_requested" ? (
             <>
               <Text style={[ink, { lineHeight: 23 }]}>
@@ -231,7 +260,9 @@ export function BusinessInbox({
             </>
           ) : (
             <Text style={[ink, { lineHeight: 23 }]}>
-              {t("digestUnavailable")}
+              {t(
+                "close" in entry ? "registerUnavailable" : "digestUnavailable",
+              )}
             </Text>
           )}
           {!entry.read && (

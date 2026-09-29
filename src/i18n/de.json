@@ -250,5 +250,9 @@
   "approvalAlerts": "Genehmigungsbenachrichtigungen",
   "approvalAlertsHelp": "Erhalten Sie neue Anfragen, die Sie prüfen dürfen, im Posteingang. Aktivieren Sie Telefonbenachrichtigungen für Hinweise auf diesem Gerät.",
   "approvalAlertsQuietHelp": "Telefonbenachrichtigungen warten bis zum Ende der Ruhezeiten. Abgelaufene Anfragen werden nicht gesendet.",
-  "approvalAlertsUnsupported": "Dieser Server unterstützt noch keine Genehmigungsbenachrichtigungen."
+  "approvalAlertsUnsupported": "Dieser Server unterstützt noch keine Genehmigungsbenachrichtigungen.",
+  "afterRegisterClose": "Nach Abschluss einer Kassensitzung",
+  "registerSummary": "Zusammenfassung der Kassensitzung",
+  "registerCloseHelp": "Eine Zusammenfassung je Kassensitzung nach Synchronisierung und Aufbereitung. Dies ist kein Abschlussbericht für den gesamten Betrieb.",
+  "registerUnavailable": "Die Sitzungssummen sind nicht verfügbar. Es wurde kein Betrag angenommen."
 }

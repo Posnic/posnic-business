@@ -250,5 +250,9 @@
   "approvalAlerts": "Avvisi di approvazione",
   "approvalAlertsHelp": "Ricevi nella posta in arrivo le nuove richieste che puoi esaminare. Attiva le notifiche del telefono per ricevere avvisi su questo dispositivo.",
   "approvalAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le richieste scadute non vengono inviate.",
-  "approvalAlertsUnsupported": "Questo server non supporta ancora gli avvisi di approvazione."
+  "approvalAlertsUnsupported": "Questo server non supporta ancora gli avvisi di approvazione.",
+  "afterRegisterClose": "Alla chiusura di una sessione di cassa",
+  "registerSummary": "Riepilogo della sessione di cassa",
+  "registerCloseHelp": "Un riepilogo per sessione di cassa, dopo sincronizzazione ed elaborazione. Non è un rapporto di chiusura dell’intera attività.",
+  "registerUnavailable": "I totali della sessione non sono disponibili. Nessun importo è stato presunto."
 }

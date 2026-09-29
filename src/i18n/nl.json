@@ -250,5 +250,9 @@
   "approvalAlerts": "Goedkeuringsmeldingen",
   "approvalAlertsHelp": "Ontvang nieuwe aanvragen die u kunt beoordelen in uw inbox. Schakel telefoonmeldingen in voor meldingen op dit apparaat.",
   "approvalAlertsQuietHelp": "Telefoonmeldingen wachten tot de stille uren voorbij zijn. Verlopen aanvragen worden niet verstuurd.",
-  "approvalAlertsUnsupported": "Deze server ondersteunt nog geen goedkeuringsmeldingen."
+  "approvalAlertsUnsupported": "Deze server ondersteunt nog geen goedkeuringsmeldingen.",
+  "afterRegisterClose": "Na het sluiten van een kassasessie",
+  "registerSummary": "Overzicht van de kassasessie",
+  "registerCloseHelp": "Een overzicht per kassasessie, na synchronisatie en verwerking. Dit is geen afsluitrapport voor het hele bedrijf.",
+  "registerUnavailable": "De sessietotalen zijn niet beschikbaar. Er is geen bedrag aangenomen."
 }

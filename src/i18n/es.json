@@ -250,5 +250,9 @@
   "approvalAlerts": "Alertas de aprobación",
   "approvalAlertsHelp": "Recibe en la bandeja de entrada las nuevas solicitudes que puedes revisar. Activa las notificaciones del teléfono para recibir alertas en este dispositivo.",
   "approvalAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las solicitudes vencidas no se envían.",
-  "approvalAlertsUnsupported": "Este servidor aún no admite alertas de aprobación."
+  "approvalAlertsUnsupported": "Este servidor aún no admite alertas de aprobación.",
+  "afterRegisterClose": "Al cerrar una sesión de caja",
+  "registerSummary": "Resumen de sesión de caja",
+  "registerCloseHelp": "Un resumen por sesión de caja, tras sincronizar y preparar los datos. No es un informe de cierre de todo el negocio.",
+  "registerUnavailable": "Los totales de la sesión no están disponibles. No se ha supuesto ningún importe."
 }

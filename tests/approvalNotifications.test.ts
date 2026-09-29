@@ -218,7 +218,10 @@ test("Inbox approval entries are strictly scoped and carry no embedded decision 
       fetcher: async (url) => {
         assert.equal(
           String(url),
-          origin + "/api/business/v1/inbox?before=" + cursor + "&approvals=1",
+          origin +
+            "/api/business/v1/inbox?registerSessions=1&before=" +
+            cursor +
+            "&approvals=1",
         );
         return json({ entries: [], next: cursor });
       },
