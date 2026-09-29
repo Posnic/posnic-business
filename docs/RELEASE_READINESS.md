@@ -9,7 +9,7 @@ Status: test prerelease available; production release is not ready.
 - That release passed 96 app tests, 39 browser flows, native compilation and Android 15 installation/sample/Insights/paging/resume smoke checks. This is not connected-account or physical-device qualification.
 - Preview 6 includes the storage/overlay permission removal. [Build 36557212230](https://github.com/Posnic/posnic-business/actions/runs/36557212230) verified the merged APK, signature and embedded bundle; [smoke run 36558301683](https://github.com/Posnic/posnic-business/actions/runs/36558301683) passed installation and sample navigation on Android 15. The downloaded APK checksum matched `a5f87b8433f7a57ada33b2c8dfd3425cadc08357e5885c8c9bfa69f2d6fffc6d`. Signing certificate matches preview 5; an actual in-place upgrade was not exercised.
 - Companion review: [POS #1023](https://github.com/Posnic/POS/pull/1023), [Gateway #28](https://github.com/Posnic/Gateway/pull/28), and [mobile #17](https://github.com/Posnic/posnic-business/pull/17). These remain drafts, stacked on earlier feature branches.
-- [POS CI](https://github.com/Posnic/POS/actions/runs/36554593950) passed all jobs at `9ce4ab64`. Later local stock-retention commits are not covered by that CI run. Their focused integration evidence is recorded in the POS stock-alert document.
+- [POS CI](https://github.com/Posnic/POS/actions/runs/36560731301) passed all jobs at `ee27b3e0`, including the retained-stock lifecycle and read-only checkout recovery batch. Local validation passed 265 Business integration cases, 153 focused unit cases and 10 cashier UI cases. Later removed-branch cleanup `63032b71` has 106 passing snapshot/preferences cases plus one focused transition case; it is not covered by that hosted run.
 
 ## Requirement audit
 
@@ -20,8 +20,8 @@ Status: test prerelease available; production release is not ready.
 | Live ACL and branch control                              | Dedicated Business sessions, server checks, independent financial/stock/approval access; single-branch chooser hidden; revocation integration tests        | Deployed end-to-end scope and revocation testing                                                                                         |
 | Remembered authentication, PIN and biometrics            | Encrypted device vault, six-digit PIN, persistent five-attempt limit, optional strong biometrics and background lock; unit tests                           | Physical SecureStore/biometric enrollment, process death and app-switcher privacy tests                                                  |
 | Cloud-first and Community login                          | HTTPS browser authorization, PKCE and dedicated tenant handoff; protocol and browser tests                                                                 | Actual deployed compatible origins and controlled accounts                                                                               |
-| Notifications, summaries and decisions                   | Durable Inbox, daily/close schedules, quiet hours, generic push adapter, decision review/application protocol; database tests                              | Real provider/relay delivery, receipt/tap behavior, cashier unresolved-execution handling and deployed source checks                     |
-| Low-stock alerts                                         | Desktop observations, automatic recipient demand, assigned Cloud/Community publication, scoped Inbox and current-stock push validation; restart/race tests | Rollout, network/capacity qualification and remaining account/branch/item lifecycle retention                                            |
+| Notifications, summaries and decisions                   | Durable Inbox, daily/close schedules, quiet hours, generic push adapter, decision review/application protocol; database tests                              | Real provider/relay delivery, receipt/tap behavior, cross-cashier escalation, pre-claim restart recovery and deployed source checks      |
+| Low-stock alerts                                         | Desktop observations, automatic recipient demand, assigned Cloud/Community publication, scoped Inbox and current-stock push validation; restart/race tests | Rollout, network/capacity qualification and remaining removed-item lifecycle and general account erasure                                 |
 | Standard mobile interactions                             | Pull refresh and visible alternatives, interior item swipes, boundary handling, native stack/Back, unsaved-edit protection and RTL tests                   | Physical edge/back/keyboard/sheet behavior, haptics, TalkBack/VoiceOver and reduced-motion review; predictive-back animation is disabled |
 | Eighteen languages                                       | Complete draft catalogs, key/placeholder/plural checks, local numeral formatting, RTL and browser layout coverage                                          | Qualified linguistic review, native system dialogs and recipient-language push checks                                                    |
 | Installable release                                      | Preview 6 APK and emulator smoke evidence                                                                                                                  | iOS compilation, physical Android qualification, production signing, privacy/store disclosures, pilot and rollback qualification         |
@@ -34,8 +34,10 @@ returned HTTP **404** with `Cannot GET /api/business/v1/discovery`:
 
 Therefore the current production origin does not expose the required discovery
 route. This observation proves only that this route is unavailable at that origin;
-it does not establish the state of private staging environments. No credentials
-were submitted and no server configuration was changed.
+it does not establish the state of private staging environments. A repeat check on 29 September returned the same 404. No credentials
+were submitted and no server configuration was changed. Local `adb devices -l`
+reported no connected Android devices; this workstation has no `xcodebuild`
+command. The published emulator result does not qualify physical security or iOS.
 
 Connected qualification needs a non-production Cloud tenant and Community HTTPS
 origin with the companion revisions deployed, controlled accounts with multiple
