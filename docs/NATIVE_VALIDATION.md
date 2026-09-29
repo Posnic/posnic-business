@@ -61,3 +61,24 @@ Android 15 smoke run `36558301683` passed fresh installation, sample navigation
 and background/resume. Its signing certificate matches preview 5 and versionCode
 increased to 6. An in-place upgrade, connected account and physical-device
 qualification still require testing; the older preview 5 APK is unchanged.
+
+## Android notification category qualification
+
+Current source negotiates separate Approvals, Business summaries and Stock alerts
+channels with the server. Legacy servers/builds retain the shared Phone
+notifications channel. Native channels must all be created successfully before
+the device advertises version 2. Creation inherits legacy importance; renaming for
+a language change preserves per-category user overrides. The new summary-channel
+label has draft translations in all eighteen catalogs.
+
+These changes follow preview 6 and are not included in its published APK. A future
+native build must verify upgrade from a muted legacy channel, independent category
+mute/unmute, language changes, server downgrade and token rotation on a physical
+Android device. Check that a category never becomes audible solely because the
+app updated. Check global OS permission denial and iOS behavior separately.
+
+The checked-in app configuration has no owner EAS project UUID. Real push testing
+needs the owner's public project identity and securely configured FCM/APNs
+credentials, plus matching server provider configuration. No UUID or signing
+identity is invented for a release. Permission denial and unavailable provider
+configuration must continue to leave authenticated Inbox access usable.

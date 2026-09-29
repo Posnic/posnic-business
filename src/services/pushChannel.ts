@@ -6,6 +6,7 @@ export function createPushChannelUpdater(adapter: {
   write: (name: string, importance: number, create: boolean) => Promise<void>;
   name: () => string;
   defaultImportance: number;
+  initialImportance?: () => Promise<number | undefined>;
 }) {
   let pending = Promise.resolve();
   return (create = false) => {
@@ -16,7 +17,9 @@ export function createPushChannelUpdater(adapter: {
       if (existing?.name === name) return;
       await adapter.write(
         name,
-        existing?.importance ?? adapter.defaultImportance,
+        existing?.importance ??
+          (await adapter.initialImportance?.()) ??
+          adapter.defaultImportance,
         !existing,
       );
     });

@@ -3,6 +3,7 @@ import { type Credential } from "./sessionVault";
 import { readJson, ConnectionError, type Options } from "./businessConnection";
 const statusSchema = z
   .object({
+    channelVersion: z.literal(2).optional(),
     available: z.boolean(),
     projectId: z.string().uuid().nullable(),
     enabled: z.boolean(),
@@ -34,7 +35,7 @@ export async function readPushStatus(credential: Credential, options: Options) {
   const result = statusSchema.safeParse(
     await readJson(
       credential.origin,
-      "/notifications/device?language=1",
+      "/notifications/device?language=1&channels=2",
       options,
       credential.token,
     ),
@@ -49,6 +50,7 @@ export async function setPushRegistration(
     projectId: string;
     platform: "ios" | "android";
     locale?: string;
+    channelVersion?: 2;
   } | null,
   options: Options,
 ) {

@@ -59,13 +59,19 @@ export function usePushSettings(
       ) {
         nativePrompt.current = action === "enable";
         try {
-          const registration = await requestPushToken(action === "enable");
+          const registration = await requestPushToken(
+            action === "enable",
+            current.channelVersion === 2,
+          );
           if (request.signal.aborted) return;
           const selectedLocale = getLocale();
           await setPushRegistration(
             credential,
             {
               ...registration,
+              ...(current.channelVersion === 2
+                ? { channelVersion: 2 as const }
+                : {}),
               ...(current.supportedLanguages?.includes(selectedLocale)
                 ? { locale: selectedLocale }
                 : {}),

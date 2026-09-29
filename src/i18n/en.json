@@ -222,6 +222,7 @@
   "markRead": "Mark as read",
   "loadOlder": "Load older updates",
   "backToToday": "Back to Today",
+  "summaryNotifications": "Business summaries",
   "phoneNotifications": "Phone notifications",
   "pushPrivacyHelp": "Alerts only say an update is ready. Unlock Business to read it. Your sales figures and approval decisions stay off the lock screen.",
   "enablePush": "Enable phone notifications",

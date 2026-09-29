@@ -5,27 +5,52 @@ import Constants from "expo-constants";
 import { notificationIntent } from "../domain/notificationIntent";
 import { t, translator } from "../i18n";
 import { createPushChannelUpdater } from "../services/pushChannel";
-const updateChannel = createPushChannelUpdater({
-  read: () => Notifications.getNotificationChannelAsync("business-updates"),
-  name: () => t("phoneNotifications"),
-  defaultImportance: Notifications.AndroidImportance.DEFAULT,
-  async write(name, importance, create) {
-    await Notifications.setNotificationChannelAsync("business-updates", {
-      name,
-      importance,
-      ...(create
-        ? {
-            lockscreenVisibility:
-              Notifications.AndroidNotificationVisibility.PRIVATE,
-          }
-        : {}),
-    });
-  },
-});
+const channelDefinitions = [
+  ["business-updates", "phoneNotifications"],
+  ["business-decisions", "approvals"],
+  ["business-summaries", "summaryNotifications"],
+  ["business-stock", "stockAlerts"],
+] as const;
+const channelUpdaters = channelDefinitions.map(([id, label]) =>
+  createPushChannelUpdater({
+    read: () => Notifications.getNotificationChannelAsync(id),
+    name: () => t(label),
+    defaultImportance: Notifications.AndroidImportance.DEFAULT,
+    // A muted legacy channel must not become audible after an app upgrade.
+    initialImportance:
+      id === "business-updates"
+        ? undefined
+        : async () =>
+            (
+              await Notifications.getNotificationChannelAsync(
+                "business-updates",
+              )
+            )?.importance,
+    async write(name, importance, create) {
+      await Notifications.setNotificationChannelAsync(id, {
+        name,
+        importance,
+        ...(create
+          ? {
+              lockscreenVisibility:
+                Notifications.AndroidNotificationVisibility.PRIVATE,
+            }
+          : {}),
+      });
+    },
+  }),
+);
+async function updateChannels(create = false, separate = false) {
+  // Finish every required native channel before advertising support to the server.
+  for (const [index, update] of channelUpdaters.entries()) {
+    if (create && !separate && index > 0) continue;
+    await update(create);
+  }
+}
 export function watchPushChannelLanguage() {
   if (Platform.OS !== "android") return () => {};
   const refresh = () => {
-    void updateChannel().catch(() => {});
+    void updateChannels().catch(() => {});
   };
   refresh();
   const unsubscribe = translator.subscribe(refresh);
@@ -54,9 +79,12 @@ export async function pushAllowed() {
     permission.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL
   );
 }
-export async function requestPushToken(prompt: boolean) {
+export async function requestPushToken(
+  prompt: boolean,
+  separateChannels = false,
+) {
   if (!supportsPush) throw new Error("push_unavailable");
-  if (Platform.OS === "android") await updateChannel(true);
+  if (Platform.OS === "android") await updateChannels(true, separateChannels);
   if (!(await pushAllowed()) && prompt)
     await Notifications.requestPermissionsAsync({
       ios: { allowAlert: true, allowBadge: false, allowSound: false },

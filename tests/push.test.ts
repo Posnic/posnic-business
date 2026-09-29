@@ -23,7 +23,7 @@ test("push language negotiation accepts legacy servers and validates capability 
   };
   const current = await readPushStatus(credential, {
     fetcher: async (url) => {
-      assert.equal(new URL(String(url)).search, "?language=1");
+      assert.equal(new URL(String(url)).search, "?language=1&channels=2");
       return json({ ...base, supportedLanguages: ["en", "ta"], locale: "ta" });
     },
   });
@@ -112,5 +112,38 @@ test("push registration uses the dedicated session and rejects contradictory ser
     setPushRegistration(credential, null, {
       fetcher: async () => json({ enabled: true }),
     }),
+  );
+});
+
+test("native channel negotiation accepts legacy servers and rejects unsupported versions", async () => {
+  const base = {
+    available: true,
+    projectId: "11111111-1111-4111-8111-111111111111",
+    enabled: false,
+  };
+  const status = await readPushStatus(credential, {
+    fetcher: async () => json({ ...base, channelVersion: 2 }),
+  });
+  assert.equal(status.channelVersion, 2);
+  for (const channelVersion of [1, 3, "2", null])
+    await assert.rejects(
+      readPushStatus(credential, {
+        fetcher: async () => json({ ...base, channelVersion }),
+      }),
+    );
+  await setPushRegistration(
+    credential,
+    {
+      token: "ExpoPushToken[abcdefghij]",
+      platform: "android",
+      projectId: base.projectId,
+      channelVersion: 2,
+    },
+    {
+      fetcher: async (_url, options) => {
+        assert.equal(JSON.parse(String(options?.body)).channelVersion, 2);
+        return json({ enabled: true });
+      },
+    },
   );
 });

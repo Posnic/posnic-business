@@ -9,6 +9,7 @@ export async function pushAllowed() {
 }
 export async function requestPushToken(
   _prompt: boolean,
+  _separateChannels = false,
 ): Promise<{ token: string; projectId: string; platform: "ios" | "android" }> {
   throw new Error("push_unavailable");
 }
