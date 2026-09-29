@@ -1,0 +1,49 @@
+name: Android test build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-test-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run check
+      - run: npx expo prebuild --no-install --platform android
+      # Expo's generated release variant uses the development signing key.
+      # It bundles Hermes and assets, so this test APK needs no Metro server.
+      - run: ./gradlew assembleRelease --no-daemon --max-workers=2 -PreactNativeArchitectures=arm64-v8a,x86_64
+        working-directory: android
+      - name: Verify and package test APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p test-release
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.1-android-test.apk
+          sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
+          "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
+          unzip -l test-release/*.apk assets/index.android.bundle | tee test-release/bundle.txt
+          unzip -p test-release/*.apk assets/index.android.bundle | wc -c | awk '{ if ($1 < 100000) exit 1 }'
+          printf '%s\n' "$GITHUB_SHA" > test-release/SOURCE_COMMIT.txt
+          cd test-release
+          sha256sum *.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: posnic-business-android-test
+          path: test-release/
+          if-no-files-found: error
+          retention-days: 30
