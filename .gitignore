@@ -15,3 +15,7 @@ playwright-report/
 *.mobileprovision
 .DS_Store
 __pycache__/
+
+*.p8
+credentials.json
+build-output/
