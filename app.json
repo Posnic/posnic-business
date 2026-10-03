@@ -8,7 +8,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.posnic.business",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "1"
     },
     "android": {
       "package": "com.posnic.business",
@@ -31,6 +32,7 @@
           "faceIDPermission": "Use Face ID to unlock your Posnic Business account on this phone."
         }
       ]
-    ]
+    ],
+    "icon": "./assets/posnic-icon.png"
   }
 }

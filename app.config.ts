@@ -17,6 +17,8 @@ export default {
   ),
   ios: {
     ...config.expo.ios,
+    buildNumber:
+      process.env.POSNIC_IOS_BUILD_NUMBER || config.expo.ios.buildNumber,
     infoPlist: {
       CFBundleDevelopmentRegion: "en",
       CFBundleLocalizations: Object.keys(permissionDescriptions),
