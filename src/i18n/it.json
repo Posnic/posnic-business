@@ -132,13 +132,13 @@
   "waitingApproval": "In attesa della tua autorizzazione. Torna qui quando hai finito nel browser.",
   "preparingSignIn": "Preparazione dell’accesso…",
   "createPin": "Crea il PIN dell’app",
-  "createPinHelp": "Scegli sei cifre per sbloccare Business su questo telefono. Evita numeri ripetuti o consecutivi.",
+  "createPinHelp": "Scegli 4 o 6 cifre per sbloccare l’app. Evita numeri ripetuti o consecutivi.",
   "unlockBusiness": "Bentornato",
-  "unlockHelp": "Inserisci il PIN di sei cifre. Dopo cinque tentativi errati, dovrai accedere di nuovo.",
-  "sixDigitPin": "PIN di sei cifre",
+  "unlockHelp": "Inserisci il PIN. Dopo cinque errori, accedi di nuovo.",
+  "sixDigitPin": "PIN di 4 o 6 cifre",
   "confirmPin": "Conferma PIN",
   "pinMismatch": "I PIN non corrispondono. Inseriscili di nuovo.",
-  "pinWeak": "Scegli un PIN di sei cifre meno prevedibile.",
+  "pinWeak": "Scegli un PIN di 4 o 6 cifre meno prevedibile.",
   "pinIncorrect": "PIN errato. Riprova.",
   "pinLocked": "L’app è stata bloccata. Sbloccala di nuovo.",
   "signInRequired": "Accedi di nuovo per continuare.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Intervallo minimo tra gli avvisi",
   "stockAlertInterval": "{minutes} minuti",
   "stockAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le scorte vengono ricontrollate prima dell’invio.",
-  "stockNewLowCount": "Nuovi articoli con scorte basse: {count}"
+  "stockNewLowCount": "Nuovi articoli con scorte basse: {count}",
+  "savingPin": "Salvataggio PIN…"
 }

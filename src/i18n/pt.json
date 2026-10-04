@@ -132,13 +132,13 @@
   "waitingApproval": "A aguardar a sua autorização. Volte aqui quando terminar no navegador.",
   "preparingSignIn": "A preparar início de sessão…",
   "createPin": "Crie o PIN da aplicação",
-  "createPinHelp": "Escolha seis dígitos para desbloquear o Business neste telefone. Evite números repetidos ou consecutivos.",
+  "createPinHelp": "Escolha 4 ou 6 dígitos para desbloquear o app. Evite números repetidos ou sequenciais.",
   "unlockBusiness": "Bem-vindo de volta",
-  "unlockHelp": "Introduza o seu PIN de seis dígitos. Após cinco tentativas incorretas, terá de iniciar sessão novamente.",
-  "sixDigitPin": "PIN de seis dígitos",
+  "unlockHelp": "Digite seu PIN. Após cinco tentativas incorretas, entre novamente.",
+  "sixDigitPin": "PIN de 4 ou 6 dígitos",
   "confirmPin": "Confirmar PIN",
   "pinMismatch": "Os PIN não coincidem. Introduza-os novamente.",
-  "pinWeak": "Escolha um PIN de seis dígitos menos previsível.",
+  "pinWeak": "Escolha um PIN de 4 ou 6 dígitos menos previsível.",
   "pinIncorrect": "PIN incorreto. Tente novamente.",
   "pinLocked": "A aplicação foi bloqueada. Desbloqueie-a novamente.",
   "signInRequired": "Inicie sessão novamente para continuar.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Tempo mínimo entre alertas",
   "stockAlertInterval": "{minutes} minutos",
   "stockAlertsQuietHelp": "Os alertas aguardam o fim do período de silêncio. O stock é verificado novamente antes do envio.",
-  "stockNewLowCount": "Novos artigos com stock baixo: {count}"
+  "stockNewLowCount": "Novos artigos com stock baixo: {count}",
+  "savingPin": "Salvando PIN…"
 }

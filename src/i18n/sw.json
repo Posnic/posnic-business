@@ -132,13 +132,13 @@
   "waitingApproval": "Inasubiri idhini yako. Rudi hapa ukimaliza kwenye kivinjari.",
   "preparingSignIn": "Inaandaa kuingia…",
   "createPin": "Tengeneza PIN ya programu",
-  "createPinHelp": "Chagua tarakimu sita za kufungua Business kwenye simu hii. Epuka namba zinazojirudia au zinazofuatana.",
+  "createPinHelp": "Chagua tarakimu 4 au 6 kufungua programu. Epuka nambari zinazojirudia au zinazofuatana.",
   "unlockBusiness": "Karibu tena",
-  "unlockHelp": "Weka PIN yako ya tarakimu sita. Baada ya majaribio matano yasiyo sahihi, ingia tena.",
-  "sixDigitPin": "PIN ya tarakimu sita",
+  "unlockHelp": "Weka PIN ya programu. Baada ya makosa matano, ingia tena.",
+  "sixDigitPin": "PIN ya tarakimu 4 au 6",
   "confirmPin": "Thibitisha PIN",
   "pinMismatch": "PIN hazilingani. Ziweke tena.",
-  "pinWeak": "Chagua PIN ya tarakimu sita ambayo ni ngumu zaidi kukisia.",
+  "pinWeak": "Chagua PIN ya tarakimu 4 au 6 ambayo ni ngumu kukisia.",
   "pinIncorrect": "PIN si sahihi. Jaribu tena.",
   "pinLocked": "Programu imefungwa. Ifungue tena.",
   "signInRequired": "Ingia tena ili kuendelea.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Muda wa chini kati ya arifa",
   "stockAlertInterval": "Dakika {minutes}",
   "stockAlertsQuietHelp": "Arifa zinasubiri hadi saa za utulivu ziishe. Bidhaa hukaguliwa tena kabla ya kutuma.",
-  "stockNewLowCount": "Bidhaa mpya zenye akiba ndogo: {count}"
+  "stockNewLowCount": "Bidhaa mpya zenye akiba ndogo: {count}",
+  "savingPin": "Inahifadhi PIN…"
 }

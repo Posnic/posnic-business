@@ -2,6 +2,7 @@ import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AppState,
+  ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
@@ -299,11 +300,28 @@ export function AccountScreen({
               {message}
             </Text>
           ) : null}
+          {busy && (
+            <ActivityIndicator
+              accessibilityLabel={t(
+                stage === "setup" ? "savingPin" : "unlocking",
+              )}
+            />
+          )}
           <Button
             label={t(
-              busy ? "unlocking" : stage === "setup" ? "savePin" : "unlock",
+              busy
+                ? stage === "setup"
+                  ? "savingPin"
+                  : "unlocking"
+                : stage === "setup"
+                  ? "savePin"
+                  : "unlock",
             )}
-            disabled={busy || pin.length !== 6}
+            disabled={
+              busy ||
+              ![4, 6].includes(pin.length) ||
+              (stage === "setup" && confirm.length !== pin.length)
+            }
             onPress={() => {
               void unlockOrEnroll();
             }}

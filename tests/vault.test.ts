@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, pbkdf2 } from "node:crypto";
 import {
   SessionVault,
   VaultError,
@@ -120,4 +120,108 @@ test("biometric binding changes on enrollment, disappears after PIN exhaustion a
   assert.equal(await vault.biometricBinding(), null);
   await vault.forget();
   assert.equal(await vault.biometricBinding(), null);
+});
+
+const nativeKdf = (pin: string, salt: string): Promise<Uint8Array> =>
+  new Promise((resolve, reject) =>
+    pbkdf2(
+      pin,
+      Buffer.from(salt, "hex"),
+      600_000,
+      32,
+      "sha256",
+      (error, key) => (error ? reject(error) : resolve(key)),
+    ),
+  );
+
+test("four-digit native vault persists across restarts and enforces five attempts", async () => {
+  assert.equal(validPin("8264"), true);
+  for (const pin of ["0000", "1111", "1212", "1234", "4321", "2580", "12345"])
+    assert.equal(validPin(pin), false);
+  const entries = new Map<string, string>();
+  const store = {
+    get: async (k: string) => entries.get(k) ?? null,
+    set: async (k: string, v: string) => {
+      entries.set(k, v);
+    },
+    remove: async (k: string) => {
+      entries.delete(k);
+    },
+  };
+  const create = () =>
+    new SessionVault(store, async (n) => randomBytes(n), Date.now, nativeKdf);
+  await create().enroll(credential, "8264");
+  assert.equal(JSON.parse(entries.get("business.pin.v1")!).version, 2);
+  assert.deepEqual(await create().unlock("8264"), credential);
+  for (let i = 0; i < 5; i++)
+    await assert.rejects(
+      create().unlock("0000"),
+      code(i === 4 ? "signInRequired" : "pinIncorrect"),
+    );
+  await assert.rejects(create().unlock("8264"), code("signInRequired"));
+});
+
+test("legacy six-digit records migrate only after correct PIN and preserve biometric binding", async () => {
+  const entries = new Map<string, string>();
+  const store = {
+    get: async (k: string) => entries.get(k) ?? null,
+    set: async (k: string, v: string) => {
+      entries.set(k, v);
+    },
+    remove: async (k: string) => {
+      entries.delete(k);
+    },
+  };
+  const old = new SessionVault(store, async (n) => randomBytes(n));
+  await old.enroll(credential, "826493");
+  const binding = await old.biometricBinding();
+  const next = new SessionVault(
+    store,
+    async (n) => randomBytes(n),
+    Date.now,
+    nativeKdf,
+  );
+  await assert.rejects(next.unlock("000000"), code("pinIncorrect"));
+  assert.equal(JSON.parse(entries.get("business.pin.v1")!).version, 1);
+  assert.deepEqual(await next.unlock("826493"), credential);
+  assert.equal(JSON.parse(entries.get("business.pin.v1")!).version, 2);
+  assert.equal(await next.biometricBinding(), binding);
+  assert.deepEqual(await next.unlock("826493"), credential);
+});
+
+test("backgrounding during native enrollment never saves the credential", async () => {
+  const entries = new Map<string, string>();
+  let finish!: (value: Uint8Array) => void;
+  let started!: () => void;
+  const began = new Promise<void>((r) => {
+    started = r;
+  });
+  const store = {
+    get: async (k: string) => entries.get(k) ?? null,
+    set: async (k: string, v: string) => {
+      entries.set(k, v);
+    },
+    remove: async (k: string) => {
+      entries.delete(k);
+    },
+  };
+  const vault = new SessionVault(
+    store,
+    async (n) => randomBytes(n),
+    Date.now,
+    async () => {
+      started();
+      return new Promise((r) => {
+        finish = r;
+      });
+    },
+  );
+  const enrolling = vault.enroll(credential, "8264");
+  await began;
+  vault.lock();
+  const key = new Uint8Array(32).fill(1);
+  finish(key);
+  await assert.rejects(enrolling, code("pinLocked"));
+  assert.equal(await vault.hasCredential(), false);
+  assert.ok(key.every((x) => x === 0));
 });

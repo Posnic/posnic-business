@@ -132,13 +132,13 @@
   "waitingApproval": "Wartet auf Ihre Bestätigung. Kehren Sie hierher zurück, wenn Sie im Browser fertig sind.",
   "preparingSignIn": "Anmeldung wird vorbereitet…",
   "createPin": "App-PIN erstellen",
-  "createPinHelp": "Wählen Sie sechs Ziffern, um Business auf diesem Telefon zu entsperren. Vermeiden Sie gleiche oder aufeinanderfolgende Ziffern.",
+  "createPinHelp": "Wähle 4 oder 6 Ziffern zum Entsperren. Vermeide wiederholte oder aufeinanderfolgende Zahlen.",
   "unlockBusiness": "Willkommen zurück",
-  "unlockHelp": "Geben Sie Ihre sechsstellige PIN ein. Nach fünf falschen Versuchen müssen Sie sich erneut anmelden.",
-  "sixDigitPin": "Sechsstellige PIN",
+  "unlockHelp": "Gib deine App-PIN ein. Nach fünf falschen Versuchen erneut anmelden.",
+  "sixDigitPin": "PIN mit 4 oder 6 Ziffern",
   "confirmPin": "PIN bestätigen",
   "pinMismatch": "Die PINs stimmen nicht überein. Geben Sie sie erneut ein.",
-  "pinWeak": "Wählen Sie eine schwerer zu erratende sechsstellige PIN.",
+  "pinWeak": "Wähle eine schwerer zu erratende PIN mit 4 oder 6 Ziffern.",
   "pinIncorrect": "Falsche PIN. Versuchen Sie es erneut.",
   "pinLocked": "Die App wurde gesperrt. Entsperren Sie sie erneut.",
   "signInRequired": "Melden Sie sich erneut an, um fortzufahren.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Mindestabstand zwischen Meldungen",
   "stockAlertInterval": "{minutes} Minuten",
   "stockAlertsQuietHelp": "Meldungen warten bis zum Ende der Ruhezeiten. Der Bestand wird vor dem Versand erneut geprüft.",
-  "stockNewLowCount": "Neu gemeldete Artikel mit niedrigem Bestand: {count}"
+  "stockNewLowCount": "Neu gemeldete Artikel mit niedrigem Bestand: {count}",
+  "savingPin": "PIN wird gespeichert…"
 }

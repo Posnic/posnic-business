@@ -132,13 +132,13 @@
   "waitingApproval": "En attente de votre autorisation. Revenez ici après avoir terminé dans le navigateur.",
   "preparingSignIn": "Préparation de la connexion…",
   "createPin": "Créer le code PIN de l’application",
-  "createPinHelp": "Choisissez six chiffres pour déverrouiller Business sur ce téléphone. Évitez les chiffres répétés ou les suites.",
+  "createPinHelp": "Choisissez 4 ou 6 chiffres pour déverrouiller l’application. Évitez les chiffres répétés ou consécutifs.",
   "unlockBusiness": "Bon retour",
-  "unlockHelp": "Saisissez votre code PIN à six chiffres. Après cinq tentatives incorrectes, reconnectez-vous.",
-  "sixDigitPin": "Code PIN à six chiffres",
+  "unlockHelp": "Saisissez votre code. Après cinq erreurs, reconnectez-vous.",
+  "sixDigitPin": "Code à 4 ou 6 chiffres",
   "confirmPin": "Confirmer le code PIN",
   "pinMismatch": "Les codes PIN ne correspondent pas. Saisissez-les à nouveau.",
-  "pinWeak": "Choisissez un code PIN à six chiffres moins prévisible.",
+  "pinWeak": "Choisissez un code à 4 ou 6 chiffres moins prévisible.",
   "pinIncorrect": "Code PIN incorrect. Réessayez.",
   "pinLocked": "L’application a été verrouillée. Déverrouillez-la à nouveau.",
   "signInRequired": "Reconnectez-vous pour continuer.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Délai minimum entre les alertes",
   "stockAlertInterval": "{minutes} minutes",
   "stockAlertsQuietHelp": "Les alertes attendent la fin des heures calmes. Le stock est vérifié à nouveau avant l’envoi.",
-  "stockNewLowCount": "Articles nouvellement en stock faible : {count}"
+  "stockNewLowCount": "Articles nouvellement en stock faible : {count}",
+  "savingPin": "Enregistrement du code…"
 }

@@ -2,8 +2,8 @@ node_modules/
 .expo/
 dist/
 dist-native/
-android/
-ios/
+/android/
+/ios/
 test-results/
 playwright-report/
 *.log

@@ -12,11 +12,15 @@ on:
         type: string
         default: "1"
       publish_build_run:
-        description: Verified Android build run to publish as preview 10
+        description: Verified Android build run to publish as preview 11
         required: false
         type: string
       publish_smoke_run:
         description: Successful smoke run for the same source
+        required: false
+        type: string
+      publish_pin_run:
+        description: Successful native PIN qualification for the same app sources
         required: false
         type: string
       test_build_run:
@@ -56,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.10-android-test.apk
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.11-android-test.apk
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
@@ -174,45 +178,56 @@ jobs:
       GH_REPO: ${{ github.repository }}
       BUILD_RUN: ${{ inputs.publish_build_run }}
       SMOKE_RUN: ${{ inputs.publish_smoke_run }}
+      PIN_RUN: ${{ inputs.publish_pin_run }}
     steps:
       - name: Verify successful build and smoke runs
         id: source
         run: |
           set -euo pipefail
-          [[ "$BUILD_RUN" =~ ^[0-9]+$ && "$SMOKE_RUN" =~ ^[0-9]+$ ]]
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ && "$SMOKE_RUN" =~ ^[0-9]+$ && "$PIN_RUN" =~ ^[0-9]+$ ]]
           gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > build.json
           gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN" > smoke.json
+          gh api "repos/$GH_REPO/actions/runs/$PIN_RUN" > pin.json
+          jq -e '.conclusion == "success" and .path == ".github/workflows/pin-qa.yml"' pin.json
           jq -e '.conclusion == "success" and .event == "workflow_dispatch" and .path == ".github/workflows/native.yml"' build.json smoke.json
           source_sha=$(jq -r .head_sha build.json)
           [[ "$source_sha" == "$(jq -r .head_sha smoke.json)" ]]
           gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN/jobs" --jq '.jobs[] | select(.name == "android") | .conclusion' | grep -x success
           gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN/jobs" --jq '.jobs[] | select(.name == "smoke") | .conclusion' | grep -x success
+          gh api "repos/$GH_REPO/actions/runs/$PIN_RUN/jobs" --jq '.jobs[] | select(.name == "pin") | .conclusion' | grep -x success
           echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "pin_sha=$(jq -r .head_sha pin.json)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.source.outputs.sha }}
+      - name: Verify PIN qualification covers the shipped app
+        env:
+          PIN_SHA: ${{ steps.source.outputs.pin_sha }}
+        run: |
+          git fetch origin "$PIN_SHA" --depth=1
+          git diff --exit-code HEAD FETCH_HEAD -- src modules plugins package.json package-lock.json app.json app.config.ts index.ts
       - uses: actions/download-artifact@v4
         with:
           name: posnic-business-android-test
           run-id: ${{ inputs.publish_build_run }}
           github-token: ${{ github.token }}
           path: test-release
-      - name: Publish verified preview 10
+      - name: Publish verified preview 11
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
           [[ "$(cat test-release/SOURCE_COMMIT.txt)" == "$SOURCE_SHA" ]]
           (cd test-release && sha256sum -c SHA256SUMS.txt)
-          grep -q "versionCode='10'" test-release/package.txt
-          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.10-source.zip "$SOURCE_SHA"
+          grep -q "versionCode='11'" test-release/package.txt
+          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.11-source.zip "$SOURCE_SHA"
           cat > release-notes.md <<'NOTES'
           Latest Android test build of Posnic Business. Download the APK below and open it on your phone. No Expo Go or development server is needed. Start with **Explore sample business**.
 
-          Since preview 9: Cloud sign-in no longer displays a matching code or a redundant server address. Sign in on Posnic Cloud and continue with your account. Android versionCode is now 10.
+          Since preview 10: save and unlock your app PIN using a native background key derivation. Four- and six-digit PINs are supported, with a durable five-attempt limit and visible saving progress. Android versionCode is now 11.
 
           This is a development-signed test APK for ARM64 phones and x86-64 emulators. Cloud browser consent has been fixed on the server. Connected features and notifications require a compatible configured backend.
 
-          Validation: TypeScript and 102 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
+          Validation: TypeScript and 105 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
           NOTES
-          gh release create v0.1.0-preview.10 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.10 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
+          gh release create v0.1.0-preview.11 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.11 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
