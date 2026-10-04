@@ -11,6 +11,14 @@ on:
         description: Unique TestFlight build number
         type: string
         default: "1"
+      publish_build_run:
+        description: Verified Android build run to publish as preview 8
+        required: false
+        type: string
+      publish_smoke_run:
+        description: Successful smoke run for the same source
+        required: false
+        type: string
       test_build_run:
         description: Existing Android test build run to install and smoke-test (empty builds an APK)
         required: false
@@ -23,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   android:
-    if: inputs.platform != 'ios' && inputs.test_build_run == ''
+    if: inputs.publish_build_run == '' && inputs.platform != 'ios' && inputs.test_build_run == ''
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -68,7 +76,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
   smoke:
-    if: inputs.platform != 'ios' && inputs.test_build_run != ''
+    if: inputs.publish_build_run == '' && inputs.platform != 'ios' && inputs.test_build_run != ''
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -153,3 +161,58 @@ jobs:
           printf '%s' "$ASC_API_KEY_P8" > "$key_path"
           chmod 600 "$key_path"
           xcrun altool --upload-app --type ios --file build-output/PosnicBusiness.ipa --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER"
+
+  publish:
+    if: inputs.publish_build_run != '' && inputs.platform == 'android'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_RUN: ${{ inputs.publish_build_run }}
+      SMOKE_RUN: ${{ inputs.publish_smoke_run }}
+    steps:
+      - name: Verify successful build and smoke runs
+        id: source
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ && "$SMOKE_RUN" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > build.json
+          gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN" > smoke.json
+          jq -e '.conclusion == "success" and .event == "workflow_dispatch" and .path == ".github/workflows/native.yml"' build.json smoke.json
+          source_sha=$(jq -r .head_sha build.json)
+          [[ "$source_sha" == "$(jq -r .head_sha smoke.json)" ]]
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN/jobs" --jq '.jobs[] | select(.name == "android") | .conclusion' | grep -x success
+          gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN/jobs" --jq '.jobs[] | select(.name == "smoke") | .conclusion' | grep -x success
+          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: posnic-business-android-test
+          run-id: ${{ inputs.publish_build_run }}
+          github-token: ${{ github.token }}
+          path: test-release
+      - name: Publish verified preview 8
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(cat test-release/SOURCE_COMMIT.txt)" == "$SOURCE_SHA" ]]
+          (cd test-release && sha256sum -c SHA256SUMS.txt)
+          grep -q "versionCode='8'" test-release/package.txt
+          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.8-source.zip "$SOURCE_SHA"
+          cat > release-notes.md <<'NOTES'
+          Latest Android test build of Posnic Business. Download the APK below and open it on your phone. No Expo Go or development server is needed. Start with **Explore sample business**.
+
+          Since preview 7: scoped stock, item and trend observations are retained through transient refresh failures, with freshness/expiry checks; the Posnic app icon is included; Android versionCode is now 8.
+
+          This is a development-signed test APK for ARM64 phones and x86-64 emulators. Cloud login still needs the companion backend deployment; this APK does not fix the current server-not-supported response by itself. Connected features and notifications require a compatible configured backend.
+
+          Validation: TypeScript and 102 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
+          NOTES
+          gh release create v0.1.0-preview.8 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.8 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
