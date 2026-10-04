@@ -567,7 +567,7 @@ function BusinessApp() {
                         <Card>
                           <Button
                             label={t("cloud")}
-                            disabled={checking}
+                            disabled={checking || !!compatibleOrigin}
                             onPress={() => {
                               void checkConnection(CLOUD_ORIGIN);
                             }}
@@ -587,6 +587,8 @@ function BusinessApp() {
                         <AuthorizationPanel
                           key={compatibleOrigin}
                           origin={compatibleOrigin}
+                          autoStart={compatibleOrigin === CLOUD_ORIGIN}
+                          onCancel={cancelConnection}
                           onConnected={(session) => {
                             setConnectedSession(session);
                             setAccountOpen(true);

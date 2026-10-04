@@ -19,7 +19,11 @@ export function AuthorizationPanel({
   stepUp = false,
   initialAttempt = null,
   onAttempt,
+  autoStart = false,
+  onCancel,
 }: {
+  autoStart?: boolean;
+  onCancel?: () => void;
   origin: string;
   onConnected: (session: Session) => void;
   stepUp?: boolean;
@@ -82,7 +86,26 @@ export function AuthorizationPanel({
       clearTimeout(timer);
     };
   }, [attempt, waiting]);
-  async function begin() {
+  useEffect(() => {
+    if (!autoStart) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void begin(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [autoStart, origin]);
+  async function openApproval(value: AuthorizationAttempt) {
+    setWaiting(true);
+    try {
+      await WebBrowser.openBrowserAsync(value.authorizationUrl);
+    } catch {
+      setWaiting(false);
+      setError(true);
+    }
+  }
+  async function begin(openImmediately = false) {
     if (controller.current && busy) return;
     const request = new AbortController();
     controller.current = request;
@@ -97,6 +120,7 @@ export function AuthorizationPanel({
       if (!request.signal.aborted) {
         setAttempt(value);
         onAttempt?.(value);
+        if (openImmediately) void openApproval(value);
       }
     } catch {
       if (!request.signal.aborted) setError(true);
@@ -150,6 +174,7 @@ export function AuthorizationPanel({
               setAttempt(null);
               onAttempt?.(null);
               setError(false);
+              onCancel?.();
             }}
           />
         </View>
@@ -164,7 +189,7 @@ export function AuthorizationPanel({
           )}
           disabled={busy}
           onPress={() => {
-            void begin();
+            void begin(autoStart);
           }}
         />
       )}

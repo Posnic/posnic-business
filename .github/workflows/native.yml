@@ -12,7 +12,7 @@ on:
         type: string
         default: "1"
       publish_build_run:
-        description: Verified Android build run to publish as preview 8
+        description: Verified Android build run to publish as preview 9
         required: false
         type: string
       publish_smoke_run:
@@ -56,7 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.8-android-test.apk
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.9-android-test.apk
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
@@ -197,22 +197,22 @@ jobs:
           run-id: ${{ inputs.publish_build_run }}
           github-token: ${{ github.token }}
           path: test-release
-      - name: Publish verified preview 8
+      - name: Publish verified preview 9
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
           [[ "$(cat test-release/SOURCE_COMMIT.txt)" == "$SOURCE_SHA" ]]
           (cd test-release && sha256sum -c SHA256SUMS.txt)
-          grep -q "versionCode='8'" test-release/package.txt
-          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.8-source.zip "$SOURCE_SHA"
+          grep -q "versionCode='9'" test-release/package.txt
+          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.9-source.zip "$SOURCE_SHA"
           cat > release-notes.md <<'NOTES'
           Latest Android test build of Posnic Business. Download the APK below and open it on your phone. No Expo Go or development server is needed. Start with **Explore sample business**.
 
-          Since preview 7: scoped stock, item and trend observations are retained through transient refresh failures, with freshness/expiry checks; the Posnic app icon is included; Android versionCode is now 8.
+          Since preview 8: tapping Posnic Cloud starts browser device approval directly, with a matching code and a reopen option. Android versionCode is now 9.
 
-          This is a development-signed test APK for ARM64 phones and x86-64 emulators. Cloud login still needs the companion backend deployment; this APK does not fix the current server-not-supported response by itself. Connected features and notifications require a compatible configured backend.
+          This is a development-signed test APK for ARM64 phones and x86-64 emulators. Cloud browser consent has been fixed on the server. Connected features and notifications require a compatible configured backend.
 
           Validation: TypeScript and 102 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
           NOTES
-          gh release create v0.1.0-preview.8 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.8 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
+          gh release create v0.1.0-preview.9 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.9 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
