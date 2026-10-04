@@ -54,7 +54,9 @@ test("one Cloud tap opens device approval and cancel permits a fresh request", a
     popup.getByRole("heading", { name: "Approve Business device" }),
   ).toBeVisible();
   expect(requests).toBe(1);
-  await expect(page.getByText("Match this code on the sign-in page")).toHaveCount(0);
+  await expect(
+    page.getByText("Match this code on the sign-in page"),
+  ).toHaveCount(0);
   await expect(page.getByText(origin, { exact: true })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Today" })).toHaveCount(0);
   await expect(
