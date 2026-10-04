@@ -1,5 +1,10 @@
 name: Native PIN qualification
 on:
+  push:
+    branches: [codex/business-pin-reliability]
+    paths:
+      - .github/workflows/pin-qa.yml
+      - tests/native/**
   workflow_dispatch:
     inputs:
       pin:
@@ -55,7 +60,7 @@ jobs:
           adb install android/app/build/outputs/apk/release/app-release.apk
       - name: Save, restart, unlock and exhaust wrong-PIN budget
         env:
-          QA_PIN: ${{ inputs.pin }}
+          QA_PIN: ${{ inputs.pin || '826493' }}
         run: python3 scripts/android-pin-qa.py
       - uses: actions/upload-artifact@v4
         if: always()
