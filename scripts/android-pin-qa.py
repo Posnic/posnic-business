@@ -50,3 +50,6 @@ finally:
     (evidence/'timings.json').write_text(json.dumps(timings))
     capture('final')
     (evidence/'logcat.txt').write_bytes(adb('logcat','-d','-t','500'))
+    timings_log = adb('logcat','-d','ReactNativeJS:I','*:S')
+    (evidence/'pin-timings.log').write_bytes(timings_log)
+    print(timings_log.decode(errors='replace'))

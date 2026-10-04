@@ -15,6 +15,25 @@ const session = {
   expiresAt: "2099-01-01T00:00:00.000Z",
   context: account,
 };
+// Instrument duration without replacing any vault or storage implementation.
+for (const method of ["enroll", "unlock"] as const) {
+  const original = vault[method].bind(vault) as (
+    ...args: any[]
+  ) => Promise<any>;
+  (vault as any)[method] = async (...args: any[]) => {
+    const start = performance.now();
+    try {
+      return await original(...args);
+    } finally {
+      console.info(
+        "PIN_QA_" +
+          method.toUpperCase() +
+          "_MS=" +
+          Math.round(performance.now() - start),
+      );
+    }
+  };
+}
 export default function PinQa() {
   const [saved, setSaved] = useState<boolean | null>(null);
   const [exited, setExited] = useState(false);
