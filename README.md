@@ -8,7 +8,7 @@ An owner and manager companion for Android and iOS. See daily performance, under
 
 ## Android test download
 
-[Download preview 7 APK](https://github.com/Posnic/posnic-business/releases/download/v0.1.0-preview.7/posnic-business-0.1.0-preview.7-android-test.apk) for ARM64 Android 7.0+ (also x86-64 emulators). Install and choose **Explore sample business**; no development server is needed. This is development-signed. See [release notes and validation](https://github.com/Posnic/posnic-business/releases/tag/v0.1.0-preview.7) for connected-server requirements and remaining qualification.
+[Download the latest build](https://github.com/Posnic/posnic-business/releases) for ARM64 Android 7.0+ (also x86-64 emulators). Open the newest release and select its `.apk` under **Assets**. No development server is needed. These are development-signed test builds; read the release notes for validation, connected-server requirements and remaining qualification.
 
 ## Run locally
 
