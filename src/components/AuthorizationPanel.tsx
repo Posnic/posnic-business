@@ -133,7 +133,9 @@ export function AuthorizationPanel({
       <Text style={titleStyle}>
         {t(stepUp ? "confirmIdentity" : "secureSignIn")}
       </Text>
-      <Text style={[textStyle, { writingDirection: "ltr" }]}>{origin}</Text>
+      {!autoStart && (
+        <Text style={[textStyle, { writingDirection: "ltr" }]}>{origin}</Text>
+      )}
       <Text style={textStyle}>
         {t(stepUp ? "confirmIdentityHelp" : "browserSignInHelp")}
       </Text>
@@ -144,10 +146,14 @@ export function AuthorizationPanel({
       )}
       {attempt ? (
         <View style={{ gap: 12 }}>
-          <Text style={textStyle}>{t("matchingCode")}</Text>
-          <Text selectable style={codeStyle}>
-            {attempt.matchingCode}
-          </Text>
+          {!autoStart && (
+            <>
+              <Text style={textStyle}>{t("matchingCode")}</Text>
+              <Text selectable style={codeStyle}>
+                {attempt.matchingCode}
+              </Text>
+            </>
+          )}
           <Button
             label={t(waiting ? "reopenBrowser" : "openBrowser")}
             onPress={() => {
