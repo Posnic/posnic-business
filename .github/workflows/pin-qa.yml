@@ -5,6 +5,8 @@ on:
     paths:
       - .github/workflows/pin-qa.yml
       - tests/native/**
+      - src/platform/pinCrypto.native.ts
+      - package-lock.json
   workflow_dispatch:
     inputs:
       pin:

@@ -99,6 +99,10 @@ export class SessionVault {
       pin: string,
       saltAndSecret: string,
     ) => Promise<Uint8Array>,
+    private legacyDerive?: (
+      pin: string,
+      saltAndSecret: string,
+    ) => Promise<Uint8Array>,
   ) {}
   lock() {
     this.generation++;
@@ -133,10 +137,12 @@ export class SessionVault {
     generation: number,
     version: 1 | 2 = 1,
   ) {
-    if (version === 2) {
-      if (!this.nativeDerive) throw new VaultError("storageUnavailable");
+    const nativeDerive = version === 2 ? this.nativeDerive : this.legacyDerive;
+    if (version === 2 && !nativeDerive)
+      throw new VaultError("storageUnavailable");
+    if (nativeDerive) {
       let timer: ReturnType<typeof setTimeout> | undefined;
-      const work = this.nativeDerive(pin, salt + secret);
+      const work = nativeDerive(pin, salt + secret);
       let abandoned = false;
       try {
         const key = await Promise.race([

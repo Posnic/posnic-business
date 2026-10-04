@@ -1,8 +1,0 @@
-{
-  "name": "posnic-pin-crypto",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Background native PIN key derivation for Posnic Business",
-  "license": "AGPL-3.0-only",
-  "author": "Sridhar Bala"
-}

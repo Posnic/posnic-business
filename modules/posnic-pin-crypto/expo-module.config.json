@@ -1,5 +1,0 @@
-{
-  "platforms": ["apple", "android"],
-  "apple": { "modules": ["PosnicPinCryptoModule"] },
-  "android": { "modules": ["com.posnic.pincrypto.PosnicPinCryptoModule"] }
-}

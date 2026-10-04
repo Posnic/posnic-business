@@ -5,7 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AccountScreen } from "../../src/components/AccountScreen";
 import { UIContext } from "../../src/components/ui";
 import { vault } from "../../src/platform/vault";
-import { derivePinKey } from "../../src/platform/pinCrypto";
+import { derivePinKey, deriveLegacyPinKey } from "../../src/platform/pinCrypto";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { account } from "./network";
 
@@ -51,6 +51,13 @@ export default function PinQa() {
       console.info(
         "PIN_QA_NATIVE_KDF_MS=" + Math.round(performance.now() - started),
       );
+      const legacyKey = await deriveLegacyPinKey("826493", "01".repeat(48));
+      if (
+        bytesToHex(legacyKey) !==
+        "74b172e78ce73424e204813461cd39bb2890598536653672348770184577fa29"
+      )
+        throw new Error("Legacy native KDF known-answer mismatch");
+      legacyKey.fill(0);
       setSaved(await vault.hasCredential());
     })().catch((error) => setFailure(String(error)));
   }, []);

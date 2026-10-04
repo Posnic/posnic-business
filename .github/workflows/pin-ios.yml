@@ -4,6 +4,8 @@ on:
     branches: [codex/business-pin-reliability]
     paths:
       - modules/**
+      - src/platform/pinCrypto.native.ts
+      - package-lock.json
       - .github/workflows/pin-ios.yml
   workflow_dispatch:
 permissions:
