@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { getRandomBytesAsync } from "expo-crypto";
 import { SessionVault, VaultError } from "../services/sessionVault";
+import { derivePinKey } from "./pinCrypto";
 
 const options = {
   keychainService: "com.posnic.business.session",
@@ -27,4 +28,6 @@ export const vault = new SessionVault(
     },
   },
   getRandomBytesAsync,
+  Date.now,
+  derivePinKey,
 );

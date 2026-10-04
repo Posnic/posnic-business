@@ -132,13 +132,13 @@
   "waitingApproval": "Waiting for your approval. Return here when you finish in the browser.",
   "preparingSignIn": "Preparing sign-in…",
   "createPin": "Create your app PIN",
-  "createPinHelp": "Choose six digits to unlock Business on this phone. Avoid repeated or sequential numbers.",
+  "createPinHelp": "Choose 4 or 6 digits to unlock Business on this phone. Avoid repeated or sequential numbers.",
   "unlockBusiness": "Welcome back",
-  "unlockHelp": "Enter your six-digit PIN. After five incorrect attempts, sign in again.",
-  "sixDigitPin": "Six-digit PIN",
+  "unlockHelp": "Enter your app PIN. After five incorrect attempts, sign in again.",
+  "sixDigitPin": "4- or 6-digit PIN",
   "confirmPin": "Confirm PIN",
   "pinMismatch": "The PINs do not match. Please enter them again.",
-  "pinWeak": "Choose a less predictable six-digit PIN.",
+  "pinWeak": "Choose a less predictable 4- or 6-digit PIN.",
   "pinIncorrect": "Incorrect PIN. Please try again.",
   "pinLocked": "The app was locked. Please unlock again.",
   "signInRequired": "Please sign in again to continue.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Minimum time between alerts",
   "stockAlertInterval": "{minutes} minutes",
   "stockAlertsQuietHelp": "Alerts wait until quiet hours end. Stock is checked again before delivery.",
-  "stockNewLowCount": "{count} newly low-stock items"
+  "stockNewLowCount": "{count} newly low-stock items",
+  "savingPin": "Saving PIN…"
 }

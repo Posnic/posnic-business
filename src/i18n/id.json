@@ -132,13 +132,13 @@
   "waitingApproval": "Menunggu persetujuan Anda. Kembali ke sini setelah selesai di browser.",
   "preparingSignIn": "Menyiapkan proses masuk…",
   "createPin": "Buat PIN aplikasi Anda",
-  "createPinHelp": "Pilih enam digit untuk membuka kunci Business di ponsel ini. Hindari angka berulang atau berurutan.",
+  "createPinHelp": "Pilih 4 atau 6 digit untuk membuka aplikasi. Hindari angka berulang atau berurutan.",
   "unlockBusiness": "Selamat datang kembali",
-  "unlockHelp": "Masukkan PIN enam digit Anda. Setelah lima percobaan salah, masuk kembali ke akun.",
-  "sixDigitPin": "PIN enam digit",
+  "unlockHelp": "Masukkan PIN aplikasi. Setelah lima kesalahan, masuk kembali.",
+  "sixDigitPin": "PIN 4 atau 6 digit",
   "confirmPin": "Konfirmasi PIN",
   "pinMismatch": "PIN tidak cocok. Masukkan kembali.",
-  "pinWeak": "Pilih PIN enam digit yang lebih sulit ditebak.",
+  "pinWeak": "Pilih PIN 4 atau 6 digit yang lebih sulit ditebak.",
   "pinIncorrect": "PIN salah. Coba lagi.",
   "pinLocked": "Aplikasi telah dikunci. Buka kunci kembali.",
   "signInRequired": "Masuk kembali untuk melanjutkan.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Jarak waktu minimum antarperingatan",
   "stockAlertInterval": "{minutes} menit",
   "stockAlertsQuietHelp": "Peringatan menunggu hingga jam tenang berakhir. Stok diperiksa kembali sebelum dikirim.",
-  "stockNewLowCount": "Barang yang baru memiliki stok rendah: {count}"
+  "stockNewLowCount": "Barang yang baru memiliki stok rendah: {count}",
+  "savingPin": "Menyimpan PIN…"
 }

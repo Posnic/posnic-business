@@ -9,7 +9,7 @@ on:
     inputs:
       pin:
         description: Synthetic test PIN (not an account credential)
-        default: "826493"
+        default: "8264"
         type: string
 permissions:
   contents: read
@@ -60,8 +60,10 @@ jobs:
           adb install android/app/build/outputs/apk/release/app-release.apk
       - name: Save, restart, unlock and exhaust wrong-PIN budget
         env:
-          QA_PIN: ${{ inputs.pin || '826493' }}
-        run: python3 scripts/android-pin-qa.py
+          QA_PIN: ${{ inputs.pin || '8264' }}
+        run: |
+          python3 scripts/android-pin-qa.py
+          QA_PIN=826493 python3 scripts/android-pin-qa.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

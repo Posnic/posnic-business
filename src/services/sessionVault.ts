@@ -33,7 +33,7 @@ export const credentialSchema = z
 export type Credential = z.infer<typeof credentialSchema>;
 const recordSchema = z
   .object({
-    version: z.literal(1),
+    version: z.union([z.literal(1), z.literal(2)]),
     salt: z.string().regex(/^[a-f0-9]{32}$/),
     nonce: z.string().regex(/^[a-f0-9]{24}$/),
     data: z
@@ -60,8 +60,9 @@ export class VaultError extends Error {
 }
 export function validPin(pin: string) {
   return (
-    /^\d{6}$/.test(pin) &&
-    !/^(\d)\1{5}$/.test(pin) &&
+    /^(?:\d{4}|\d{6})$/.test(pin) &&
+    !/^(\d)\1+$/.test(pin) &&
+    !/^(\d\d)\1$/.test(pin) &&
     !/^(\d\d)\1\1$/.test(pin) &&
     !/^(\d\d\d)\1$/.test(pin) &&
     ![
@@ -72,6 +73,14 @@ export function validPin(pin: string) {
       "111222",
       "112233",
       "000000",
+      "1234",
+      "4321",
+      "0123",
+      "3210",
+      "2580",
+      "0852",
+      "1122",
+      "2000",
     ].includes(pin) &&
     ![1, -1].some((step) =>
       [...pin].slice(1).every((digit, i) => +digit === +pin[i]! + step),
@@ -86,6 +95,10 @@ export class SessionVault {
     private store: SecretStore,
     private random: (size: number) => Promise<Uint8Array>,
     private now = Date.now,
+    private nativeDerive?: (
+      pin: string,
+      saltAndSecret: string,
+    ) => Promise<Uint8Array>,
   ) {}
   lock() {
     this.generation++;
@@ -118,7 +131,38 @@ export class SessionVault {
     salt: string,
     secret: string,
     generation: number,
+    version: 1 | 2 = 1,
   ) {
+    if (version === 2) {
+      if (!this.nativeDerive) throw new VaultError("storageUnavailable");
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const work = this.nativeDerive(pin, salt + secret);
+      let abandoned = false;
+      try {
+        const key = await Promise.race([
+          work,
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => {
+              abandoned = true;
+              reject(new VaultError("storageUnavailable"));
+            }, 10_000);
+          }),
+        ]);
+        if (generation !== this.generation) {
+          key.fill(0);
+          throw new VaultError("pinLocked");
+        }
+        return key;
+      } finally {
+        clearTimeout(timer);
+        void work.then(
+          (key) => {
+            if (abandoned) key.fill(0);
+          },
+          () => {},
+        );
+      }
+    }
     const started = this.now();
     return scryptAsync(
       new TextEncoder().encode(pin),
@@ -153,7 +197,8 @@ export class SessionVault {
       }
       if (!/^[a-f0-9]{64}$/.test(secret))
         throw new VaultError("storageUnavailable");
-      const key = await this.derive(pin, salt, secret, generation);
+      const version = this.nativeDerive ? 2 : 1;
+      const key = await this.derive(pin, salt, secret, generation, version);
       try {
         const data = bytesToHex(
           gcm(key, nonce).encrypt(
@@ -164,7 +209,7 @@ export class SessionVault {
         await this.store.set(
           RECORD,
           JSON.stringify({
-            version: 1,
+            version,
             salt,
             nonce: bytesToHex(nonce),
             data,
@@ -198,11 +243,17 @@ export class SessionVault {
         RECORD,
         JSON.stringify({ ...record, failures: record.failures + 1 }),
       );
-      if (!/^\d{6}$/.test(pin))
+      if (!/^(?:\d{4}|\d{6})$/.test(pin))
         throw new VaultError(
           record.failures === 4 ? "signInRequired" : "pinIncorrect",
         );
-      const key = await this.derive(pin, record.salt, secret, generation);
+      const key = await this.derive(
+        pin,
+        record.salt,
+        secret,
+        generation,
+        record.version,
+      );
       let credential: Credential;
       try {
         const plain = gcm(key, hexToBytes(record.nonce)).decrypt(
@@ -225,6 +276,33 @@ export class SessionVault {
       if (generation !== this.generation) throw new VaultError("pinLocked");
       if (Date.parse(credential.expiresAt) <= this.now())
         throw new VaultError("signInRequired");
+      if (record.version === 1 && this.nativeDerive) {
+        // Preserve the enrollment binding used by biometric unlock. Only the
+        // encryption format changes after a successful legacy PIN verification.
+        const nextKey = await this.derive(
+          pin,
+          record.salt,
+          secret,
+          generation,
+          2,
+        );
+        try {
+          const nonce = await this.random(12);
+          record = {
+            ...record,
+            version: 2,
+            nonce: bytesToHex(nonce),
+            data: bytesToHex(
+              gcm(nextKey, nonce).encrypt(
+                new TextEncoder().encode(JSON.stringify(credential)),
+              ),
+            ),
+          };
+        } finally {
+          nextKey.fill(0);
+        }
+      }
+      if (generation !== this.generation) throw new VaultError("pinLocked");
       await this.store.set(RECORD, JSON.stringify({ ...record, failures: 0 }));
       if (generation !== this.generation) throw new VaultError("pinLocked");
       return credential;

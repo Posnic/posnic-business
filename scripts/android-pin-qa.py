@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 app = 'com.posnic.business.pinqa'
 pin = os.environ.get('QA_PIN', '826493')
-evidence = Path('pin-evidence'); evidence.mkdir(exist_ok=True)
+evidence = Path('pin-evidence') / (str(len(pin)) + '-digit'); evidence.mkdir(parents=True,exist_ok=True)
 timings = {}
 def adb(*args): return subprocess.check_output(['adb', *args], timeout=30)
 def tree():
@@ -30,7 +30,7 @@ def enter(value, confirm=False):
 def capture(name): (evidence / (name+'.png')).write_bytes(adb('exec-out','screencap','-p'))
 def launch(): adb('shell','am','start','-W','-n',app+'/.MainActivity')
 try:
-    adb('logcat','-c'); launch(); find('Create your app PIN'); capture('setup')
+    adb('shell','pm','clear',app); adb('logcat','-c'); launch(); find('Create your app PIN'); capture('setup')
     enter(pin); enter(pin,True)
     started=time.monotonic(); tap(find('Save PIN and continue')); find('PIN test business')
     timings['save_seconds']=round(time.monotonic()-started,2); capture('saved')

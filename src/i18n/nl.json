@@ -132,13 +132,13 @@
   "waitingApproval": "Wacht op uw toestemming. Keer hier terug zodra u klaar bent in de browser.",
   "preparingSignIn": "Aanmelding voorbereiden…",
   "createPin": "Maak uw app-pincode",
-  "createPinHelp": "Kies zes cijfers om Business op deze telefoon te ontgrendelen. Vermijd herhaalde of opeenvolgende cijfers.",
+  "createPinHelp": "Kies 4 of 6 cijfers om de app te ontgrendelen. Vermijd herhaalde of opeenvolgende cijfers.",
   "unlockBusiness": "Welkom terug",
-  "unlockHelp": "Voer uw pincode van zes cijfers in. Na vijf onjuiste pogingen moet u zich opnieuw aanmelden.",
-  "sixDigitPin": "Pincode van zes cijfers",
+  "unlockHelp": "Voer je pincode in. Na vijf foute pogingen moet je opnieuw inloggen.",
+  "sixDigitPin": "Pincode van 4 of 6 cijfers",
   "confirmPin": "Pincode bevestigen",
   "pinMismatch": "De pincodes komen niet overeen. Voer ze opnieuw in.",
-  "pinWeak": "Kies een minder voorspelbare pincode van zes cijfers.",
+  "pinWeak": "Kies een minder voorspelbare pincode van 4 of 6 cijfers.",
   "pinIncorrect": "Onjuiste pincode. Probeer het opnieuw.",
   "pinLocked": "De app is vergrendeld. Ontgrendel deze opnieuw.",
   "signInRequired": "Meld u opnieuw aan om door te gaan.",
@@ -272,5 +272,6 @@
   "stockAlertFrequency": "Minimale tijd tussen meldingen",
   "stockAlertInterval": "{minutes} minuten",
   "stockAlertsQuietHelp": "Meldingen wachten tot de stille uren voorbij zijn. De voorraad wordt vóór verzending opnieuw gecontroleerd.",
-  "stockNewLowCount": "Nieuw gemelde artikelen met lage voorraad: {count}"
+  "stockNewLowCount": "Nieuw gemelde artikelen met lage voorraad: {count}",
+  "savingPin": "Pincode opslaan…"
 }
