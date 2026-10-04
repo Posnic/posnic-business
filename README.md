@@ -1,5 +1,7 @@
 # Posnic Business
 
+**[Download the latest build](https://github.com/Posnic/posnic-business/releases)** — Android APK. Open the newest release and download its `.apk` under **Assets**. Preview builds are for testing.
+
 An owner and manager companion for Android and iOS. See daily performance, understand useful exceptions, and eventually review important business decisions away from the shop.
 
 **Status: development build, not a production release.** Version 0.1.0 includes a clearly labelled synthetic sample business and separate real-account authorization screens. Cloud/Community browser sign-in, encrypted PIN storage, optional biometric unlock and connected-device removal are implemented for development testing with companion server changes. Server rollout, live reporting, push delivery, financial approvals and device qualification remain in progress. Use controlled test accounts for this preview. The existing Mobile POS and Captain apps retain their own selling and service workflows.
