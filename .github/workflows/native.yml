@@ -19,6 +19,10 @@ on:
         description: Successful smoke run for the same source
         required: false
         type: string
+      publish_pin_run:
+        description: Successful native PIN qualification for the same app sources
+        required: false
+        type: string
       test_build_run:
         description: Existing Android test build run to install and smoke-test (empty builds an APK)
         required: false
@@ -174,23 +178,34 @@ jobs:
       GH_REPO: ${{ github.repository }}
       BUILD_RUN: ${{ inputs.publish_build_run }}
       SMOKE_RUN: ${{ inputs.publish_smoke_run }}
+      PIN_RUN: ${{ inputs.publish_pin_run }}
     steps:
       - name: Verify successful build and smoke runs
         id: source
         run: |
           set -euo pipefail
-          [[ "$BUILD_RUN" =~ ^[0-9]+$ && "$SMOKE_RUN" =~ ^[0-9]+$ ]]
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ && "$SMOKE_RUN" =~ ^[0-9]+$ && "$PIN_RUN" =~ ^[0-9]+$ ]]
           gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > build.json
           gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN" > smoke.json
+          gh api "repos/$GH_REPO/actions/runs/$PIN_RUN" > pin.json
+          jq -e '.conclusion == "success" and .path == ".github/workflows/pin-qa.yml"' pin.json
           jq -e '.conclusion == "success" and .event == "workflow_dispatch" and .path == ".github/workflows/native.yml"' build.json smoke.json
           source_sha=$(jq -r .head_sha build.json)
           [[ "$source_sha" == "$(jq -r .head_sha smoke.json)" ]]
           gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN/jobs" --jq '.jobs[] | select(.name == "android") | .conclusion' | grep -x success
           gh api "repos/$GH_REPO/actions/runs/$SMOKE_RUN/jobs" --jq '.jobs[] | select(.name == "smoke") | .conclusion' | grep -x success
+          gh api "repos/$GH_REPO/actions/runs/$PIN_RUN/jobs" --jq '.jobs[] | select(.name == "pin") | .conclusion' | grep -x success
           echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "pin_sha=$(jq -r .head_sha pin.json)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.source.outputs.sha }}
+      - name: Verify PIN qualification covers the shipped app
+        env:
+          PIN_SHA: ${{ steps.source.outputs.pin_sha }}
+        run: |
+          git fetch origin "$PIN_SHA" --depth=1
+          git diff --exit-code HEAD FETCH_HEAD -- src modules plugins package.json package-lock.json app.json app.config.ts index.ts
       - uses: actions/download-artifact@v4
         with:
           name: posnic-business-android-test
