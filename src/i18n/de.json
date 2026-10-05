@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · um {time} in der Zeitzone der Filiale erstellt",
   "summaryPartial": "Einige Verkäufe werden möglicherweise noch synchronisiert",
   "summaryDelayed": "Diese Zusammenfassung ist verzögert",
-  "summaryCompleteness": "Diese Zahlen wurden von Ihrem Berichtscomputer erstellt. Möglicherweise sind die neuesten Verkäufe nicht von allen Kassen enthalten. Beim Aktualisieren wird nach einer neueren vorbereiteten Zusammenfassung gesucht.",
+  "summaryCompleteness": "Enthält die auf Ihrem Server eingegangenen Verkäufe. Offline-Kassen können neuere Verkäufe haben. Zum erneuten Prüfen aktualisieren.",
   "salesBreakdown": "Zusammensetzung der Summe",
   "billedSales": "In Rechnung gestellter Umsatz",
   "returnsOnDay": "Retouren an diesem Tag",
   "issuedBills": "Ausgestellte Rechnungen",
   "salesDefinition": "Rabatte und Rundungen sind bereits berücksichtigt. Retouren zählen am Tag ihrer Abwicklung, auch bei älteren Rechnungen. Teilweise bezahlte Rechnungen zählen mit ihrem Rechnungsbetrag. Dies ist Umsatz, nicht vereinnahmtes Geld oder Gewinn.",
   "selectComparableBranch": "Wählen Sie eine Filiale für Heute aus. Diese Filialen verwenden unterschiedliche Währungen oder Zeitzonen. Ihre Summen werden daher getrennt angezeigt.",
-  "summaryPreparing": "Es ist noch keine vorbereitete Zusammenfassung verfügbar. Lassen Sie den Berichtscomputer online und aktualisieren Sie in Kürze. Bis zur Verifizierung der Zusammenfassung wird kein Betrag angezeigt.",
+  "summaryPreparing": "Verkäufe sind noch nicht verfügbar. Bitte in Kürze aktualisieren. Beträge werden erst nach Prüfung angezeigt.",
   "summaryUnavailable": "Diese Zusammenfassung konnte nicht verifiziert werden. Prüfen Sie Ihre Verbindung und aktualisieren Sie. Für diese Anfrage werden keine gespeicherten Zahlen angezeigt.",
-  "summaryLoading": "Vorbereitete Zusammenfassung wird geprüft…",
+  "summaryLoading": "Neueste Verkäufe werden geprüft…",
   "signOut": "Abmelden",
   "reportingDesktop": "Berichtscomputer",
   "publisherHelp": "Wählen Sie den Computer, der die mobilen Zusammenfassungen dieser Filiale erstellt. Lassen Sie ihn online und halten Sie alle Kassen synchronisiert. Diese Einstellung gilt für diese Filiale.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} Minuten",
   "stockAlertsQuietHelp": "Meldungen warten bis zum Ende der Ruhezeiten. Der Bestand wird vor dem Versand erneut geprüft.",
   "stockNewLowCount": "Neu gemeldete Artikel mit niedrigem Bestand: {count}",
-  "savingPin": "PIN wird gespeichert…"
+  "savingPin": "PIN wird gespeichert…",
+  "salesCheckedTime": "{date} · um {time} in der Zeitzone der Filiale geprüft"
 }

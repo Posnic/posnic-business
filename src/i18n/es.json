@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · preparado a las {time}, en la zona horaria de la sucursal",
   "summaryPartial": "Algunas ventas podrían seguir sincronizándose",
   "summaryDelayed": "Este resumen está retrasado",
-  "summaryCompleteness": "Tu equipo de informes preparó estas cifras. Puede que no incluyan las últimas ventas de todas las cajas. Al actualizar se comprueba si hay un resumen preparado más reciente.",
+  "summaryCompleteness": "Incluye las ventas recibidas por tu servidor. Las cajas sin conexión pueden tener ventas más recientes. Actualiza para comprobarlo.",
   "salesBreakdown": "Desglose del total",
   "billedSales": "Ventas facturadas",
   "returnsOnDay": "Devoluciones de este día",
   "issuedBills": "Cuentas emitidas",
   "salesDefinition": "Los descuentos y el redondeo ya están incluidos. Las devoluciones se cuentan el día en que ocurren, aunque correspondan a cuentas anteriores. Las cuentas parcialmente pagadas se incluyen por su importe facturado. Son ventas, no dinero cobrado ni beneficios.",
   "selectComparableBranch": "Selecciona una sucursal para ver Hoy. Estas sucursales usan distintas monedas o zonas horarias, por lo que sus totales se muestran por separado.",
-  "summaryPreparing": "Aún no hay un resumen preparado. Mantén conectado el equipo de informes y actualiza en unos momentos. No se muestra ningún importe hasta verificar el resumen.",
+  "summaryPreparing": "Las ventas aún no están disponibles. Actualiza en breve. No se mostrará ningún importe hasta verificar las cifras.",
   "summaryUnavailable": "No se pudo verificar este resumen. Comprueba tu conexión y actualiza. No se muestran cifras guardadas para esta solicitud.",
-  "summaryLoading": "Comprobando tu resumen preparado…",
+  "summaryLoading": "Comprobando las últimas ventas…",
   "signOut": "Cerrar sesión",
   "reportingDesktop": "Equipo de informes",
   "publisherHelp": "Elige el equipo que prepara los resúmenes móviles de esta sucursal. Mantenlo conectado y con todas las cajas sincronizadas. Esta configuración corresponde a esta sucursal.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minutos",
   "stockAlertsQuietHelp": "Las alertas esperan hasta que termine el horario de silencio. Las existencias se comprueban de nuevo antes del envío.",
   "stockNewLowCount": "Artículos nuevos con existencias bajas: {count}",
-  "savingPin": "Guardando PIN…"
+  "savingPin": "Guardando PIN…",
+  "salesCheckedTime": "{date} · comprobado a las {time}, en la zona horaria de la sucursal"
 }

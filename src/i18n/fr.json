@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · préparé à {time} dans le fuseau horaire de l’établissement",
   "summaryPartial": "Certaines ventes sont peut-être encore en cours de synchronisation",
   "summaryDelayed": "Ce récapitulatif est en retard",
-  "summaryCompleteness": "Ces chiffres ont été préparés par votre poste de rapports. Ils peuvent ne pas inclure les dernières ventes de toutes les caisses. L’actualisation recherche un récapitulatif préparé plus récent.",
+  "summaryCompleteness": "Inclut les ventes reçues par votre serveur. Les caisses hors ligne peuvent avoir des ventes plus récentes. Actualisez pour vérifier.",
   "salesBreakdown": "Détail du total",
   "billedSales": "Ventes facturées",
   "returnsOnDay": "Retours de la journée",
   "issuedBills": "Factures émises",
   "salesDefinition": "Les remises et les arrondis sont déjà inclus. Les retours sont comptés le jour où ils ont lieu, même pour des factures plus anciennes. Les factures partiellement payées comptent pour leur montant facturé. Il s’agit des ventes, pas des encaissements ni du bénéfice.",
   "selectComparableBranch": "Sélectionnez un établissement pour voir Aujourd’hui. Ces établissements utilisent des devises ou des fuseaux horaires différents ; leurs totaux sont donc affichés séparément.",
-  "summaryPreparing": "Aucun récapitulatif préparé n’est encore disponible. Gardez le poste de rapports en ligne et actualisez dans un instant. Aucun montant n’est affiché avant vérification du récapitulatif.",
+  "summaryPreparing": "Les ventes ne sont pas encore disponibles. Actualisez dans un instant. Aucun montant ne sera affiché avant vérification.",
   "summaryUnavailable": "Impossible de vérifier ce récapitulatif. Vérifiez votre connexion et actualisez. Aucun chiffre enregistré n’est affiché pour cette demande.",
-  "summaryLoading": "Vérification du récapitulatif préparé…",
+  "summaryLoading": "Vérification des dernières ventes…",
   "signOut": "Se déconnecter",
   "reportingDesktop": "Poste de rapports",
   "publisherHelp": "Choisissez le poste qui prépare les récapitulatifs mobiles de cet établissement. Gardez-le en ligne avec toutes les caisses synchronisées. Ce réglage concerne cet établissement.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minutes",
   "stockAlertsQuietHelp": "Les alertes attendent la fin des heures calmes. Le stock est vérifié à nouveau avant l’envoi.",
   "stockNewLowCount": "Articles nouvellement en stock faible : {count}",
-  "savingPin": "Enregistrement du code…"
+  "savingPin": "Enregistrement du code…",
+  "salesCheckedTime": "{date} · vérifié à {time} dans le fuseau horaire de l’établissement"
 }

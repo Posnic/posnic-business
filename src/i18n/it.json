@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · preparato alle {time} nel fuso orario della filiale",
   "summaryPartial": "Alcune vendite potrebbero essere ancora in sincronizzazione",
   "summaryDelayed": "Questo riepilogo è in ritardo",
-  "summaryCompleteness": "Questi valori sono stati preparati dal computer dei report. Potrebbero non includere le vendite più recenti di tutte le casse. Aggiorna per verificare se è disponibile un riepilogo preparato più recente.",
+  "summaryCompleteness": "Include le vendite ricevute dal server. Le casse offline potrebbero avere vendite più recenti. Aggiorna per ricontrollare.",
   "salesBreakdown": "Dettaglio del totale",
   "billedSales": "Vendite fatturate",
   "returnsOnDay": "Resi di questo giorno",
   "issuedBills": "Conti emessi",
   "salesDefinition": "Sconti e arrotondamenti sono già inclusi. I resi vengono conteggiati nel giorno in cui avvengono, anche se riguardano conti precedenti. I conti pagati parzialmente vengono conteggiati per l’intero importo addebitato. Questi dati rappresentano le vendite, non gli incassi o l’utile.",
   "selectComparableBranch": "Seleziona una filiale per visualizzare Oggi. Queste filiali usano valute o fusi orari diversi, quindi i totali vengono mostrati separatamente.",
-  "summaryPreparing": "Non è ancora disponibile un riepilogo preparato. Mantieni online il computer dei report e aggiorna tra poco. Nessun importo viene mostrato finché il riepilogo non è verificato.",
+  "summaryPreparing": "Le vendite non sono ancora disponibili. Aggiorna tra poco. Nessun importo viene mostrato prima della verifica.",
   "summaryUnavailable": "Impossibile verificare questo riepilogo. Controlla la connessione e aggiorna. Per questa richiesta non vengono mostrati valori salvati.",
-  "summaryLoading": "Verifica del riepilogo preparato…",
+  "summaryLoading": "Verifica delle ultime vendite…",
   "signOut": "Esci",
   "reportingDesktop": "Computer dei report",
   "publisherHelp": "Scegli il computer che prepara i riepiloghi mobili di questa filiale. Mantienilo online con tutte le casse sincronizzate. Questa impostazione riguarda questa filiale.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minuti",
   "stockAlertsQuietHelp": "Gli avvisi attendono la fine delle ore di silenzio. Le scorte vengono ricontrollate prima dell’invio.",
   "stockNewLowCount": "Nuovi articoli con scorte basse: {count}",
-  "savingPin": "Salvataggio PIN…"
+  "savingPin": "Salvataggio PIN…",
+  "salesCheckedTime": "{date} · verificato alle {time} nel fuso orario della filiale"
 }

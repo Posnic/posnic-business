@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · umeandaliwa saa {time} katika ukanda wa saa wa tawi",
   "summaryPartial": "Baadhi ya mauzo huenda bado yanasawazishwa",
   "summaryDelayed": "Muhtasari huu umechelewa",
-  "summaryCompleteness": "Takwimu hizi zimeandaliwa na kompyuta yako ya ripoti. Huenda hazijajumuisha mauzo ya hivi karibuni ya kila kifaa cha mauzo. Kuonyesha upya hukagua kama kuna muhtasari mpya zaidi ulioandaliwa.",
+  "summaryCompleteness": "Inajumuisha mauzo yaliyopokelewa na seva yako. Vifaa vya mauzo visivyo mtandaoni vinaweza kuwa na mauzo mapya zaidi. Onyesha upya ili kukagua tena.",
   "salesBreakdown": "Maelezo ya jumla",
   "billedSales": "Mauzo yaliyotolewa bili",
   "returnsOnDay": "Marejesho ya siku hii",
   "issuedBills": "Bili zilizotolewa",
   "salesDefinition": "Punguzo na kuzungusha kiasi tayari vimejumuishwa. Marejesho yanahesabiwa siku yanapofanyika, hata kwa bili za zamani. Bili zilizolipwa kwa sehemu zinahesabiwa kwa thamani yake yote. Haya ni mauzo, si fedha zilizokusanywa au faida.",
   "selectComparableBranch": "Chagua tawi moja ili kuona Leo. Matawi haya yanatumia sarafu au kanda za saa tofauti, kwa hiyo jumla zake zinaonyeshwa kando.",
-  "summaryPreparing": "Muhtasari ulioandaliwa bado haupatikani. Weka kompyuta ya ripoti mtandaoni na uonyeshe upya baada ya muda mfupi. Hakuna kiasi kinachoonyeshwa mpaka muhtasari uthibitishwe.",
+  "summaryPreparing": "Mauzo bado hayapatikani. Onyesha upya baada ya muda mfupi. Hakuna kiasi kitakachoonyeshwa hadi takwimu zithibitishwe.",
   "summaryUnavailable": "Muhtasari huu haukuweza kuthibitishwa. Kagua muunganisho wako na uonyeshe upya. Hakuna takwimu zilizohifadhiwa zinazoonyeshwa kwa ombi hili.",
-  "summaryLoading": "Inakagua muhtasari wako ulioandaliwa…",
+  "summaryLoading": "Inakagua mauzo ya hivi karibuni…",
   "signOut": "Ondoka kwenye akaunti",
   "reportingDesktop": "Kompyuta ya ripoti",
   "publisherHelp": "Chagua kompyuta inayoandaa muhtasari wa simu wa tawi hili. Iweke mtandaoni na vifaa vyote vya mauzo visawazishwe. Mpangilio huu ni wa tawi hili.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "Dakika {minutes}",
   "stockAlertsQuietHelp": "Arifa zinasubiri hadi saa za utulivu ziishe. Bidhaa hukaguliwa tena kabla ya kutuma.",
   "stockNewLowCount": "Bidhaa mpya zenye akiba ndogo: {count}",
-  "savingPin": "Inahifadhi PIN…"
+  "savingPin": "Inahifadhi PIN…",
+  "salesCheckedTime": "{date} · imekaguliwa saa {time} katika ukanda wa saa wa tawi"
 }

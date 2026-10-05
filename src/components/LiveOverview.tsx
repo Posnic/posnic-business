@@ -1,6 +1,6 @@
 import { useLocale } from "../i18n/useLocale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Text, View, StyleSheet, useColorScheme } from "react-native";
+import { AppState, Text, View, StyleSheet, useColorScheme } from "react-native";
 import { Card, Button } from "./ui";
 import { type Credential } from "../services/sessionVault";
 import { type BusinessContext, resolveBranchScope } from "../domain/contracts";
@@ -44,6 +44,7 @@ export function LiveOverview({
     [notice, setNotice] = useState<MessageKey | null>(null);
   const controller = useRef<AbortController | null>(null),
     generation = useRef(0);
+  const inFlight = useRef(false);
   const lost = useRef(onAccessLost);
   lost.current = onAccessLost;
   const dark = useColorScheme() === "dark";
@@ -90,11 +91,13 @@ export function LiveOverview({
     setSnapshot((previous) => (previous?.scope === identity ? previous : null));
     setNotice(null);
     if (!allowed) {
+      inFlight.current = false;
       setSnapshot(null);
       setBusy(false);
       return;
     }
     setBusy(true);
+    inFlight.current = true;
     try {
       const options = { fetcher: businessFetch, signal: request.signal };
       const discovery = await discoverBusinessServer(
@@ -145,7 +148,10 @@ export function LiveOverview({
               : "summaryUnavailable",
       );
     } finally {
-      if (run === generation.current) setBusy(false);
+      if (run === generation.current) {
+        inFlight.current = false;
+        setBusy(false);
+      }
     }
   }, [
     credential.origin,
@@ -161,6 +167,20 @@ export function LiveOverview({
     return () => {
       generation.current++;
       controller.current?.abort();
+    };
+  }, [refresh]);
+  useEffect(() => {
+    // Poll only the visible, unlocked Today screen. A heartbeat is never
+    // presented as proof that every till has uploaded its pending sales.
+    const check = () => {
+      if (AppState.currentState === "active" && !inFlight.current)
+        void refresh();
+    };
+    const timer = setInterval(check, 30_000);
+    const listener = AppState.addEventListener("change", check);
+    return () => {
+      clearInterval(timer);
+      listener.remove();
     };
   }, [refresh]);
   useEffect(() => {
@@ -222,13 +242,13 @@ export function LiveOverview({
             </Text>
             <Text style={[styles.text, ink]}>{t("includingTax")}</Text>
             <Text style={[styles.text, ink]}>
-              {t("preparedSummaryTime", {
+              {t("salesCheckedTime", {
                 date: summary.businessDate,
                 time: new Intl.DateTimeFormat(getFormatLocale(), {
                   hour: "numeric",
                   minute: "2-digit",
                   timeZone: selected[0]!.timezone,
-                }).format(new Date(summary.preparedAt)),
+                }).format(new Date(summary.freshness.checkedAt)),
               })}
             </Text>
           </View>

@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · voorbereid om {time} in de tijdzone van de vestiging",
   "summaryPartial": "Sommige verkopen worden mogelijk nog gesynchroniseerd",
   "summaryDelayed": "Deze samenvatting is vertraagd",
-  "summaryCompleteness": "Deze cijfers zijn voorbereid door uw rapportagecomputer. Ze bevatten mogelijk nog niet de nieuwste verkopen van alle kassa’s. Vernieuwen controleert of er een nieuwere voorbereide samenvatting is.",
+  "summaryCompleteness": "Bevat verkopen die uw server heeft ontvangen. Offline kassa’s kunnen nieuwere verkopen hebben. Vernieuw om opnieuw te controleren.",
   "salesBreakdown": "Opbouw van het totaal",
   "billedSales": "Gefactureerde omzet",
   "returnsOnDay": "Retouren op deze dag",
   "issuedBills": "Uitgegeven rekeningen",
   "salesDefinition": "Kortingen en afrondingen zijn al verwerkt. Retouren tellen mee op de dag waarop ze plaatsvinden, ook voor oudere rekeningen. Gedeeltelijk betaalde rekeningen tellen mee voor hun volledige rekeningbedrag. Dit is omzet, geen ontvangen geld of winst.",
   "selectComparableBranch": "Selecteer één vestiging om Vandaag te bekijken. Deze vestigingen gebruiken verschillende valuta’s of tijdzones, dus hun totalen worden apart getoond.",
-  "summaryPreparing": "Er is nog geen voorbereide samenvatting beschikbaar. Houd de rapportagecomputer online en vernieuw binnenkort. Er wordt geen bedrag getoond totdat de samenvatting is geverifieerd.",
+  "summaryPreparing": "Verkopen zijn nog niet beschikbaar. Vernieuw over een ogenblik. Bedragen worden pas na controle getoond.",
   "summaryUnavailable": "Deze samenvatting kon niet worden geverifieerd. Controleer uw verbinding en vernieuw. Voor dit verzoek worden geen opgeslagen cijfers getoond.",
-  "summaryLoading": "Uw voorbereide samenvatting controleren…",
+  "summaryLoading": "Laatste verkopen controleren…",
   "signOut": "Afmelden",
   "reportingDesktop": "Rapportagecomputer",
   "publisherHelp": "Kies de computer die de mobiele samenvattingen van deze vestiging voorbereidt. Houd deze online en zorg dat alle kassa’s gesynchroniseerd zijn. Deze instelling geldt voor deze vestiging.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minuten",
   "stockAlertsQuietHelp": "Meldingen wachten tot de stille uren voorbij zijn. De voorraad wordt vóór verzending opnieuw gecontroleerd.",
   "stockNewLowCount": "Nieuw gemelde artikelen met lage voorraad: {count}",
-  "savingPin": "Pincode opslaan…"
+  "savingPin": "Pincode opslaan…",
+  "salesCheckedTime": "{date} · gecontroleerd om {time} in de tijdzone van de vestiging"
 }
