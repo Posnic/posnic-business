@@ -1,6 +1,6 @@
 import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
-import { Text, View, StyleSheet, useColorScheme } from "react-native";
+import { AppState, Text, View, StyleSheet, useColorScheme } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { Button, Card } from "./ui";
 import { businessFetch } from "../platform/network";
@@ -8,9 +8,11 @@ import { proofSource } from "../platform/proof";
 import {
   startAuthorization,
   checkAuthorization,
+  revokeSession,
   type AuthorizationAttempt,
   type Session,
 } from "../services/authorization";
+import { foregroundAuthorization } from "../services/foregroundAuthorization";
 import { t } from "../i18n";
 
 export function AuthorizationPanel({
@@ -54,6 +56,16 @@ export function AuthorizationPanel({
     if (!attempt || !waiting) return;
     const request = new AbortController();
     controller.current = request;
+    const delivery = foregroundAuthorization({
+      active: () => AppState.currentState === "active",
+      deliver: (session) => connected.current(session),
+      discard: (session) => {
+        void revokeSession(session, { fetcher: businessFetch }).catch(() => {});
+      },
+    });
+    const foreground = AppState.addEventListener("change", () =>
+      delivery.resume(),
+    );
     let timer: ReturnType<typeof setTimeout>;
     const check = async () => {
       try {
@@ -63,7 +75,7 @@ export function AuthorizationPanel({
         });
         if (request.signal.aborted) return;
         if (session) {
-          connected.current(session);
+          delivery.offer(session);
           try {
             WebBrowser.dismissBrowser();
           } catch {
@@ -84,6 +96,8 @@ export function AuthorizationPanel({
     return () => {
       request.abort();
       clearTimeout(timer);
+      foreground.remove();
+      delivery.dispose();
     };
   }, [attempt, waiting]);
   useEffect(() => {

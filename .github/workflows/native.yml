@@ -12,7 +12,7 @@ on:
         type: string
         default: "1"
       publish_build_run:
-        description: Verified Android build run to publish as preview 11
+        description: Verified Android build run to publish as preview 12
         required: false
         type: string
       publish_smoke_run:
@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.11-android-test.apk
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.12-android-test.apk
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
@@ -212,22 +212,22 @@ jobs:
           run-id: ${{ inputs.publish_build_run }}
           github-token: ${{ github.token }}
           path: test-release
-      - name: Publish verified preview 11
+      - name: Publish verified preview 12
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
           [[ "$(cat test-release/SOURCE_COMMIT.txt)" == "$SOURCE_SHA" ]]
           (cd test-release && sha256sum -c SHA256SUMS.txt)
-          grep -q "versionCode='11'" test-release/package.txt
-          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.11-source.zip "$SOURCE_SHA"
+          grep -q "versionCode='12'" test-release/package.txt
+          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.12-source.zip "$SOURCE_SHA"
           cat > release-notes.md <<'NOTES'
           Latest Android test build of Posnic Business. Download the APK below and open it on your phone. No Expo Go or development server is needed. Start with **Explore sample business**.
 
-          Since preview 10: save and unlock your app PIN using a native background key derivation. Four- and six-digit PINs are supported, with a durable five-attempt limit and visible saving progress. Android versionCode is now 11.
+          Since preview 11: Today reads synced server sales without requiring a reporting desktop, refreshes while open, and shows when figures were checked. Browser approval waits for the app to return to the foreground before opening PIN setup. Android versionCode is now 12.
 
           This is a development-signed test APK for ARM64 phones and x86-64 emulators. Cloud browser consent has been fixed on the server. Connected features and notifications require a compatible configured backend.
 
-          Validation: TypeScript and 105 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
+          Validation: TypeScript and 108 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
           NOTES
-          gh release create v0.1.0-preview.11 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.11 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
+          gh release create v0.1.0-preview.12 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.12 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
