@@ -209,12 +209,10 @@ test("review confirms identity and reconciles a lost decision response without c
   await page
     .getByRole("textbox", { name: "HTTPS server address" })
     .fill(origin);
-  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  let popupPromise = context.waitForEvent("page");
   await page
     .getByRole("button", { name: "Sign in securely", exact: true })
     .click();
-  let popupPromise = context.waitForEvent("page");
-  await page.getByRole("button", { name: "Open secure sign-in" }).click();
   const popup = await popupPromise;
   await popup.waitForLoadState();
   await page.bringToFront();

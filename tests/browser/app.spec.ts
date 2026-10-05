@@ -325,13 +325,11 @@ test("approved Business connection shows only real scope and revokes on sign-out
   await page
     .getByRole("textbox", { name: "HTTPS server address" })
     .fill(origin);
-  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  const popupPromise = context.waitForEvent("page");
   await page
     .getByRole("button", { name: "Sign in securely", exact: true })
     .click();
-  await expect(page.getByText("RRRRRR", { exact: true })).toBeVisible();
-  const popupPromise = context.waitForEvent("page");
-  await page.getByRole("button", { name: "Open secure sign-in" }).click();
+  await expect(page.getByText("RRRRRR", { exact: true })).toHaveCount(0);
   const popup = await popupPromise;
   await popup.waitForLoadState();
   await page.bringToFront();
@@ -730,12 +728,14 @@ test("Cloud and Community do not impersonate completed authorization", async ({
   await page
     .getByRole("textbox", { name: "HTTPS server address" })
     .fill("http://shop.example.com");
-  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Sign in securely", exact: true })
+    .click();
   await expect(
     page.getByText(/Use a secure HTTPS server origin/),
   ).toBeVisible();
 });
-test("Community compatibility does not sign in and obsolete checks cannot update the welcome screen", async ({
+test("obsolete Community checks cannot open approval after navigating back", async ({
   page,
 }) => {
   const origin = "https://shop.example.com";
@@ -755,11 +755,6 @@ test("Community compatibility does not sign in and obsolete checks cannot update
   await page
     .getByRole("textbox", { name: "HTTPS server address" })
     .fill(origin);
-  await page.getByRole("button", { name: "Check server", exact: true }).click();
-  await expect(
-    page.getByText(/This server supports the Business connection protocol/),
-  ).toBeVisible();
-  await expect(page.getByRole("tab", { name: "Today" })).toHaveCount(0);
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
@@ -771,7 +766,9 @@ test("Community compatibility does not sign in and obsolete checks cannot update
       .fulfill({ contentType: "application/json", body })
       .catch(() => {});
   });
-  await page.getByRole("button", { name: "Check server", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Sign in securely", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Checking server…", exact: true }),
   ).toBeDisabled();
