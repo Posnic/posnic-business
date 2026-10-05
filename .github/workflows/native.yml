@@ -231,4 +231,3 @@ jobs:
           Validation: TypeScript and 108 app tests, signature and permissions, embedded JavaScript, and Android emulator installation, dashboard, Insights, item paging and background/resume checks passed. Source commit, signing details, package metadata and checksum are attached.
           NOTES
           gh release create v0.1.0-preview.12 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.12 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
-
