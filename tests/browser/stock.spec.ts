@@ -151,15 +151,9 @@ for (const [locale, messages] of [
     await page
       .getByRole("textbox", { name: messages.serverAddress })
       .fill(origin);
-    await page
-      .getByRole("button", { name: messages.checkServer, exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: messages.secureSignIn, exact: true })
-      .click();
     const popupReady = context.waitForEvent("page");
     await page
-      .getByRole("button", { name: messages.openBrowser, exact: true })
+      .getByRole("button", { name: messages.secureSignIn, exact: true })
       .click();
     await (await popupReady).waitForLoadState();
     await page.bringToFront();

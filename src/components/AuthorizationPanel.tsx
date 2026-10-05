@@ -63,11 +63,13 @@ export function AuthorizationPanel({
         void revokeSession(session, { fetcher: businessFetch }).catch(() => {});
       },
     });
-    const foreground = AppState.addEventListener("change", () =>
-      delivery.resume(),
-    );
     let timer: ReturnType<typeof setTimeout>;
+    let checking = false;
+    let received = false;
     const check = async () => {
+      if (request.signal.aborted || checking || received) return;
+      clearTimeout(timer);
+      checking = true;
       try {
         const session = await checkAuthorization(attempt, {
           signal: request.signal,
@@ -75,6 +77,7 @@ export function AuthorizationPanel({
         });
         if (request.signal.aborted) return;
         if (session) {
+          received = true;
           delivery.offer(session);
           try {
             WebBrowser.dismissBrowser();
@@ -90,8 +93,16 @@ export function AuthorizationPanel({
           setWaiting(false);
           setAttempt(null);
         }
+      } finally {
+        checking = false;
       }
     };
+    const foreground = AppState.addEventListener("change", (state) => {
+      delivery.resume();
+      // Pick up approval immediately when the browser returns, without
+      // overlapping a pending exchange or consuming a one-use grant twice.
+      if (state === "active") void check();
+    });
     timer = setTimeout(check, attempt.interval);
     return () => {
       request.abort();

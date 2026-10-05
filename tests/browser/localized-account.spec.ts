@@ -65,12 +65,10 @@ test("Tamil account tabs wrap and changing language preserves the authenticated 
   await page.goto("/");
   await page.getByRole("button", { name: ta.community, exact: true }).click();
   await page.getByRole("textbox", { name: ta.serverAddress }).fill(origin);
-  await page.getByRole("button", { name: ta.checkServer, exact: true }).click();
+  const popupPromise = context.waitForEvent("page");
   await page
     .getByRole("button", { name: ta.secureSignIn, exact: true })
     .click();
-  const popupPromise = context.waitForEvent("page");
-  await page.getByRole("button", { name: ta.openBrowser, exact: true }).click();
   const popup = await popupPromise;
   await popup.waitForLoadState();
   await page.bringToFront();

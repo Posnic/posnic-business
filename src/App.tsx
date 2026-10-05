@@ -264,7 +264,7 @@ function BusinessApp() {
         fetcher: businessFetch,
       });
       if (connectionRequest.current === request) {
-        setMessage(t("serverCompatible"));
+        setMessage("");
         setCompatibleOrigin(origin);
       }
     } catch (error) {
@@ -546,9 +546,9 @@ function BusinessApp() {
                           />
                           <Button
                             label={t(
-                              checking ? "checkingServer" : "checkServer",
+                              checking ? "checkingServer" : "secureSignIn",
                             )}
-                            disabled={checking}
+                            disabled={checking || !!compatibleOrigin}
                             onPress={() => {
                               void checkConnection(server);
                             }}
@@ -587,7 +587,7 @@ function BusinessApp() {
                         <AuthorizationPanel
                           key={compatibleOrigin}
                           origin={compatibleOrigin}
-                          autoStart={compatibleOrigin === CLOUD_ORIGIN}
+                          autoStart
                           onCancel={cancelConnection}
                           onConnected={(session) => {
                             setConnectedSession(session);
