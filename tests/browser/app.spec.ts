@@ -15,6 +15,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   let summaryUnavailable = false;
   let summaryOffline = false;
   let summaryCorrupt = false;
+  let overviewReads = 0;
   let publisherChanged = false;
   let inboxRead = false;
   let notificationRevision = 0;
@@ -34,6 +35,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
       "reporting.manage",
     ],
   };
+  await page.clock.install();
   await context.route(origin + "/api/business/v1/**", async (route) => {
     const url = new URL(route.request().url());
     let result: unknown;
@@ -83,6 +85,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
       url.pathname.endsWith("/overview") ||
       url.pathname.endsWith("/items")
     ) {
+      if (url.pathname.endsWith("/overview")) overviewReads++;
       if (trendMode) {
         const day = url.searchParams.get("businessDate")!;
         trendDays.push(day);
@@ -341,6 +344,13 @@ test("approved Business connection shows only real scope and revokes on sign-out
   ).toHaveCount(0);
   await expect(page.getByText("₹42,850.00", { exact: true })).toHaveCount(0);
   await expect(page.getByText("₹75.00", { exact: true })).toBeVisible();
+  await expect(page.getByText(/checked at .* in the branch/)).toBeVisible();
+  const beforeAutomaticRefresh = overviewReads;
+  await page.clock.fastForward(31_000);
+  await expect
+    .poll(() => overviewReads)
+    .toBeGreaterThan(beforeAutomaticRefresh);
+  await page.clock.resume();
   summaryOffline = true;
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(
@@ -380,9 +390,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   ).toBeVisible();
   await explanation.click();
   await expect(
-    trends
-      .getByText(/A prepared summary is not available yet/)
-      .filter({ visible: true }),
+    trends.getByText(/Sales are not available yet/).filter({ visible: true }),
   ).toHaveCount(1);
   await page.setViewportSize({ width: 320, height: 740 });
   expect(
@@ -616,9 +624,7 @@ test("approved Business connection shows only real scope and revokes on sign-out
   await expect(page.getByText("₹75.00", { exact: true })).toHaveCount(0);
   summaryUnavailable = true;
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
-  await expect(
-    page.getByText(/A prepared summary is not available yet/),
-  ).toBeVisible();
+  await expect(page.getByText(/Sales are not available yet/)).toBeVisible();
   await expect(page.getByText("₹75.00", { exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain(
     token,

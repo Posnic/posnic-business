@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · preparado às {time}, no fuso horário da filial",
   "summaryPartial": "Algumas vendas podem ainda estar a sincronizar",
   "summaryDelayed": "Este resumo está atrasado",
-  "summaryCompleteness": "Estes valores foram preparados pelo seu computador de relatórios. Podem não incluir as vendas mais recentes de todas as caixas. Atualize para procurar um resumo preparado mais recente.",
+  "summaryCompleteness": "Inclui as vendas recebidas pelo seu servidor. As caixas offline podem ter vendas mais recentes. Atualize para verificar novamente.",
   "salesBreakdown": "Detalhes do total",
   "billedSales": "Vendas faturadas",
   "returnsOnDay": "Devoluções neste dia",
   "issuedBills": "Contas emitidas",
   "salesDefinition": "Os descontos e o arredondamento já estão incluídos. As devoluções contam no dia em que ocorrem, mesmo para contas anteriores. As contas parcialmente pagas contam pelo valor faturado. São vendas, não dinheiro recebido nem lucro.",
   "selectComparableBranch": "Selecione uma filial para ver Hoje. Estas filiais usam moedas ou fusos horários diferentes, por isso os totais são mostrados separadamente.",
-  "summaryPreparing": "Ainda não há um resumo preparado. Mantenha o computador de relatórios ligado e atualize dentro de momentos. Nenhum valor é mostrado até o resumo ser verificado.",
+  "summaryPreparing": "As vendas ainda não estão disponíveis. Atualize em breve. Nenhum valor será mostrado antes da verificação.",
   "summaryUnavailable": "Não foi possível verificar este resumo. Verifique a ligação e atualize. Não são mostrados valores guardados para este pedido.",
-  "summaryLoading": "A verificar o resumo preparado…",
+  "summaryLoading": "A verificar as últimas vendas…",
   "signOut": "Terminar sessão",
   "reportingDesktop": "Computador de relatórios",
   "publisherHelp": "Escolha o computador que prepara os resumos móveis desta filial. Mantenha-o ligado e com todas as caixas sincronizadas. Esta configuração pertence a esta filial.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minutos",
   "stockAlertsQuietHelp": "Os alertas aguardam o fim do período de silêncio. O stock é verificado novamente antes do envio.",
   "stockNewLowCount": "Novos artigos com stock baixo: {count}",
-  "savingPin": "Salvando PIN…"
+  "savingPin": "Salvando PIN…",
+  "salesCheckedTime": "{date} · verificado às {time}, no fuso horário da filial"
 }

@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · prepared at {time} in the branch’s timezone",
   "summaryPartial": "Some sales may still be syncing",
   "summaryDelayed": "This summary is delayed",
-  "summaryCompleteness": "These figures were prepared by your reporting desktop. They may not include every till’s latest sales. Refresh checks for a newer prepared summary.",
+  "summaryCompleteness": "Includes sales received by your server. Offline tills may have newer sales. Refresh to check again.",
   "salesBreakdown": "Behind the total",
   "billedSales": "Billed sales",
   "returnsOnDay": "Returns on this day",
   "issuedBills": "Bills issued",
   "salesDefinition": "Discounts and rounding are already included. Returns are counted on the day they happen, even for older bills. Partly paid bills count at their billed value. This is sales, not cash collected or profit.",
   "selectComparableBranch": "Select one branch to see Today. These branches use different currencies or timezones, so their totals are shown separately.",
-  "summaryPreparing": "A prepared summary is not available yet. Keep the reporting desktop online and refresh shortly. No amount is shown until the summary is verified.",
+  "summaryPreparing": "Sales are not available yet. Refresh shortly. No amount is shown until the figures are verified.",
   "summaryUnavailable": "Could not verify this summary. Check your connection and refresh. No saved figures are shown for this request.",
-  "summaryLoading": "Checking your prepared summary…",
+  "summaryLoading": "Checking latest sales…",
   "signOut": "Sign out",
   "reportingDesktop": "Reporting desktop",
   "publisherHelp": "Choose the desktop that prepares this branch’s mobile summaries. Keep it online with all tills synchronized. This setting belongs to this branch.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} minutes",
   "stockAlertsQuietHelp": "Alerts wait until quiet hours end. Stock is checked again before delivery.",
   "stockNewLowCount": "{count} newly low-stock items",
-  "savingPin": "Saving PIN…"
+  "savingPin": "Saving PIN…",
+  "salesCheckedTime": "{date} · checked at {time} in the branch’s timezone"
 }

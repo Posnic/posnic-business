@@ -175,16 +175,16 @@
   "preparedSummaryTime": "{date} · disiapkan pukul {time} dalam zona waktu cabang",
   "summaryPartial": "Sebagian penjualan mungkin masih disinkronkan",
   "summaryDelayed": "Ringkasan ini tertunda",
-  "summaryCompleteness": "Angka ini disiapkan oleh komputer pelaporan Anda. Penjualan terbaru dari semua kasir mungkin belum tercakup. Penyegaran memeriksa apakah ada ringkasan siap pakai yang lebih baru.",
+  "summaryCompleteness": "Mencakup penjualan yang diterima server Anda. Kasir luring mungkin memiliki penjualan lebih baru. Segarkan untuk memeriksa lagi.",
   "salesBreakdown": "Rincian total",
   "billedSales": "Penjualan tertagih",
   "returnsOnDay": "Retur pada hari ini",
   "issuedBills": "Tagihan diterbitkan",
   "salesDefinition": "Diskon dan pembulatan sudah diperhitungkan. Retur dihitung pada hari terjadinya, termasuk untuk tagihan lama. Tagihan yang baru dibayar sebagian dihitung sebesar nilai tagihannya. Ini adalah penjualan, bukan uang yang diterima atau laba.",
   "selectComparableBranch": "Pilih satu cabang untuk melihat Hari ini. Cabang-cabang ini menggunakan mata uang atau zona waktu berbeda, sehingga totalnya ditampilkan terpisah.",
-  "summaryPreparing": "Ringkasan siap pakai belum tersedia. Pastikan komputer pelaporan tetap online dan segarkan sebentar lagi. Tidak ada jumlah yang ditampilkan sebelum ringkasan diverifikasi.",
+  "summaryPreparing": "Penjualan belum tersedia. Segarkan sebentar lagi. Jumlah tidak ditampilkan sampai angkanya terverifikasi.",
   "summaryUnavailable": "Ringkasan ini tidak dapat diverifikasi. Periksa koneksi dan segarkan. Tidak ada angka tersimpan yang ditampilkan untuk permintaan ini.",
-  "summaryLoading": "Memeriksa ringkasan siap pakai Anda…",
+  "summaryLoading": "Memeriksa penjualan terbaru…",
   "signOut": "Keluar",
   "reportingDesktop": "Komputer pelaporan",
   "publisherHelp": "Pilih komputer yang menyiapkan ringkasan seluler cabang ini. Pastikan tetap online dengan semua kasir tersinkron. Pengaturan ini berlaku untuk cabang ini.",
@@ -273,5 +273,6 @@
   "stockAlertInterval": "{minutes} menit",
   "stockAlertsQuietHelp": "Peringatan menunggu hingga jam tenang berakhir. Stok diperiksa kembali sebelum dikirim.",
   "stockNewLowCount": "Barang yang baru memiliki stok rendah: {count}",
-  "savingPin": "Menyimpan PIN…"
+  "savingPin": "Menyimpan PIN…",
+  "salesCheckedTime": "{date} · diperiksa pukul {time} dalam zona waktu cabang"
 }
