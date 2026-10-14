@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const capabilitySchema = z.enum([
+  "reporting.manage",
   "overview.read",
   "tenders.read",
   "items.read",

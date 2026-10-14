@@ -4,7 +4,11 @@
 
 An owner and manager companion for Android and iOS. See daily performance, understand useful exceptions, and eventually review important business decisions away from the shop.
 
-**Status: early development foundation, not a production release.** Version 0.1.0 runs a clearly labelled synthetic sample business. Cloud/Community authentication, PIN storage, live reporting, push delivery and financial approvals are not connected. Do not enter production credentials. The existing Mobile POS and Captain apps retain their own selling and service workflows.
+**Status: development build, not a production release.** Version 0.1.0 includes a clearly labelled synthetic sample business and separate real-account authorization screens. Cloud/Community browser sign-in, encrypted PIN storage, optional biometric unlock and connected-device removal are implemented for development testing with companion server changes. Server rollout, live reporting, push delivery, financial approvals and device qualification remain in progress. Use controlled test accounts for this preview. The existing Mobile POS and Captain apps retain their own selling and service workflows.
+
+## Android test download
+
+[Download the latest build](https://github.com/Posnic/posnic-business/releases) for ARM64 Android 7.0+ (also x86-64 emulators). Open the newest release and select its `.apk` under **Assets**. No development server is needed. These are development-signed test builds; read the release notes for validation, connected-server requirements and remaining qualification.
 
 ## Run locally
 
@@ -30,8 +34,8 @@ Choose **Explore sample business**. Under **More**, switch the sample access pro
 - A branch chooser only when more than one branch is accessible; automatic single-branch scope and no data for zero access.
 - Typed/versioned overview contract and validation for tenant/scope mismatch, unsafe money values, mixed currencies and invalid freshness claims.
 - Integer minor-unit formatting and a bounded synthetic read adapter, without heavy queries or customer data.
-- Native pull-to-refresh control, explicit Refresh, accessible record navigation, interior swipe recognition and Android back-button handling. Full native navigation-stack integration is still pending.
-- Centralized English messages and an 18-language target registry. The other Business translations are planned, not yet implemented.
+- Native navigation stacks, pull-to-refresh, explicit Refresh, accessible record navigation, interior swipes and Android back-button handling.
+- 18 language packs, RTL layout and offline localized number/date formatting. Qualified language and physical-device review remain outstanding.
 - Credential-free Cloud/Community compatibility checks with cancellation and safe error states; a tested, separate reporting transport foundation. See the [client connection draft](docs/CONNECTION_PROTOCOL.md) for server and native requirements before live sign-in.
 
 Read [implementation status](docs/IMPLEMENTATION_STATUS.md), [roadmap](docs/ROADMAP.md), [initial compatibility audit](docs/FOUNDATION_AUDIT.md), [language scope](docs/LANGUAGES.md), and [interaction rules](docs/INTERACTIONS.md).

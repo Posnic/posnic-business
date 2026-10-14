@@ -2,8 +2,8 @@ node_modules/
 .expo/
 dist/
 dist-native/
-android/
-ios/
+/android/
+/ios/
 test-results/
 playwright-report/
 *.log
@@ -14,3 +14,8 @@ playwright-report/
 *.p12
 *.mobileprovision
 .DS_Store
+__pycache__/
+
+*.p8
+credentials.json
+build-output/
