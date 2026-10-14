@@ -1,3 +1,4 @@
+import { insightText } from "../i18n/insights";
 import { useLocale } from "../i18n/useLocale";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -29,6 +30,11 @@ import { type BusinessContext } from "../domain/contracts";
 import { t, getTextAlign } from "../i18n";
 import { clearConfirmation } from "../services/pendingConfirmation";
 import { pinInput } from "../i18n/digits";
+import {
+  readLockDelay,
+  writeLockDelay,
+  type LockDelay,
+} from "../platform/securityPreferences";
 
 export function AccountScreen({
   initialSession,
@@ -66,6 +72,16 @@ export function AccountScreen({
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const [inboxIntent, setInboxIntent] = useState(0);
+  const [pinEnabled, setPinEnabled] = useState(true);
+  const [pinAction, setPinAction] = useState<
+    "change" | "disable" | "enable" | null
+  >(null);
+  const [currentPin, setCurrentPin] = useState("");
+  const [securityLoaded, setSecurityLoaded] = useState(false);
+  const [lockDelay, setLockDelay] = useState<LockDelay>(0);
+  const lockDelayRef = useRef<LockDelay>(0),
+    backgroundAt = useRef<number | null>(null),
+    lockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [biometricReady, setBiometricReady] = useState(false),
     [biometricEnabled, setBiometricEnabled] = useState(false),
     [foreground, setForeground] = useState(AppState.currentState === "active");
@@ -104,20 +120,52 @@ export function AccountScreen({
     setContext(null);
     setPin("");
     setConfirm("");
+    setCurrentPin("");
+    setPinAction(null);
+    setSecurityLoaded(false);
     setMessage("");
     setBusy(false);
     setStage("locked");
   }
   useEffect(() => {
     onSessionConsumed();
+    void readLockDelay()
+      .then((value) => {
+        lockDelayRef.current = value;
+        setLockDelay(value);
+      })
+      .catch(() => {});
     const subscription = AppState.addEventListener("change", (state) => {
       setForeground(state === "active");
-      if (state === "active") return;
+      if (state === "active") {
+        if (lockTimer.current) clearTimeout(lockTimer.current);
+        if (
+          backgroundAt.current !== null &&
+          Date.now() - backgroundAt.current >= lockDelayRef.current
+        )
+          lock("background");
+        backgroundAt.current = null;
+        return;
+      }
       // iOS marks the app inactive while its biometric prompt is visible.
       // The privacy cover remains visible; a true background event still locks.
       if (state === "inactive" && nativePrompt.current) return;
       const current = live.current;
-      lock("background");
+      if (
+        current.stage === "active" &&
+        supportsRememberedSession &&
+        lockDelayRef.current > 0
+      ) {
+        if (backgroundAt.current === null) backgroundAt.current = Date.now();
+        if (lockTimer.current) clearTimeout(lockTimer.current);
+        lockTimer.current = setTimeout(
+          () => lock("background"),
+          Math.max(
+            0,
+            lockDelayRef.current - (Date.now() - backgroundAt.current),
+          ),
+        );
+      } else lock("background");
       if (!supportsRememberedSession || current.stage === "setup") {
         if (current.credential)
           void revokeSession(current.credential, {
@@ -132,6 +180,7 @@ export function AccountScreen({
       vault.lock();
       biometrics.lock();
       subscription.remove();
+      if (lockTimer.current) clearTimeout(lockTimer.current);
     };
   }, []);
   useEffect(() => {
@@ -139,10 +188,17 @@ export function AccountScreen({
     void (async () => {
       try {
         const available = await supportsBiometrics();
-        const enabled = available && (await biometrics.isEnabled());
+        // A lost biometric enrollment must not silently fall back to an
+        // unprotected session when PIN has been explicitly disabled.
+        const enabled = await biometrics.isEnabled();
+        const hasPin = supportsRememberedSession
+          ? await vault.pinEnabled()
+          : false;
         if (!cancelled) {
+          setPinEnabled(hasPin);
           setBiometricReady(available);
           setBiometricEnabled(enabled);
+          setSecurityLoaded(true);
         }
       } catch {
         if (!cancelled) {
@@ -155,6 +211,18 @@ export function AccountScreen({
       cancelled = true;
     };
   }, [stage]);
+  useEffect(() => {
+    if (
+      stage === "locked" &&
+      foreground &&
+      securityLoaded &&
+      !pinEnabled &&
+      !biometricEnabled
+    ) {
+      setSecurityLoaded(false);
+      void unlockOrEnroll();
+    }
+  }, [stage, foreground, securityLoaded, pinEnabled, biometricEnabled]);
   async function unlockOrEnroll(useBiometrics = false) {
     if (busy) return;
     if (stage === "setup" && (!validPin(pin) || pin !== confirm)) {
@@ -178,7 +246,9 @@ export function AccountScreen({
       } else {
         const saved = useBiometrics
           ? await biometrics.unlock()
-          : await vault.unlock(pin);
+          : pinEnabled
+            ? await vault.unlock(pin)
+            : await vault.unlockWithoutPin();
         if (current !== generation.current) return;
         const fresh = await createReportingClient(saved.origin, saved.token, {
           fetcher: businessFetch,
@@ -228,6 +298,40 @@ export function AccountScreen({
       if (current === generation.current) setBusy(false);
     }
   }
+  async function savePinSettings() {
+    if (busy || !credential || !pinAction) return;
+    if (pinAction !== "disable" && (!validPin(pin) || pin !== confirm)) {
+      setMessage(t(pin !== confirm ? "pinMismatch" : "pinWeak"));
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    const run = generation.current;
+    try {
+      if (pinAction === "disable") await vault.disablePin(currentPin);
+      else {
+        if (pinEnabled) await vault.unlock(currentPin);
+        if (run !== generation.current) return;
+        await vault.enroll(credential, pin);
+        // Enrollment rotates the biometric binding; explicit opt-in is required again.
+        await biometrics.disable();
+      }
+      if (run !== generation.current) return;
+      setPinEnabled(await vault.pinEnabled());
+      setBiometricEnabled(await biometrics.isEnabled());
+      setPinAction(null);
+      setCurrentPin("");
+      setPin("");
+      setConfirm("");
+    } catch (error) {
+      if (run === generation.current)
+        setMessage(
+          t(error instanceof VaultError ? error.code : "storageUnavailable"),
+        );
+    } finally {
+      if (run === generation.current) setBusy(false);
+    }
+  }
   async function signOut() {
     if (busy) return;
     setBusy(true);
@@ -267,20 +371,28 @@ export function AccountScreen({
             {t(stage === "setup" ? "createPin" : "unlockBusiness")}
           </Text>
           <Text style={text}>
-            {t(stage === "setup" ? "createPinHelp" : "unlockHelp")}
+            {t(
+              stage === "setup"
+                ? "createPinHelp"
+                : pinEnabled
+                  ? "unlockHelp"
+                  : "unlockBusiness",
+            )}
           </Text>
-          <TextInput
-            accessibilityLabel={t("sixDigitPin")}
-            placeholder={t("sixDigitPin")}
-            placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
-            value={pin}
-            onChangeText={(value) => setPin(pinInput(value))}
-            secureTextEntry
-            keyboardType="number-pad"
-            maxLength={6}
-            autoComplete="off"
-            style={[styles.input, { color: ink }]}
-          />
+          {(stage === "setup" || pinEnabled) && (
+            <TextInput
+              accessibilityLabel={t("sixDigitPin")}
+              placeholder={t("sixDigitPin")}
+              placeholderTextColor={dark ? "#b1c1cb" : "#566a77"}
+              value={pin}
+              onChangeText={(value) => setPin(pinInput(value))}
+              secureTextEntry
+              keyboardType="number-pad"
+              maxLength={6}
+              autoComplete="off"
+              style={[styles.input, { color: ink }]}
+            />
+          )}
           {stage === "setup" && (
             <TextInput
               accessibilityLabel={t("confirmPin")}
@@ -307,25 +419,28 @@ export function AccountScreen({
               )}
             />
           )}
-          <Button
-            label={t(
-              busy
-                ? stage === "setup"
-                  ? "savingPin"
-                  : "unlocking"
-                : stage === "setup"
-                  ? "savePin"
-                  : "unlock",
-            )}
-            disabled={
-              busy ||
-              ![4, 6].includes(pin.length) ||
-              (stage === "setup" && confirm.length !== pin.length)
-            }
-            onPress={() => {
-              void unlockOrEnroll();
-            }}
-          />
+          {(stage === "setup" || pinEnabled || !biometricEnabled) && (
+            <Button
+              label={t(
+                busy
+                  ? stage === "setup"
+                    ? "savingPin"
+                    : "unlocking"
+                  : stage === "setup"
+                    ? "savePin"
+                    : "unlock",
+              )}
+              disabled={
+                busy ||
+                ((stage === "setup" || pinEnabled) &&
+                  ![4, 6].includes(pin.length)) ||
+                (stage === "setup" && confirm.length !== pin.length)
+              }
+              onPress={() => {
+                void unlockOrEnroll();
+              }}
+            />
+          )}
           {stage === "locked" && biometricEnabled && (
             <Button
               label={t("unlockBiometrics")}
@@ -364,6 +479,109 @@ export function AccountScreen({
   const security = (
     <>
       <Card>
+        <Text style={title}>{insightText("PIN lock")}</Text>
+        <Text style={text}>
+          {pinEnabled ? insightText("Enabled") : insightText("Disabled")}
+        </Text>
+        {!pinAction ? (
+          <>
+            <Button
+              label={
+                pinEnabled
+                  ? insightText("Disable PIN")
+                  : insightText("Enable PIN")
+              }
+              secondary
+              disabled={busy}
+              onPress={() => {
+                setPinAction(pinEnabled ? "disable" : "enable");
+                setMessage("");
+              }}
+            />
+            {pinEnabled && (
+              <Button
+                label={insightText("Change PIN")}
+                secondary
+                onPress={() => {
+                  setPinAction("change");
+                  setMessage("");
+                }}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {pinAction === "disable" && (
+              <Text style={text}>
+                {biometricEnabled
+                  ? "Biometric unlock will remain enabled. Your account stays signed in."
+                  : "Your account stays signed in. Anyone using this unlocked phone can open the app without a PIN."}
+              </Text>
+            )}
+            {pinEnabled && (
+              <TextInput
+                accessibilityLabel={insightText("Current PIN")}
+                placeholder={insightText("Current PIN")}
+                secureTextEntry
+                keyboardType="number-pad"
+                maxLength={6}
+                autoComplete="off"
+                value={currentPin}
+                onChangeText={(v) => setCurrentPin(pinInput(v))}
+                style={[styles.input, { color: ink }]}
+              />
+            )}
+            {pinAction !== "disable" && (
+              <>
+                <TextInput
+                  accessibilityLabel={insightText("New PIN")}
+                  placeholder={insightText("New PIN")}
+                  secureTextEntry
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoComplete="off"
+                  value={pin}
+                  onChangeText={(v) => setPin(pinInput(v))}
+                  style={[styles.input, { color: ink }]}
+                />
+                <TextInput
+                  accessibilityLabel={t("confirmPin")}
+                  placeholder={t("confirmPin")}
+                  secureTextEntry
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoComplete="off"
+                  value={confirm}
+                  onChangeText={(v) => setConfirm(pinInput(v))}
+                  style={[styles.input, { color: ink }]}
+                />
+              </>
+            )}
+            <Button
+              label={
+                pinAction === "disable"
+                  ? insightText("Confirm disable PIN")
+                  : t("savePin")
+              }
+              disabled={busy}
+              onPress={() => void savePinSettings()}
+            />
+            <Button
+              label={t("cancel")}
+              secondary
+              disabled={busy}
+              onPress={() => {
+                setPinAction(null);
+                setPin("");
+                setConfirm("");
+                setCurrentPin("");
+                setMessage("");
+              }}
+            />
+          </>
+        )}
+      </Card>
+      <Card>
         <Text style={title}>{t("quickUnlock")}</Text>
         <Text style={text}>{t("biometricHelp")}</Text>
         {biometricReady ? (
@@ -378,6 +596,35 @@ export function AccountScreen({
         ) : (
           <Text style={text}>{t("biometricUnavailable")}</Text>
         )}
+      </Card>
+      <Card>
+        <Text style={title}>{insightText("Auto-lock")}</Text>
+        <Text style={text}>
+          When the app moves to the background. Reports stay hidden in the app
+          switcher.
+        </Text>
+        {(
+          [
+            [0, insightText("Immediately")],
+            [60000, insightText("After 1 minute")],
+            [300000, insightText("After 5 minutes")],
+          ] as const
+        ).map(([delay, label]) => (
+          <Button
+            key={delay}
+            label={label}
+            secondary={lockDelay !== delay}
+            disabled={busy}
+            onPress={() => {
+              void writeLockDelay(delay)
+                .then(() => {
+                  setLockDelay(delay);
+                  lockDelayRef.current = delay;
+                })
+                .catch(() => setMessage(t("storageUnavailable")));
+            }}
+          />
+        ))}
       </Card>
       {message ? (
         <Text accessibilityRole="alert" style={text}>
@@ -399,6 +646,7 @@ export function AccountScreen({
           onAccessLost={lock}
           onSignOut={() => void signOut()}
           security={security}
+          canLock={pinEnabled || biometricEnabled}
           push={push}
           inboxIntent={inboxIntent}
           onInboxConsumed={() => setInboxIntent(0)}

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { validateInsights } from "../domain/businessInsights";
+import { type ReportRange } from "../domain/reportPeriod";
 import { communityOrigin } from "../domain/server";
 import { validatePreparedOverview } from "../domain/preparedOverview";
 import { validatePreparedStock } from "../domain/preparedStock";
@@ -46,6 +48,7 @@ const discoverySchema = z
       "unavailable",
     ]),
     itemReporting: z.literal("bounded-items-v1").optional(),
+    insightReporting: z.literal("bounded-insights-v1").optional(),
     stockReporting: z.literal("bounded-stock-v1").optional(),
     approvalAlerts: z.literal("inbox-approval-v1").optional(),
     stockAlerts: z.literal("inbox-stock-v1").optional(),
@@ -164,6 +167,7 @@ export async function discoverBusinessServer(
   address: string,
   options: Options & {
     items?: boolean;
+    insights?: boolean;
     approvals?: boolean;
     registerSessions?: boolean;
     stock?: boolean;
@@ -174,6 +178,7 @@ export async function discoverBusinessServer(
   const origin = communityOrigin(address);
   const query = new URLSearchParams();
   if (options.items) query.set("items", "1");
+  if (options.insights) query.set("insights", "1");
   if (options.approvals) query.set("approvals", "1");
   if (options.stock) query.set("stock", "1");
   if (options.stockAlerts) query.set("stockAlerts", "1");
@@ -207,6 +212,38 @@ export function createReportingClient(
   if (!/^pb1_[A-Za-z0-9_-]{43}$/.test(token))
     throw new ConnectionError("signInRequired");
   return {
+    async insights(
+      context: BusinessContext,
+      branchId: string,
+      range: ReportRange | null,
+    ) {
+      if (
+        !context.capabilities.includes("overview.read") ||
+        !context.branches.some((b) => b.id === branchId)
+      )
+        throw new ConnectionError("accessChanged");
+      const discovery = await discoverBusinessServer(origin, {
+        ...options,
+        insights: true,
+      });
+      if (discovery.insightReporting !== "bounded-insights-v1")
+        throw new ConnectionError("unsupported");
+      const query = new URLSearchParams({
+        branchId,
+        ...(range ? range : { period: "all" }),
+      });
+      const value = await readJson(
+        origin,
+        `/insights?${query}`,
+        options,
+        token,
+      );
+      try {
+        return validateInsights(value, context, branchId, range);
+      } catch {
+        throw new ConnectionError("invalidResponse");
+      }
+    },
     async stock(context: BusinessContext, branchId: string) {
       if (
         !context.capabilities.includes("stock.read") ||

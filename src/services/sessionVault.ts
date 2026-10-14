@@ -45,7 +45,14 @@ const recordSchema = z
   })
   .strict();
 const RECORD = "business.pin.v1",
-  SECRET = "business.install-secret.v1";
+  SECRET = "business.install-secret.v1",
+  UNLOCKED = "business.device-session.v1";
+const deviceSchema = z
+  .object({
+    credential: credentialSchema,
+    binding: z.string().regex(/^[a-f0-9]{32}$/),
+  })
+  .strict();
 export class VaultError extends Error {
   constructor(
     public readonly code:
@@ -113,7 +120,48 @@ export class SessionVault {
     return next;
   }
   async hasCredential() {
+    return (
+      (await this.store.get(RECORD)) !== null ||
+      (await this.store.get(UNLOCKED)) !== null
+    );
+  }
+  async pinEnabled() {
     return (await this.store.get(RECORD)) !== null;
+  }
+  async unlockWithoutPin(): Promise<Credential> {
+    const generation = this.generation;
+    return this.serial(async () => {
+      if (await this.store.get(RECORD)) throw new VaultError("signInRequired");
+      const raw = await this.store.get(UNLOCKED);
+      const parsed = deviceSchema.safeParse(raw ? JSON.parse(raw) : null);
+      if (
+        !parsed.success ||
+        Date.parse(parsed.data.credential.expiresAt) <= this.now()
+      )
+        throw new VaultError("signInRequired");
+      if (generation !== this.generation) throw new VaultError("pinLocked");
+      return parsed.data.credential;
+    });
+  }
+  /** Explicitly opt out of the additional app PIN; platform storage remains device-bound. */
+  async disablePin(pin: string) {
+    const generation = this.generation;
+    const credential = await this.unlock(pin);
+    return this.serial(async () => {
+      if (generation !== this.generation) throw new VaultError("pinLocked");
+      const record = recordSchema.parse(
+        JSON.parse((await this.store.get(RECORD)) || "null"),
+      );
+      await this.store.set(
+        UNLOCKED,
+        JSON.stringify({ credential, binding: record.salt }),
+      );
+      if (generation !== this.generation) {
+        await this.store.remove(UNLOCKED);
+        throw new VaultError("pinLocked");
+      }
+      await this.store.remove(RECORD);
+    });
   }
   /** Non-secret enrollment binding. A replacement PIN vault or exhausted PIN
    * budget also invalidates its optional biometric credential. */
@@ -123,6 +171,16 @@ export class SessionVault {
       if (generation !== this.generation) return null;
       const raw = await this.store.get(RECORD);
       try {
+        if (!raw) {
+          const direct = await this.store.get(UNLOCKED);
+          const value = deviceSchema.safeParse(
+            direct ? JSON.parse(direct) : null,
+          );
+          return value.success &&
+            Date.parse(value.data.credential.expiresAt) > this.now()
+            ? value.data.binding
+            : null;
+        }
         const record = recordSchema.parse(JSON.parse(raw ?? "null"));
         return record.failures < 5 ? record.salt : null;
       } catch {
@@ -222,6 +280,7 @@ export class SessionVault {
             failures: 0,
           }),
         );
+        await this.store.remove(UNLOCKED);
         if (generation !== this.generation) throw new VaultError("pinLocked");
       } finally {
         key.fill(0);
@@ -318,6 +377,7 @@ export class SessionVault {
     this.lock();
     return this.serial(async () => {
       await this.store.remove(RECORD);
+      await this.store.remove(UNLOCKED);
       await this.store.remove(SECRET);
     });
   }

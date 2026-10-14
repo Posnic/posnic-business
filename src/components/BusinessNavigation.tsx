@@ -1,3 +1,4 @@
+import { insightText } from "../i18n/insights";
 import { canReadInbox } from "../services/notifications";
 import { useLocale } from "../i18n/useLocale";
 import React, {
@@ -26,6 +27,8 @@ import {
   useFocusEffect,
   useIsFocused,
   useNavigation,
+  useRoute,
+  type RouteProp,
   useNavigationContainerRef,
   usePreventRemove,
   useScrollToTop,
@@ -46,7 +49,7 @@ import { supportsPush } from "../platform/push";
 import { t, isRTL } from "../i18n";
 import { Card, Button } from "./ui";
 import { LiveOverview, type RefreshBinding } from "./LiveOverview";
-import { BusinessTrends } from "./BusinessTrends";
+import { BusinessInsights } from "./BusinessInsights";
 import { BusinessStock } from "./BusinessStock";
 import { BusinessItems } from "./BusinessItems";
 import { BusinessInbox } from "./BusinessInbox";
@@ -59,10 +62,11 @@ import { PushSettings } from "./PushSettings";
 import { type usePushSettings } from "./usePushSettings";
 import { useReducedMotion } from "./useReducedMotion";
 import { LanguageSettings } from "./LanguageSettings";
+import { type ReportPeriod } from "../domain/reportPeriod";
 
 type Tabs = {
   Today: undefined;
-  Insights: undefined;
+  Insights: { period?: ReportPeriod } | undefined;
   Stock: undefined;
   Inbox: undefined;
   More: undefined;
@@ -85,6 +89,8 @@ type Routes = {
   Security: undefined;
   Language: undefined;
   PhoneNotifications: undefined;
+  Account: undefined;
+  Help: undefined;
   Approvals: undefined;
   Approval: { requestId: string };
 };
@@ -96,6 +102,7 @@ type Model = {
   onAccessLost: () => void;
   onSignOut: () => void;
   security: React.ReactNode;
+  canLock: boolean;
   push: ReturnType<typeof usePushSettings>;
   generation: number;
   publisherChanged: () => void;
@@ -257,6 +264,8 @@ function Scope() {
 }
 function Today() {
   useLocale();
+  const navigation =
+    useNavigation<NativeStackScreenProps<Routes>["navigation"]>();
   const model = useModel(),
     [refresh, setRefresh] = useState<RefreshBinding>(null),
     colors = palette(useColorScheme() === "dark");
@@ -292,43 +301,62 @@ function Today() {
           </Text>
         </Card>
       )}
+      {model.context.capabilities.includes("overview.read") && (
+        <>
+          <MenuRow
+            title={insightText("Yesterday")}
+            icon="calendar-outline"
+            onPress={() =>
+              navigation.navigate("Home", {
+                screen: "Insights",
+                params: { period: "yesterday" },
+              })
+            }
+          />
+          <MenuRow
+            title={insightText("Last week")}
+            icon="calendar-outline"
+            onPress={() =>
+              navigation.navigate("Home", {
+                screen: "Insights",
+                params: { period: "lastWeek" },
+              })
+            }
+          />
+        </>
+      )}
+      {model.context.capabilities.includes("approvals.read") && (
+        <MenuRow
+          title={t("approvals")}
+          detail={t("approvalListHelp")}
+          icon="checkmark-circle-outline"
+          onPress={() => navigation.navigate("Approvals")}
+        />
+      )}
+      {model.context.capabilities.includes("stock.read") && (
+        <MenuRow
+          title={t("stock")}
+          icon="cube-outline"
+          onPress={() => navigation.navigate("Home", { screen: "Stock" })}
+        />
+      )}
     </Page>
   );
 }
 function Insights() {
   useLocale();
+  const route = useRoute<RouteProp<Tabs, "Insights">>();
   const focused = useIsFocused();
   const model = useModel(),
     [refresh, setRefresh] = useState<RefreshBinding>(null);
-  const [items, setItems] = useState(false);
-  const showItems = items && model.context.capabilities.includes("items.read");
   return (
     <Page top refresh={refresh}>
       <Heading>{t("insights")}</Heading>
       <Scope />
-      {model.context.capabilities.includes("items.read") && (
-        <Button
-          secondary
-          label={t(showItems ? "previousSevenDays" : "bestItems")}
-          onPress={() => {
-            setRefresh(null);
-            setItems((value) => !value);
-          }}
-        />
-      )}
-      {focused && showItems && (
-        <BusinessItems
-          key={model.generation}
-          credential={model.credential}
-          context={model.context}
-          branch={model.branch}
-          onAccessLost={model.onAccessLost}
-          onRefreshBinding={setRefresh}
-        />
-      )}
-      {focused && !showItems && (
-        <BusinessTrends
-          key={model.generation}
+      {focused && (
+        <BusinessInsights
+          key={`${model.generation}:${route.params?.period}`}
+          initialPeriod={route.params?.period}
           credential={model.credential}
           context={model.context}
           branch={model.branch}
@@ -434,6 +462,11 @@ function More() {
     <Page top>
       <Heading>{t("more")}</Heading>
       <Scope />
+      <MenuRow
+        title={insightText("Account & server")}
+        icon="person-circle-outline"
+        onPress={() => navigation.navigate("Account")}
+      />
       {model.context.capabilities.includes("approvals.read") &&
         model.context.branches.length > 0 && (
           <MenuRow
@@ -500,7 +533,13 @@ function More() {
             icon="shield-checkmark-outline"
             onPress={() => navigation.navigate("Security")}
           />
-          <Button label={t("lockApp")} secondary onPress={model.onAccessLost} />
+          {model.canLock && (
+            <Button
+              label={t("lockApp")}
+              secondary
+              onPress={model.onAccessLost}
+            />
+          )}
         </>
       )}
       <MenuRow
@@ -509,6 +548,11 @@ function More() {
         onPress={() => navigation.navigate("Language")}
       />
       <Button label={t("signOut")} secondary onPress={model.onSignOut} />
+      <MenuRow
+        title={insightText("Help & about")}
+        icon="help-circle-outline"
+        onPress={() => navigation.navigate("Help")}
+      />
     </Page>
   );
 }
@@ -782,6 +826,7 @@ export function BusinessNavigation({
   onAccessLost,
   onSignOut,
   security,
+  canLock,
   push,
   inboxIntent,
   onInboxConsumed,
@@ -812,6 +857,7 @@ export function BusinessNavigation({
     onAccessLost,
     onSignOut,
     security,
+    canLock,
     push,
     generation,
     publisherChanged: () => setGeneration((value) => value + 1),
@@ -934,6 +980,52 @@ export function BusinessNavigation({
             {() => (
               <Page>
                 <LanguageSettings page />
+              </Page>
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Account"
+            options={{ title: insightText("Account & server") }}
+          >
+            {() => (
+              <Page>
+                <Card>
+                  <Heading>{context.businessName}</Heading>
+                  <Text style={{ color: colors.ink }}>{credential.origin}</Text>
+                  <Text style={{ color: colors.ink }}>
+                    {t("sessionExpires", {
+                      date: new Intl.DateTimeFormat(undefined, {
+                        dateStyle: "medium",
+                      }).format(new Date(credential.expiresAt)),
+                    })}
+                  </Text>
+                </Card>
+                <Scope />
+                <MenuRow
+                  title={t("connectedDevices")}
+                  icon="phone-portrait-outline"
+                  onPress={() => navigation.navigate("Devices")}
+                />
+                <Button secondary label={t("signOut")} onPress={onSignOut} />
+              </Page>
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name="Help"
+            options={{ title: insightText("Help & about") }}
+          >
+            {() => (
+              <Page>
+                <Card>
+                  <Heading>{t("appName")}</Heading>
+                  <Text style={{ color: colors.ink }}>
+                    {t("summaryCompleteness")}
+                  </Text>
+                  <Text style={{ color: colors.ink }}>
+                    {t("salesDefinition")}
+                  </Text>
+                  <Text style={{ color: colors.ink }}>{t("noAccessHelp")}</Text>
+                </Card>
               </Page>
             )}
           </Stack.Screen>

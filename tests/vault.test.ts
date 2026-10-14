@@ -12,6 +12,23 @@ const credential = {
   token: "pb1_" + "a".repeat(43),
   expiresAt: "2099-01-01T00:00:00.000Z",
 };
+test("PIN opt-out requires verification, remains device stored, and re-enrollment removes direct access", async () => {
+  const { vault, entries, create } = fixture();
+  await vault.enroll(credential, "826493");
+  const binding = await vault.biometricBinding();
+  await assert.rejects(vault.disablePin("123456"));
+  assert.equal(await vault.pinEnabled(), true);
+  await vault.disablePin("826493");
+  assert.equal(await vault.pinEnabled(), false);
+  assert.equal(await vault.hasCredential(), true);
+  assert.equal(await vault.biometricBinding(), binding);
+  assert.deepEqual(await create().unlockWithoutPin(), credential);
+  await vault.enroll(credential, "7391");
+  await assert.rejects(vault.unlockWithoutPin());
+  assert.equal(entries.has("business.device-session.v1"), false);
+  await vault.forget();
+  assert.equal(await vault.hasCredential(), false);
+});
 const code = (expected: string) => (error: unknown) =>
   error instanceof VaultError && error.code === expected;
 function fixture() {
