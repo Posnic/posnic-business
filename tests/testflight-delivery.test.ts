@@ -19,17 +19,18 @@ function run(mode: string, distribute = false) {
     globalThis.fetch=async (url,options)=>{
       if(!url.startsWith("https://api.appstoreconnect.apple.com/v1/"))throw Error("Foreign origin");
       if(options.method==="POST"){
-        if(!url.endsWith("betaGroups/"+group.id+"/relationships/builds"))throw Error("Wrong group");
-        if(JSON.parse(options.body).data[0].id!=="build1020")throw Error("Wrong build");
+        if(!url.endsWith("builds/build1020/relationships/betaGroups"))throw Error("Wrong build");
+        if(JSON.parse(options.body).data[0].id!==group.id)throw Error("Wrong group");
         console.log("ASSIGNED");assigned=true;return new Response(null,{status:204});
       }
       let data;
-      if(url.includes("/builds?")) {
+      if(url.includes("/v1/builds?")) {
         if(!url.includes("6818860502")||!url.includes("1020"))throw Error("Missing app/build filter");
         data=mode==="missing"?[]:[{id:"build1020",attributes:{version:"1020",processingState:mode==="processing"?"PROCESSING":"VALID",expired:mode==="expired"}}];
         if(mode==="duplicate")data.push(data[0]);
       } else if(url.includes("/apps/"))data=mode==="foreign"?[]:[group];
-      else data=assigned?[group]:[];
+      else if(url.includes("/relationships/builds"))data=assigned?[{type:"builds",id:"build1020"}]:[];
+      else throw Error("Unsupported Apple relationship");
       return Response.json({data});
     };
     await import("./scripts/testflight-status.mjs");
