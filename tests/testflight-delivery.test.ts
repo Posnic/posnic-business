@@ -24,7 +24,7 @@ function run(mode: string, distribute = false) {
         console.log("ASSIGNED");assigned=true;return new Response(null,{status:204});
       }
       let data;
-      if(url.includes("/builds?")) {
+      if(url.includes("/v1/builds?")) {
         if(!url.includes("6818860502")||!url.includes("1020"))throw Error("Missing app/build filter");
         data=mode==="missing"?[]:[{id:"build1020",attributes:{version:"1020",processingState:mode==="processing"?"PROCESSING":"VALID",expired:mode==="expired"}}];
         if(mode==="duplicate")data.push(data[0]);
