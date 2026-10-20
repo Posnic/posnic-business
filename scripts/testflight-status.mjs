@@ -23,21 +23,27 @@ const token =
     key: process.env.ASC_API_KEY_P8,
     dsaEncoding: "ieee-p1363",
   }).toString("base64url");
-async function get(path) {
+async function get(path, body) {
   const response = await fetch(
     "https://api.appstoreconnect.apple.com/v1/" + path,
     {
-      headers: { Authorization: "Bearer " + token },
+      headers: {
+        Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
+      },
+      method: body ? "POST" : "GET",
+      body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(30000),
       redirect: "error",
     },
   );
-  const body = await response.json();
+  if (response.status === 204) return null;
+  const result = await response.json();
   if (!response.ok)
     throw new Error(
-      JSON.stringify({ status: response.status, errors: body.errors }),
+      JSON.stringify({ status: response.status, errors: result.errors }),
     );
-  return body;
+  return result;
 }
 const builds = await get(
   "builds?" +
@@ -49,6 +55,31 @@ const builds = await get(
     }),
 );
 for (const build of builds.data) {
+  if (process.env.BUSINESS_DISTRIBUTE === "true") {
+    if (
+      build.attributes.processingState !== "VALID" ||
+      build.attributes.expired
+    )
+      throw new Error("Build is not processed and available");
+    const groupId = "1dfcdb9b-0dfe-4881-8ca1-4a14a8701057";
+    const existing = await get(`apps/${appId}/betaGroups?limit=100`);
+    if (
+      !existing.data.some(
+        (group) => group.id === groupId && group.attributes.isInternalGroup,
+      )
+    )
+      throw new Error(
+        "Existing Business internal tester group could not be verified",
+      );
+    const assigned = await get(`builds/${build.id}/betaGroups?limit=100`);
+    if (!assigned.data.some((group) => group.id === groupId))
+      await get(`betaGroups/${groupId}/relationships/builds`, {
+        data: [{ type: "builds", id: build.id }],
+      });
+    const verified = await get(`builds/${build.id}/betaGroups?limit=100`);
+    if (!verified.data.some((group) => group.id === groupId))
+      throw new Error("Tester assignment was not confirmed");
+  }
   const groups = await get(`builds/${build.id}/betaGroups?limit=100`);
   console.log(
     JSON.stringify({
@@ -67,6 +98,8 @@ for (const build of builds.data) {
     }),
   );
 }
+if (!builds.data.length && process.env.BUSINESS_DISTRIBUTE === "true")
+  throw new Error("Build is not yet visible; no distribution performed");
 if (!builds.data.length)
   console.log(
     JSON.stringify({ version, status: "Not yet visible in App Store Connect" }),

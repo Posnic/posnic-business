@@ -15,6 +15,10 @@ on:
         description: Read TestFlight delivery status without building
         type: boolean
         default: false
+      distribute_testflight:
+        description: Attach the inspected build to existing Business internal testers
+        type: boolean
+        default: false
       publish_build_run:
         description: Verified Android build run to publish as preview 15
         required: false
@@ -185,6 +189,7 @@ jobs:
           ASC_API_ISSUER: ${{ secrets.ASC_API_ISSUER }}
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           BUSINESS_BUILD_NUMBER: ${{ inputs.ios_build_number }}
+          BUSINESS_DISTRIBUTE: ${{ inputs.distribute_testflight }}
         run: node scripts/testflight-status.mjs
 
   publish:
