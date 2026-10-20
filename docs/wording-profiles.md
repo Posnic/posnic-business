@@ -70,3 +70,13 @@ chunks; web uses localStorage. The cache contains only labels, scope and expiry,
 never credentials. Incomplete writes are rejected and cleanup is serialized.
 All 121 checks, TypeScript, attribution and the web export passed locally.
 Installed-device and deployment validation remain pending.
+
+### Preview 15 release preparation
+
+PR #34 is merged. The browser lifecycle check now verifies authenticated profile
+application, retained labels during an offline refresh, and clearing on branch
+unassignment. All 121 checks and web export pass. Android versionCode 15 and
+the existing native release workflow are prepared for the next test build;
+publishing still requires the matching build, smoke and PIN qualification runs.
+An installed release is not yet verified. Servers require the wording endpoint
+from POS PR #1459 plus its database-context follow-up #1460.
