@@ -56,6 +56,14 @@ const builds = await get(
 );
 if (process.env.BUSINESS_DISTRIBUTE === "true" && builds.data.length !== 1)
   throw new Error("Distribution requires exactly one matching Business build");
+async function hasBuild(groupId, buildId) {
+  const result = await get(
+    `betaGroups/${groupId}/relationships/builds?limit=200`,
+  );
+  if (result.links?.next)
+    throw new Error("Group build history exceeds inspection limit");
+  return result.data.some((build) => build.id === buildId);
+}
 for (const build of builds.data) {
   if (process.env.BUSINESS_DISTRIBUTE === "true") {
     if (
@@ -73,16 +81,17 @@ for (const build of builds.data) {
       throw new Error(
         "Existing Business internal tester group could not be verified",
       );
-    const assigned = await get(`builds/${build.id}/betaGroups?limit=100`);
-    if (!assigned.data.some((group) => group.id === groupId))
+    if (!(await hasBuild(groupId, build.id)))
       await get(`betaGroups/${groupId}/relationships/builds`, {
         data: [{ type: "builds", id: build.id }],
       });
-    const verified = await get(`builds/${build.id}/betaGroups?limit=100`);
-    if (!verified.data.some((group) => group.id === groupId))
+    if (!(await hasBuild(groupId, build.id)))
       throw new Error("Tester assignment was not confirmed");
   }
-  const groups = await get(`builds/${build.id}/betaGroups?limit=100`);
+  const available = await get(`apps/${appId}/betaGroups?limit=100`);
+  const groups = [];
+  for (const group of available.data)
+    if (await hasBuild(group.id, build.id)) groups.push(group);
   console.log(
     JSON.stringify({
       build: build.id,
@@ -92,7 +101,7 @@ for (const build of builds.data) {
       betaDetail: builds.included
         ?.filter((row) => row.type === "buildBetaDetails")
         .map((row) => row.attributes),
-      groups: groups.data.map((group) => ({
+      groups: groups.map((group) => ({
         id: group.id,
         name: group.attributes.name,
         internal: group.attributes.isInternalGroup,

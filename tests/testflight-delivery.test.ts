@@ -29,7 +29,8 @@ function run(mode: string, distribute = false) {
         data=mode==="missing"?[]:[{id:"build1020",attributes:{version:"1020",processingState:mode==="processing"?"PROCESSING":"VALID",expired:mode==="expired"}}];
         if(mode==="duplicate")data.push(data[0]);
       } else if(url.includes("/apps/"))data=mode==="foreign"?[]:[group];
-      else data=assigned?[group]:[];
+      else if(url.includes("/relationships/builds"))data=assigned?[{type:"builds",id:"build1020"}]:[];
+      else throw Error("Unsupported Apple relationship");
       return Response.json({data});
     };
     await import("./scripts/testflight-status.mjs");
