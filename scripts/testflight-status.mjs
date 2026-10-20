@@ -54,6 +54,8 @@ const builds = await get(
       limit: "10",
     }),
 );
+if (process.env.BUSINESS_DISTRIBUTE === "true" && builds.data.length !== 1)
+  throw new Error("Distribution requires exactly one matching Business build");
 for (const build of builds.data) {
   if (process.env.BUSINESS_DISTRIBUTE === "true") {
     if (
