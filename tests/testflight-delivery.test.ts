@@ -19,8 +19,8 @@ function run(mode: string, distribute = false) {
     globalThis.fetch=async (url,options)=>{
       if(!url.startsWith("https://api.appstoreconnect.apple.com/v1/"))throw Error("Foreign origin");
       if(options.method==="POST"){
-        if(!url.endsWith("betaGroups/"+group.id+"/relationships/builds"))throw Error("Wrong group");
-        if(JSON.parse(options.body).data[0].id!=="build1020")throw Error("Wrong build");
+        if(!url.endsWith("builds/build1020/relationships/betaGroups"))throw Error("Wrong build");
+        if(JSON.parse(options.body).data[0].id!==group.id)throw Error("Wrong group");
         console.log("ASSIGNED");assigned=true;return new Response(null,{status:204});
       }
       let data;

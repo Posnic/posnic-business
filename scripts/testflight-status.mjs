@@ -82,8 +82,8 @@ for (const build of builds.data) {
         "Existing Business internal tester group could not be verified",
       );
     if (!(await hasBuild(groupId, build.id)))
-      await get(`betaGroups/${groupId}/relationships/builds`, {
-        data: [{ type: "builds", id: build.id }],
+      await get(`builds/${build.id}/relationships/betaGroups`, {
+        data: [{ type: "betaGroups", id: groupId }],
       });
     if (!(await hasBuild(groupId, build.id)))
       throw new Error("Tester assignment was not confirmed");
