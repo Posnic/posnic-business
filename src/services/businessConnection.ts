@@ -47,6 +47,7 @@ const discoverySchema = z
       "bounded-summary-v2",
       "unavailable",
     ]),
+    wordingProfiles: z.literal("published-wording-v1").optional(),
     itemReporting: z.literal("bounded-items-v1").optional(),
     insightReporting: z.literal("bounded-insights-v1").optional(),
     stockReporting: z.literal("bounded-stock-v1").optional(),
@@ -173,11 +174,13 @@ export async function discoverBusinessServer(
     stock?: boolean;
     stockAlertPreferences?: boolean;
     stockAlerts?: boolean;
+    wording?: boolean;
   } = {},
 ): Promise<Discovery> {
   const origin = communityOrigin(address);
   const query = new URLSearchParams();
   if (options.items) query.set("items", "1");
+  if (options.wording) query.set("wording", "1");
   if (options.insights) query.set("insights", "1");
   if (options.approvals) query.set("approvals", "1");
   if (options.stock) query.set("stock", "1");

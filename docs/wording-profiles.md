@@ -37,8 +37,21 @@ TypeScript and 13 focused i18n/wording checks passed locally on 2026-10-20.
 Tests cover exact matching, interpolation, plural fallback, stale responses,
 branch/logout/locale changes, malformed maps, unassignment and snapshot updates.
 
-Server capability/endpoint, account lifecycle wiring, authenticated branch
-authorization tests, offline persistence and installed-device rollout remain
-pending. This adapter alone is not shipped profile support. Profiles remain
+Server capability/endpoint and the client read service are now implemented
+locally. Account lifecycle wiring, offline persistence and installed-device
+rollout remain pending. This adapter alone is not shipped profile support. Profiles remain
 authoritative in POS's existing tenant-scoped settings sync lane; this app must
 only read them and must not replicate credentials or write profile documents.
+
+The client `readBusinessWording` negotiates `published-wording-v1` with
+`discovery?wording=1`, then reads `/api/business/v1/wording` with the dedicated
+Business session. It validates schema, branch and locale, uses the existing
+bounded JSON transport and rejects unsupported servers without sending a token
+to ordinary POS routes. The 256 KB transport limit remains in force; an oversized
+bundle is rejected rather than partially applied.
+
+Verification: TypeScript and 15 client i18n/wording/transport tests passed.
+The companion POS endpoint passed all 24 Business HTTP integration tests against
+disposable MongoDB, including draft exclusion, foreign branch denial, tenant
+query rejection, invalid sessions and immediate branch membership revocation.
+Neither endpoint nor client is deployed.
