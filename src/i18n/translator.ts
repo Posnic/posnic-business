@@ -96,11 +96,74 @@ export function createTranslator<K extends string>(
   const numberFormats = new Map<string, Intl.NumberFormat>();
   const pluralRules = new Map<string, Intl.PluralRules>();
   let current = fallback;
+  let wordingGeneration = 0;
+  let wordingScope: string | null = null;
+  let wording = new Map<K, string>();
+  let snapshot = 0;
   const listeners = new Set<() => void>();
+  const notify = () => {
+    snapshot++;
+    for (const listener of [...listeners]) listener();
+  };
   const getLanguage = () => definitions.get(current)!;
   return {
     getLocale: () => current,
+    getSnapshot: () => snapshot,
     getLanguage,
+    /** Call on account/branch changes, logout and before starting a new load.
+     * The returned generation prevents delayed responses restoring old wording.
+     * Scope must include server, tenant, branch and authenticated account. */
+    beginWordingScope(scope: string | null) {
+      wordingScope = scope;
+      wordingGeneration++;
+      wording = new Map();
+      notify();
+      return wordingGeneration;
+    },
+    /** Exact English-source bridge for published bundles only. No business data
+     * or substring replacement. Transport/authentication belongs to the caller. */
+    applySourceWording(
+      generation: number,
+      locale: string,
+      sourceValues: unknown,
+    ) {
+      if (
+        generation !== wordingGeneration ||
+        !wordingScope ||
+        locale !== current ||
+        !sourceValues ||
+        typeof sourceValues !== "object" ||
+        Array.isArray(sourceValues)
+      )
+        return false;
+      const entries = Object.entries(sourceValues);
+      if (
+        entries.length > 10000 ||
+        entries.some(
+          ([source, value]) =>
+            source.length > 4096 ||
+            typeof value !== "string" ||
+            value.length > 4096,
+        )
+      )
+        return false;
+      const sources = new Map(entries as [string, string][]);
+      const next = new Map<K, string>();
+      for (const key of Object.keys(reference) as K[]) {
+        const value = sources.get(reference[key]);
+        // A flat source mapping cannot express locale-specific plural forms.
+        // Keep the bundled plural message until the contract supports them.
+        if (
+          value?.trim() &&
+          !pluralMessages.get(current)?.has(key) &&
+          placeholders(value) === placeholders(reference[key])
+        )
+          next.set(key, value);
+      }
+      wording = next;
+      notify();
+      return true;
+    },
     available: (code: string) => available.has(code),
     resolveLocale(preferences: readonly string[]) {
       for (const preference of preferences) {
@@ -117,7 +180,9 @@ export function createTranslator<K extends string>(
       if (!available.has(code)) return false;
       if (current === code) return true;
       current = code;
-      for (const listener of [...listeners]) listener();
+      wordingGeneration++;
+      wording = new Map();
+      notify();
       return true;
     },
     subscribe(listener: () => void) {
@@ -130,7 +195,7 @@ export function createTranslator<K extends string>(
       const catalog = available.get(current)!;
       if (!Object.hasOwn(catalog, key)) throw new Error("Unknown message key");
       const locale = getLanguage().formatLocale;
-      let message = catalog[key];
+      let message = wording.get(key) ?? catalog[key];
       const plural = pluralMessages.get(current)?.get(key);
       if (plural) {
         const count = Object.hasOwn(values, plural.argument)

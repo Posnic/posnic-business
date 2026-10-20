@@ -1,4 +1,5 @@
 import { insightText } from "../i18n/insights";
+import { useShopWording } from "./useShopWording";
 import { canReadInbox } from "../services/notifications";
 import { useLocale } from "../i18n/useLocale";
 import React, {
@@ -837,6 +838,7 @@ export function BusinessNavigation({
   useLocale();
   const [branch, setBranch] = useState<string | null>(null),
     [generation, setGeneration] = useState(0);
+  useShopWording(credential, context, branch, onAccessLost);
   const reducedMotion = useReducedMotion();
   const navigation = useNavigationContainerRef<Routes>(),
     dark = useColorScheme() === "dark",
