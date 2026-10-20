@@ -11,7 +11,7 @@ import {
 const words = z
   .record(z.string().max(4096), z.string().max(4096))
   .refine((value) => Object.keys(value).length <= 10000);
-const bundleSchema = z
+export const bundleSchema = z
   .object({
     schemaVersion: z.literal(1),
     revision: z.number().int().nonnegative(),

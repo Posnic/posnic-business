@@ -55,3 +55,18 @@ The companion POS endpoint passed all 24 Business HTTP integration tests against
 disposable MongoDB, including draft exclusion, foreign branch denial, tenant
 query rejection, invalid sessions and immediate branch membership revocation.
 Neither endpoint nor client is deployed.
+
+### Lifecycle implementation
+
+`useShopWording` now connects the adapter to the selected authorized branch,
+account, server and locale. It refreshes on entry, foreground and once per minute
+while active, without blocking reports. Aggregate views across multiple branches
+use base wording. Generation checks reject late responses. Logout, access loss
+and scope changes clear applied wording; transient failures retain accepted
+same-scope labels.
+
+The native cache uses a separate SecureStore service with bounded Unicode-safe
+chunks; web uses localStorage. The cache contains only labels, scope and expiry,
+never credentials. Incomplete writes are rejected and cleanup is serialized.
+All 121 checks, TypeScript, attribution and the web export passed locally.
+Installed-device and deployment validation remain pending.
