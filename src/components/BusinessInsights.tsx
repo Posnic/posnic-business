@@ -21,6 +21,7 @@ import {
 } from "../domain/reportPeriod";
 import { type BusinessInsights as Report } from "../domain/businessInsights";
 import { formatMoney } from "../domain/money";
+import { formatStockQuantity } from "../domain/quantity";
 import { branchDay } from "../domain/preparedOverview";
 import { t, getTextAlign, getFormatLocale } from "../i18n";
 import { useLocale } from "../i18n/useLocale";
@@ -167,6 +168,9 @@ export function BusinessInsights({
     return () => clearInterval(timer);
   }, []);
   const value = data?.key === key && data.expires > clock ? data.value : null;
+  const quantityGroup =
+    value?.items?.byQuantity.find((g) => g.unit === unit) ??
+    value?.items?.byQuantity[0];
   const dark = useColorScheme() === "dark";
   const style = {
     color: dark ? "#eef5fa" : "#172b37",
@@ -406,10 +410,11 @@ export function BusinessInsights({
                     />
                   </View>
                   {ranking === "quantity" &&
+                    (value.items?.byQuantity.length ?? 0) > 1 &&
                     value.items?.byQuantity.map((g) => (
                       <Button
                         key={g.unit}
-                        secondary={unit !== g.unit}
+                        secondary={quantityGroup?.unit !== g.unit}
                         label={g.unit}
                         onPress={() => setUnit(g.unit)}
                       />
@@ -419,32 +424,20 @@ export function BusinessInsights({
                   ) : (
                     (ranking === "sales"
                       ? value.items.bySales
-                      : value.items.byQuantity.find((g) => g.unit === unit)
-                          ?.items ||
-                        value.items.byQuantity[0]?.items ||
-                        []
+                      : quantityGroup?.items || []
                     )
                       .slice(0, 5)
                       .map((i) => (
                         <Button
                           secondary
                           key={i.itemId}
-                          label={`${i.name} · ${
-                            ranking === "sales"
-                              ? money(i.salesAfterReturnsMinor)
-                              : i.quantities
-                                  .filter(
-                                    (q) =>
-                                      q.unit ===
-                                      (unit ||
-                                        value.items!.byQuantity[0]?.unit),
-                                  )
-                                  .map(
-                                    (q) =>
-                                      `${new Intl.NumberFormat(getFormatLocale()).format((q.soldMilli - q.returnedMilli) / 1000)} ${q.unit}`,
-                                  )
-                                  .join(", ")
-                          }`}
+                          label={i.name}
+                          description={`${money(i.salesAfterReturnsMinor)} · ${i.quantities
+                            .map(
+                              (q) =>
+                                `${formatStockQuantity(q.soldMilli - q.returnedMilli)} ${q.unit}`,
+                            )
+                            .join(", ")}`}
                           onPress={() => setDetail("item:" + i.itemId)}
                         />
                       ))
@@ -458,7 +451,7 @@ export function BusinessInsights({
                 <Card>
                   {heading(insightText("Staff sales"))}
                   <Text style={style}>
-                    By recorded invoice author, not payment collector.
+                    Based on staff recorded on each sale.
                   </Text>
                   {value.staff?.slice(0, 5).map((s) => (
                     <Button

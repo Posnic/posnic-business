@@ -96,7 +96,42 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
               ],
             },
           ],
-          byQuantity: [],
+          byQuantity: [
+            ...(from === to
+              ? []
+              : [
+                  {
+                    unit: "kg",
+                    items: [
+                      {
+                        itemId: "rice",
+                        name: "Rice",
+                        billedSalesMinor: 75000,
+                        refundsMinor: 0,
+                        salesAfterReturnsMinor: 75000,
+                        quantities: [
+                          { unit: "kg", soldMilli: 2500, returnedMilli: 0 },
+                        ],
+                      },
+                    ],
+                  },
+                ]),
+            {
+              unit: "plate",
+              items: [
+                {
+                  itemId: "fish",
+                  name: "Fish",
+                  billedSalesMinor: billed,
+                  refundsMinor: 0,
+                  salesAfterReturnsMinor: billed,
+                  quantities: [
+                    { unit: "plate", soldMilli: 4000, returnedMilli: 0 },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         staff: [
           {
@@ -151,6 +186,18 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
   await page.getByRole("tab", { name: "Insights", exact: true }).click();
   const report = page.getByTestId("business-insights");
   await expect(report.getByRole("button", { name: /Fish/ })).toBeVisible();
+  await expect(
+    report.getByRole("button", { name: /Fish.*500.*4 plate/ }),
+  ).toBeVisible();
+  await report
+    .getByRole("button", { name: "By quantity", exact: true })
+    .click();
+  await expect(
+    report.getByRole("button", { name: /Fish.*500.*4 plate/ }),
+  ).toBeVisible();
+  await expect(
+    report.getByRole("button", { name: "plate", exact: true }),
+  ).toHaveCount(0);
   await page.screenshot({
     path: "test-results/implemented-insights.png",
     fullPage: true,
@@ -158,12 +205,24 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
   await report.getByRole("button", { name: "Last week", exact: true }).click();
   await expect.poll(() => requests.length).toBe(2);
   const query = requests[1];
+  await report.getByRole("button", { name: "plate", exact: true }).click();
   await report.getByRole("button", { name: /Fish/ }).click();
   await expect(
     report.getByRole("heading", { name: "Fish", exact: true }),
   ).toBeVisible();
   expect(requests[1]).toBe(query);
   await report.getByRole("button", { name: "Back to overview" }).click();
+  await report.getByRole("button", { name: "kg", exact: true }).click();
+  await expect(
+    report.getByRole("button", { name: /Rice.*750.*2.5 kg/ }),
+  ).toBeVisible();
+  await report.getByRole("button", { name: "Today", exact: true }).click();
+  await expect(
+    report.getByRole("button", { name: /Fish.*500.*4 plate/ }),
+  ).toBeVisible();
+  await expect(
+    report.getByRole("button", { name: "kg", exact: true }),
+  ).toHaveCount(0);
   for (const label of [
     "Payments & unpaid bills",
     "Discounts & returns",
