@@ -776,7 +776,158 @@ const translated: Record<string, string[]> = {
     "විකුණුම් පිළිබඳ තවත්",
   ],
 };
+const restaurantLabels = [
+  "Peak hours",
+  "Highest sales",
+  "Most bills",
+  "Payment breakdown",
+  "Table performance",
+  "By bill count",
+];
+const restaurantTranslations: Record<string, string[]> = {
+  ta: [
+    "அதிக விற்பனை நேரங்கள்",
+    "அதிகபட்ச விற்பனை",
+    "அதிக பில்கள்",
+    "கட்டண விவரம்",
+    "மேசை செயல்திறன்",
+    "பில் எண்ணிக்கைப்படி",
+  ],
+  hi: [
+    "व्यस्त समय",
+    "सबसे अधिक बिक्री",
+    "सबसे अधिक बिल",
+    "भुगतान विवरण",
+    "टेबल प्रदर्शन",
+    "बिलों की संख्या से",
+  ],
+  ar: [
+    "ساعات الذروة",
+    "أعلى مبيعات",
+    "أكثر الفواتير",
+    "تفصيل المدفوعات",
+    "أداء الطاولات",
+    "حسب عدد الفواتير",
+  ],
+  fr: [
+    "Heures de pointe",
+    "Ventes maximales",
+    "Plus de factures",
+    "Répartition des paiements",
+    "Performance des tables",
+    "Par nombre de factures",
+  ],
+  es: [
+    "Horas punta",
+    "Mayores ventas",
+    "Más facturas",
+    "Desglose de pagos",
+    "Rendimiento de mesas",
+    "Por número de facturas",
+  ],
+  pt: [
+    "Horários de pico",
+    "Maiores vendas",
+    "Mais faturas",
+    "Detalhes dos pagamentos",
+    "Desempenho das mesas",
+    "Por número de faturas",
+  ],
+  de: [
+    "Stoßzeiten",
+    "Höchster Umsatz",
+    "Meiste Rechnungen",
+    "Zahlungsübersicht",
+    "Tischumsatz",
+    "Nach Rechnungsanzahl",
+  ],
+  it: [
+    "Ore di punta",
+    "Vendite maggiori",
+    "Più fatture",
+    "Dettaglio pagamenti",
+    "Rendimento dei tavoli",
+    "Per numero di fatture",
+  ],
+  nl: [
+    "Piekuren",
+    "Hoogste omzet",
+    "Meeste facturen",
+    "Betalingsoverzicht",
+    "Tafelprestaties",
+    "Op aantal facturen",
+  ],
+  id: [
+    "Jam sibuk",
+    "Penjualan tertinggi",
+    "Tagihan terbanyak",
+    "Rincian pembayaran",
+    "Kinerja meja",
+    "Menurut jumlah tagihan",
+  ],
+  sw: [
+    "Saa zenye shughuli nyingi",
+    "Mauzo ya juu zaidi",
+    "Bili nyingi zaidi",
+    "Maelezo ya malipo",
+    "Utendaji wa meza",
+    "Kwa idadi ya bili",
+  ],
+  ne: [
+    "व्यस्त समय",
+    "उच्चतम बिक्री",
+    "सबैभन्दा धेरै बिल",
+    "भुक्तानी विवरण",
+    "टेबलको प्रदर्शन",
+    "बिलको सङ्ख्याअनुसार",
+  ],
+  th: [
+    "ช่วงเวลาขายดี",
+    "ยอดขายสูงสุด",
+    "จำนวนบิลสูงสุด",
+    "รายละเอียดการชำระเงิน",
+    "ยอดขายตามโต๊ะ",
+    "ตามจำนวนบิล",
+  ],
+  ml: [
+    "തിരക്കേറിയ സമയം",
+    "ഏറ്റവും കൂടുതൽ വിൽപ്പന",
+    "ഏറ്റവും കൂടുതൽ ബില്ലുകൾ",
+    "പേയ്മെന്റ് വിശദാംശങ്ങൾ",
+    "ടേബിൾ പ്രകടനം",
+    "ബില്ലുകളുടെ എണ്ണം അനുസരിച്ച്",
+  ],
+  kn: [
+    "ಅಧಿಕ ಮಾರಾಟದ ಸಮಯ",
+    "ಅತಿ ಹೆಚ್ಚು ಮಾರಾಟ",
+    "ಅತಿ ಹೆಚ್ಚು ಬಿಲ್‌ಗಳು",
+    "ಪಾವತಿ ವಿವರ",
+    "ಟೇಬಲ್ ಕಾರ್ಯಕ್ಷಮತೆ",
+    "ಬಿಲ್ ಸಂಖ್ಯೆಯ ಪ್ರಕಾರ",
+  ],
+  te: [
+    "రద్దీ సమయాలు",
+    "అత్యధిక అమ్మకాలు",
+    "అత్యధిక బిల్లులు",
+    "చెల్లింపు వివరాలు",
+    "టేబుల్ పనితీరు",
+    "బిల్లుల సంఖ్య ప్రకారం",
+  ],
+  si: [
+    "කාර්යබහුල වේලාවන්",
+    "ඉහළම විකුණුම්",
+    "වැඩිම බිල්පත්",
+    "ගෙවීම් විස්තර",
+    "මේස කාර්යසාධනය",
+    "බිල්පත් ගණන අනුව",
+  ],
+};
 export function insightText(text: string) {
+  const restaurantIndex = restaurantLabels.indexOf(text);
+  if (restaurantIndex >= 0)
+    return (
+      restaurantTranslations[translator.getLocale()]?.[restaurantIndex] ?? text
+    );
   const existing: Record<string, MessageKey> = {
     Today: "today",
     "Average billed sale": "averageBill",
@@ -789,6 +940,10 @@ export function insightText(text: string) {
     : (translated[translator.getLocale()]?.[index] ?? text);
 }
 export function validateInsightTranslations() {
+  for (const locale of Object.keys(translated)) {
+    if (restaurantTranslations[locale]?.length !== restaurantLabels.length)
+      throw Error("Incomplete restaurant labels: " + locale);
+  }
   for (const [locale, values] of Object.entries(translated))
     if (values.length !== source.length || values.some((v) => !v.trim()))
       throw Error("Incomplete insights labels: " + locale);

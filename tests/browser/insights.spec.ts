@@ -133,6 +133,34 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
             },
           ],
         },
+        restaurant:
+          from === to
+            ? null
+            : {
+                basis: "recorded-bill-table",
+                tableCount: 1,
+                withoutTable: null,
+                bySales: [
+                  {
+                    id: "8",
+                    name: "Table 8",
+                    bills: 4,
+                    billedSalesMinor: billed,
+                    refundsMinor: 0,
+                    salesAfterReturnsMinor: billed,
+                  },
+                ],
+                byBills: [
+                  {
+                    id: "8",
+                    name: "Table 8",
+                    bills: 4,
+                    billedSalesMinor: billed,
+                    refundsMinor: 0,
+                    salesAfterReturnsMinor: billed,
+                  },
+                ],
+              },
         staff: [
           {
             id: "priya",
@@ -198,6 +226,15 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
   await expect(
     report.getByRole("button", { name: "plate", exact: true }),
   ).toHaveCount(0);
+  await expect(
+    report.getByRole("heading", { name: "Table performance", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    report.getByRole("heading", { name: "Peak hours", exact: true }),
+  ).toBeVisible();
+  await expect(
+    report.getByRole("heading", { name: "Payment breakdown", exact: true }),
+  ).toBeVisible();
   await page.screenshot({
     path: "test-results/implemented-insights.png",
     fullPage: true,
@@ -205,6 +242,17 @@ test("connected insights preserve dates across drilldowns and retain Inbox and M
   await report.getByRole("button", { name: "Last week", exact: true }).click();
   await expect.poll(() => requests.length).toBe(2);
   const query = requests[1];
+  await expect(
+    report.getByRole("heading", { name: "Table performance", exact: true }),
+  ).toBeVisible();
+  await report
+    .getByRole("button", { name: "By bill count", exact: true })
+    .click();
+  await expect(report.getByText("Table 8", { exact: true })).toBeVisible();
+  await report
+    .getByRole("heading", { name: "Table performance", exact: true })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "test-results/restaurant-insights.png" });
   await report.getByRole("button", { name: "plate", exact: true }).click();
   await report.getByRole("button", { name: /Fish/ }).click();
   await expect(

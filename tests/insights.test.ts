@@ -62,6 +62,48 @@ test("report contract binds the requested scope and reconciles hourly and tender
     details: [],
   };
   assert.equal(validateInsights(value, context, "c", range).bills, 1);
+  const table = {
+    id: "8",
+    name: "Table 8",
+    bills: 1,
+    billedSalesMinor: 100,
+    refundsMinor: 0,
+    salesAfterReturnsMinor: 100,
+  };
+  const restaurant = {
+    basis: "recorded-bill-table",
+    tableCount: 1,
+    bySales: [table],
+    byBills: [table],
+    withoutTable: null,
+  };
+  assert.equal(
+    validateInsights({ ...value, restaurant }, context, "c", range).restaurant
+      ?.tableCount,
+    1,
+  );
+  assert.throws(() =>
+    validateInsights(
+      {
+        ...value,
+        restaurant: { ...restaurant, bySales: [{ ...table, bills: 2 }] },
+      },
+      context,
+      "c",
+      range,
+    ),
+  );
+  assert.throws(() =>
+    validateInsights(
+      {
+        ...value,
+        restaurant: { ...restaurant, tableCount: 2, bySales: [table, table] },
+      },
+      context,
+      "c",
+      range,
+    ),
+  );
   assert.throws(() =>
     validateInsights({ ...value, branchId: "other" }, context, "c", range),
   );
