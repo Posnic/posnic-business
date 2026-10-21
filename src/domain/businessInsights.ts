@@ -20,6 +20,14 @@ const item = z.object({
     )
     .max(16),
 });
+const table = z.object({
+  id: z.string().max(254),
+  name: z.string().max(100),
+  bills: positive,
+  billedSalesMinor: positive,
+  refundsMinor: positive,
+  salesAfterReturnsMinor: amount,
+});
 export const insightsSchema = z.object({
   schemaVersion: z.literal(1),
   businessId: z.string(),
@@ -76,6 +84,16 @@ export const insightsSchema = z.object({
         .max(100),
     })
     .nullable(),
+  restaurant: z
+    .object({
+      basis: z.literal("recorded-bill-table"),
+      bySales: z.array(table).max(20),
+      byBills: z.array(table).max(20),
+      tableCount: positive,
+      withoutTable: table.nullable(),
+    })
+    .nullable()
+    .optional(),
   details: z
     .array(
       z.object({
@@ -126,6 +144,36 @@ export function validateInsights(
   )
     throw Error("Unexpected report permission");
   const sum = (rows: number[]) => rows.reduce((a, b) => a + BigInt(b), 0n);
+  if (value.restaurant) {
+    for (const ranking of [
+      value.restaurant.bySales,
+      value.restaurant.byBills,
+    ]) {
+      if (
+        ranking.length !== Math.min(20, value.restaurant.tableCount) ||
+        new Set(ranking.map((r) => r.id)).size !== ranking.length
+      )
+        throw Error("Invalid table ranking");
+      const rows = [
+        ...ranking,
+        ...(value.restaurant.withoutTable
+          ? [value.restaurant.withoutTable]
+          : []),
+      ];
+      for (const field of [
+        "billedSalesMinor",
+        "refundsMinor",
+        "bills",
+      ] as const) {
+        const total = sum(rows.map((r) => r[field]));
+        if (
+          total > BigInt(value[field]) ||
+          (value.restaurant.tableCount <= 20 && total !== BigInt(value[field]))
+        )
+          throw Error("Invalid table totals");
+      }
+    }
+  }
   if (
     new Set(value.hours.map((h) => h.hour)).size !== 24 ||
     sum(value.hours.map((h) => h.billedSalesMinor)) !==
@@ -146,6 +194,9 @@ export function validateInsights(
     ...(value.items?.bySales || []),
     ...(value.items?.byQuantity.flatMap((g) => g.items) || []),
     ...(value.staff || []),
+    ...(value.restaurant?.bySales || []),
+    ...(value.restaurant?.byBills || []),
+    ...(value.restaurant?.withoutTable ? [value.restaurant.withoutTable] : []),
   ])
     if (row.salesAfterReturnsMinor !== row.billedSalesMinor - row.refundsMinor)
       throw Error("Invalid ranking totals");

@@ -76,6 +76,7 @@ export function BusinessInsights({
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [detail, setDetail] = useState<string | null>(null),
+    [tableRanking, setTableRanking] = useState<"sales" | "bills">("sales"),
     [ranking, setRanking] = useState<"sales" | "quantity">("sales"),
     [unit, setUnit] = useState("");
   const [clock, setClock] = useState(Date.now());
@@ -447,6 +448,125 @@ export function BusinessInsights({
                   ) : null}
                 </Card>
               )}
+              {value.bills > 0 && (
+                <Card>
+                  {heading(insightText("Peak hours"))}
+                  {(() => {
+                    const peak = [...value.hours].sort(
+                      (a, b) => b.billedSalesMinor - a.billedSalesMinor,
+                    )[0];
+                    const busiest = [...value.hours].sort(
+                      (a, b) => b.bills - a.bills,
+                    )[0];
+                    if (!peak || !busiest) return null;
+                    const hour = (n: number) =>
+                      `${String(n).padStart(2, "0")}:00–${String((n + 1) % 24).padStart(2, "0")}:00`;
+                    return (
+                      <>
+                        {line(
+                          "Highest sales",
+                          `${hour(peak.hour)} · ${money(peak.billedSalesMinor)}`,
+                        )}
+                        {line(
+                          "Most bills",
+                          `${hour(busiest.hour)} · ${busiest.bills}`,
+                        )}
+                        <Text style={style}>
+                          {selected.timezone} · Based on invoice time.
+                        </Text>
+                      </>
+                    );
+                  })()}
+                  <Button
+                    secondary
+                    label={insightText("Busy hours")}
+                    onPress={() => setDetail("hours")}
+                  />
+                </Card>
+              )}
+              {context.capabilities.includes("tenders.read") &&
+                value.payments && (
+                  <Card>
+                    {heading(insightText("Payment breakdown"))}
+                    <Text style={style}>
+                      Recorded payments on bills in this period.
+                    </Text>
+                    {[...value.payments.methods]
+                      .sort((a, b) => b.amountMinor - a.amountMinor)
+                      .slice(0, 5)
+                      .map((m) =>
+                        line(
+                          m.name,
+                          `${money(m.amountMinor)} · ${new Intl.NumberFormat(getFormatLocale(), { style: "percent", maximumFractionDigits: 1 }).format(value.payments!.receivedMinor ? m.amountMinor / value.payments!.receivedMinor : 0)}`,
+                        ),
+                      )}
+                    {line(
+                      insightText("Still unpaid"),
+                      money(value.payments.outstandingMinor),
+                    )}
+                    <Button
+                      secondary
+                      label={insightText("Payments & unpaid bills")}
+                      onPress={() => setDetail("payments")}
+                    />
+                  </Card>
+                )}
+              {value.restaurant && (
+                <Card>
+                  {heading(insightText("Table performance"))}
+                  <Text style={style}>
+                    Completed bills by recorded table. Split bills count
+                    separately; this is not table occupancy.
+                  </Text>
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                  >
+                    <Button
+                      label={insightText("By sales value")}
+                      secondary={tableRanking !== "sales"}
+                      onPress={() => setTableRanking("sales")}
+                    />
+                    <Button
+                      label={insightText("By bill count")}
+                      secondary={tableRanking !== "bills"}
+                      onPress={() => setTableRanking("bills")}
+                    />
+                  </View>
+                  {(tableRanking === "sales"
+                    ? value.restaurant.bySales
+                    : value.restaurant.byBills
+                  )
+                    .slice(0, 5)
+                    .map((row) => (
+                      <View key={row.id} style={{ gap: 4 }}>
+                        {line(row.name, money(row.salesAfterReturnsMinor))}
+                        <Text style={style}>
+                          {row.bills} bills · Average billed sale{" "}
+                          {row.bills
+                            ? money(
+                                Math.round(row.billedSalesMinor / row.bills),
+                              )
+                            : "—"}
+                        </Text>
+                      </View>
+                    ))}
+                  {value.restaurant.tableCount === 0 && (
+                    <Text style={style}>
+                      No recorded table sales in this period.
+                    </Text>
+                  )}
+                  {value.restaurant.withoutTable &&
+                    line(
+                      "Other / no recorded table",
+                      `${money(value.restaurant.withoutTable.salesAfterReturnsMinor)} · ${value.restaurant.withoutTable.bills} bills`,
+                    )}
+                  {value.restaurant.tableCount > 5 && (
+                    <Text style={style}>
+                      Top 5 of {value.restaurant.tableCount} recorded tables.
+                    </Text>
+                  )}
+                </Card>
+              )}
               {context.capabilities.includes("reporting.manage") && (
                 <Card>
                   {heading(insightText("Staff sales"))}
@@ -468,23 +588,26 @@ export function BusinessInsights({
               )}
               <Card>
                 {heading(insightText("More about your sales"))}
-                {context.capabilities.includes("tenders.read") && (
-                  <Button
-                    secondary
-                    label={insightText("Payments & unpaid bills")}
-                    onPress={() => setDetail("payments")}
-                  />
-                )}
+                {context.capabilities.includes("tenders.read") &&
+                  !value.payments && (
+                    <Button
+                      secondary
+                      label={insightText("Payments & unpaid bills")}
+                      onPress={() => setDetail("payments")}
+                    />
+                  )}
                 <Button
                   secondary
                   label={insightText("Discounts & returns")}
                   onPress={() => setDetail("adjustments")}
                 />
-                <Button
-                  secondary
-                  label={insightText("Busy hours")}
-                  onPress={() => setDetail("hours")}
-                />
+                {value.bills === 0 && (
+                  <Button
+                    secondary
+                    label={insightText("Busy hours")}
+                    onPress={() => setDetail("hours")}
+                  />
+                )}
               </Card>
             </>
           )}
@@ -617,6 +740,7 @@ export function BusinessInsights({
                 .filter((h) => h.bills > 0)
                 .map((h) => (
                   <View key={h.hour} style={{ gap: 4 }}>
+                    <Text style={style}>{h.bills} bills</Text>
                     {line(
                       `${String(h.hour).padStart(2, "0")}:00`,
                       money(h.billedSalesMinor),
