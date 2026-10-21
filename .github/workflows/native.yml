@@ -20,7 +20,7 @@ on:
         type: boolean
         default: false
       publish_build_run:
-        description: Verified Android build run to publish as preview 15
+        description: Verified Android build run to publish as preview 16
         required: false
         type: string
       publish_smoke_run:
@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.15-android-test.apk
+          cp android/app/build/outputs/apk/release/app-release.apk test-release/posnic-business-0.1.0-preview.16-android-test.apk
           sdk_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$sdk_tools/apksigner" verify --verbose --print-certs test-release/*.apk > test-release/signature.txt
           "$sdk_tools/aapt" dump badging test-release/*.apk > test-release/package.txt
@@ -238,22 +238,23 @@ jobs:
           run-id: ${{ inputs.publish_build_run }}
           github-token: ${{ github.token }}
           path: test-release
-      - name: Publish verified preview 15
+      - name: Publish verified preview 16
         env:
           SOURCE_SHA: ${{ steps.source.outputs.sha }}
         run: |
           set -euo pipefail
           [[ "$(cat test-release/SOURCE_COMMIT.txt)" == "$SOURCE_SHA" ]]
           (cd test-release && sha256sum -c SHA256SUMS.txt)
-          grep -q "versionCode='15'" test-release/package.txt
-          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.15-source.zip "$SOURCE_SHA"
+          grep -q "versionCode='16'" test-release/package.txt
+          git archive --format=zip --output=test-release/posnic-business-v0.1.0-preview.16-source.zip "$SOURCE_SHA"
           cat > release-notes.md <<'NOTES'
           Latest Android test build of Posnic Business. Download the APK below and open it on your phone. No Expo Go or development server is needed. Start with **Explore sample business**.
 
-          Since preview 14: Published Language & labels profiles now apply to the selected authorized branch. Labels refresh on entry and foreground, remain available offline, and clear on sign-out or access loss. Multi-branch aggregate screens keep standard wording. Android versionCode is now 15.
+          Since preview 15: Item rankings show value and quantity together; staff reporting uses recorded Captain and desktop attribution. Insights now include peak sales hours, busiest hours by bill count, payment amounts and shares, and restaurant table rankings by sales or completed bills. Restaurant tables appear only for enabled branches with the updated backend.
 
-          This is a development-signed test APK for ARM64 phones and x86-64 emulators. Connected insights require the new bounded-insights API on your server (Posnic/POS#1291). Older servers retain their existing report screens. Reports include synced cloud sales, not unsynced device sales. New control labels cover 18 locales; some explanations remain English.
+          This is a development-signed test APK for ARM64 phones and x86-64 emulators. Reports reflect synced records; table counts are completed bills, not occupancy. Payment totals describe payments against selected bills, not settlement-day collections. Server table reporting requires Posnic/POS#1489 deployed. New primary labels cover 18 languages; some explanations remain English.
 
-          Validation: TypeScript, 121 app tests and the browser wording lifecycle check passed. This publishing workflow also requires signature, permissions, embedded JavaScript, Android emulator smoke checks and native PIN qualification. These are emulator checks, not physical-device or live-tenant acceptance. Source commit, signing details, package metadata and checksum are attached.
+          Validation: TypeScript, 123 app tests, 14 backend tests and the browser insights flow passed locally. Publishing also requires APK signature, permissions, embedded bundle, emulator smoke checks and native PIN qualification. Physical-device and live-tenant acceptance are not claimed. Source commit, signing details, package metadata and checksums are attached. Android versionCode is 16.
+
           NOTES
-          gh release create v0.1.0-preview.15 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.15 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
+          gh release create v0.1.0-preview.16 --target "$SOURCE_SHA" --prerelease --title 'Posnic Business 0.1.0-preview.16 - Android test build' --notes-file release-notes.md test-release/*.apk test-release/*.zip test-release/SHA256SUMS.txt test-release/signature.txt test-release/package.txt test-release/SOURCE_COMMIT.txt
