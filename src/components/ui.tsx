@@ -20,12 +20,14 @@ function useStyles() {
 }
 export function Button({
   label,
+  description,
   onPress,
   secondary = false,
   disabled = false,
   expanded,
 }: {
   label: string;
+  description?: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
@@ -35,7 +37,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={description ? `${label} · ${description}` : label}
       accessibilityState={{
         disabled,
         ...(expanded === undefined ? {} : { expanded }),
@@ -53,6 +55,17 @@ export function Button({
       <Text style={[styles.buttonText, secondary && styles.secondaryText]}>
         {label}
       </Text>
+      {description ? (
+        <Text
+          style={[
+            styles.buttonText,
+            secondary && styles.secondaryText,
+            { fontSize: 15, fontWeight: "400", marginTop: 4 },
+          ]}
+        >
+          {description}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
